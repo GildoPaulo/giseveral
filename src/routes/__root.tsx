@@ -44,7 +44,7 @@ export const Route = createRootRoute({
     links: [
       {
         rel: "stylesheet",
-        href: appCss,
+        href: appCss ?? '/assets/styles.css',
       },
     ],
   }),

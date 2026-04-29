@@ -6,4 +6,22 @@
 // You can pass additional config via defineConfig({ vite: { ... } }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
-export default defineConfig();
+export default defineConfig({
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          // Output CSS with a fixed name (no hash) so the SSR worker
+          // can reference /assets/styles.css reliably without needing
+          // the ?url import to resolve correctly in the worker context.
+          assetFileNames: (assetInfo) => {
+            if (assetInfo.name?.endsWith('.css')) {
+              return 'assets/[name][extname]'
+            }
+            return 'assets/[name]-[hash][extname]'
+          },
+        },
+      },
+    },
+  },
+});
