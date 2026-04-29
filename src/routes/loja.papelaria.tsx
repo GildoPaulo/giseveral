@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import {
   Search, SlidersHorizontal, X, ShoppingCart, GitCompare,
-  ChevronDown, ShoppingBag, CheckCircle2,
+  ChevronDown, ShoppingBag, CheckCircle2, Eye,
 } from "lucide-react";
 import { PedidoRapidoButton } from "@/components/PedidoRapido";
 import { supabase } from "@/integrations/supabase/client";
@@ -256,21 +256,32 @@ function Papelaria() {
                   key={p.id}
                   className={`group rounded-xl border bg-card shadow-card transition-smooth hover:shadow-elegant flex flex-col ${inCompare ? "border-gold/60 ring-1 ring-gold/30" : "border-border"}`}
                 >
-                  <div className="relative aspect-square overflow-hidden rounded-t-xl bg-muted flex items-center justify-center">
+                  {/* Clickable image → product page */}
+                  <Link
+                    to="/loja/produto/$id"
+                    params={{ id: p.id }}
+                    className="relative aspect-square overflow-hidden rounded-t-xl bg-muted flex items-center justify-center"
+                  >
                     {p.image_url ? (
                       <img src={p.image_url} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-smooth" />
                     ) : (
                       <ShoppingBag className="h-12 w-12 text-muted-foreground/30" />
                     )}
-                    {/* Compare checkbox */}
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-smooth flex items-center justify-center">
+                      <span className="opacity-0 group-hover:opacity-100 transition-smooth flex items-center gap-1.5 rounded-md bg-white/90 px-3 py-1.5 text-xs font-semibold text-foreground shadow">
+                        <Eye className="h-3.5 w-3.5" /> Ver produto
+                      </span>
+                    </div>
+                    {/* Compare button */}
                     <button
-                      onClick={() => toggleCompare(p.id)}
+                      onClick={(e) => { e.preventDefault(); toggleCompare(p.id); }}
                       title={inCompare ? "Remover da comparação" : "Adicionar à comparação"}
-                      className={`absolute top-2 right-2 rounded-md p-1.5 text-xs font-medium transition-smooth ${inCompare ? "bg-gold text-gold-foreground" : "bg-background/80 text-foreground hover:bg-gold/20"}`}
+                      className={`absolute top-2 right-2 rounded-md p-1.5 text-xs font-medium transition-smooth z-10 ${inCompare ? "bg-gold text-gold-foreground" : "bg-background/80 text-foreground hover:bg-gold/20"}`}
                     >
                       <GitCompare className="h-3.5 w-3.5" />
                     </button>
-                  </div>
+                  </Link>
 
                   <div className="p-4 flex flex-col flex-1">
                     {p.product_categories && (
@@ -278,7 +289,10 @@ function Papelaria() {
                         {p.product_categories.name}
                       </span>
                     )}
-                    <h3 className="mt-1 text-sm font-semibold text-foreground line-clamp-2 flex-1">{p.name}</h3>
+                    {/* Clickable name */}
+                    <Link to="/loja/produto/$id" params={{ id: p.id }}>
+                      <h3 className="mt-1 text-sm font-semibold text-foreground line-clamp-2 flex-1 hover:text-brand transition-colors">{p.name}</h3>
+                    </Link>
                     {p.brand && <p className="text-xs text-muted-foreground">{p.brand}</p>}
 
                     {/* Key specs */}

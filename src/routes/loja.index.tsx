@@ -149,20 +149,24 @@ function LojaIndex() {
                   key={p.id}
                   className="group rounded-xl border border-border bg-card shadow-card transition-smooth hover:shadow-elegant"
                 >
-                  <div className="aspect-square overflow-hidden rounded-t-xl bg-muted flex items-center justify-center">
-                    {p.image_url ? (
-                      <img src={p.image_url} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-smooth" />
-                    ) : (
-                      <ShoppingBag className="h-12 w-12 text-muted-foreground/40" />
-                    )}
-                  </div>
+                  <Link to="/loja/produto/$id" params={{ id: p.id }} className="block relative">
+                    <div className="aspect-square overflow-hidden rounded-t-xl bg-muted flex items-center justify-center">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} className="h-full w-full object-cover group-hover:scale-105 transition-smooth" />
+                      ) : (
+                        <ShoppingBag className="h-12 w-12 text-muted-foreground/40" />
+                      )}
+                    </div>
+                  </Link>
                   <div className="p-4">
                     {p.product_categories && (
                       <span className="text-[10px] font-semibold uppercase tracking-wider text-gold">
                         {p.product_categories.name}
                       </span>
                     )}
-                    <h3 className="mt-1 text-sm font-semibold text-foreground line-clamp-2">{p.name}</h3>
+                    <Link to="/loja/produto/$id" params={{ id: p.id }}>
+                      <h3 className="mt-1 text-sm font-semibold text-foreground line-clamp-2 hover:text-brand transition-colors">{p.name}</h3>
+                    </Link>
                     {p.brand && <p className="text-xs text-muted-foreground">{p.brand}</p>}
                     <div className="mt-3 flex items-center justify-between">
                       <span className="text-base font-bold text-brand">

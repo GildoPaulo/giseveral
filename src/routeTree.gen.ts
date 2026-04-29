@@ -34,6 +34,7 @@ import { Route as LojaPapelariaRouteImport } from './routes/loja.papelaria'
 import { Route as LojaCarrinhoRouteImport } from './routes/loja.carrinho'
 import { Route as LojaCheckoutRouteImport } from './routes/loja.checkout'
 import { Route as LojaPedidoIdRouteImport } from './routes/loja.pedido.$id'
+import { Route as LojaProdutoIdRouteImport } from './routes/loja.produto.$id'
 
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
@@ -160,6 +161,11 @@ const LojaPedidoIdRoute = LojaPedidoIdRouteImport.update({
   path: '/loja/pedido/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LojaProdutoIdRoute = LojaProdutoIdRouteImport.update({
+  id: '/loja/produto/$id',
+  path: '/loja/produto/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/pedido/$id': typeof LojaPedidoIdRoute
+  '/loja/produto/$id': typeof LojaProdutoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/pedido/$id': typeof LojaPedidoIdRoute
+  '/loja/produto/$id': typeof LojaProdutoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/pedido/$id': typeof LojaPedidoIdRoute
+  '/loja/produto/$id': typeof LojaProdutoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/pedido/$id'
+    | '/loja/produto/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/pedido/$id'
+    | '/loja/produto/$id'
   id:
     | '__root__'
     | '/'
@@ -325,6 +336,7 @@ export interface FileRouteTypes {
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/pedido/$id'
+    | '/loja/produto/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -348,6 +360,7 @@ export interface RootRouteChildren {
   LojaCarrinhoRoute: typeof LojaCarrinhoRoute
   LojaCheckoutRoute: typeof LojaCheckoutRoute
   LojaPedidoIdRoute: typeof LojaPedidoIdRoute
+  LojaProdutoIdRoute: typeof LojaProdutoIdRoute
 }
 
 export interface BalcaoRouteChildren {
@@ -535,6 +548,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LojaPedidoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loja/produto/$id': {
+      id: '/loja/produto/$id'
+      path: '/loja/produto/$id'
+      fullPath: '/loja/produto/$id'
+      preLoaderRoute: typeof LojaProdutoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -569,6 +589,7 @@ const rootRouteChildren: RootRouteChildren = {
   LojaCarrinhoRoute: LojaCarrinhoRoute,
   LojaCheckoutRoute: LojaCheckoutRoute,
   LojaPedidoIdRoute: LojaPedidoIdRoute,
+  LojaProdutoIdRoute: LojaProdutoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
