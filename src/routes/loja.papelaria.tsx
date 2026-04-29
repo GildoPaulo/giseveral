@@ -5,6 +5,7 @@ import {
   Search, SlidersHorizontal, X, ShoppingCart, GitCompare,
   ChevronDown, ShoppingBag, CheckCircle2,
 } from "lucide-react";
+import { PedidoRapidoButton } from "@/components/PedidoRapido";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout, PageHero } from "@/components/Layout";
 import { useCart } from "@/contexts/CartContext";
@@ -310,6 +311,13 @@ function Papelaria() {
                     >
                       <ShoppingCart className="h-3.5 w-3.5" /> Adicionar ao Carrinho
                     </button>
+                    <div className="mt-2 flex justify-center">
+                      <PedidoRapidoButton
+                        productName={p.name}
+                        productId={p.id}
+                        productPrice={p.price}
+                      />
+                    </div>
                   </div>
                 </div>
               );
