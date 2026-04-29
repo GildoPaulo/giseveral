@@ -9,7 +9,7 @@ writeFileSync('dist/client/wrangler.json', JSON.stringify({
   name: 'giseveral',
   compatibility_date: '2025-09-24',
   compatibility_flags: ['nodejs_compat'],
-  pages_build_output_dir: 'dist/client'
+  pages_build_output_dir: '.'
 }, null, 2) + '\n')
 
 console.log('✓ Pages build ready: _worker.js copied, wrangler.json patched')
