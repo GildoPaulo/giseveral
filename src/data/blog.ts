@@ -18,13 +18,19 @@ export type BlogPost = {
   category: BlogCategory;
   image: string;
   excerpt: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  keywords?: string;
   content: { heading?: string; paragraphs: string[] }[];
 };
 
 export const blogPosts: BlogPost[] = [
   {
     slug: "como-proteger-o-seu-computador-contra-virus",
-    title: "Como proteger o seu computador contra vírus",
+    title: "Como proteger o seu computador contra vírus na Beira",
+    metaTitle: "Como proteger o PC contra vírus na Beira | Giseveral e Services",
+    metaDescription: "Dicas práticas para proteger o seu computador contra vírus e malware na Beira, Moçambique. Serviço de remoção de vírus e limpeza profissional.",
+    keywords: "remover vírus computador Beira, antivírus Moçambique, limpeza PC Beira, informática Beira",
     date: "2026-04-22",
     category: "Informática",
     image: antivirus,
@@ -69,7 +75,10 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "diferenca-entre-impressao-a-cores-e-preto-e-branco",
-    title: "Diferença entre impressão a cores e preto e branco",
+    title: "Impressão a cores vs preto e branco — qual escolher?",
+    metaTitle: "Impressão a Cores vs Preto e Branco na Beira | Giseveral",
+    metaDescription: "Quando vale a pena imprimir a cores e quando o preto e branco é melhor? Serviço de impressão profissional na Beira, Moçambique.",
+    keywords: "impressão Beira, impressão a cores Beira, fotocópia Beira, reprografia Moçambique",
     date: "2026-04-18",
     category: "Impressão",
     image: printingImg,
@@ -148,7 +157,10 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "dicas-para-redes-wifi-mais-rapidas",
-    title: "Dicas para redes Wi-Fi mais rápidas",
+    title: "Como melhorar o Wi-Fi em casa ou escritório na Beira",
+    metaTitle: "Como Melhorar o Wi-Fi na Beira | Instalação de Redes — Giseveral",
+    metaDescription: "Dicas para ter Wi-Fi mais rápido e estável na Beira. Instalação e configuração profissional de redes e routers em Moçambique.",
+    keywords: "melhorar Wi-Fi Beira, instalar rede Wi-Fi Beira, router lento Moçambique, redes informáticas Beira",
     date: "2026-04-05",
     category: "Redes",
     image: wifi,
@@ -311,7 +323,10 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "material-escolar-essencial",
-    title: "Material escolar essencial para um bom ano letivo",
+    title: "Onde comprar material escolar na Beira — lista essencial",
+    metaTitle: "Material Escolar na Beira | Papelaria Giseveral e Services",
+    metaDescription: "Lista completa de material escolar e de escritório. Compre na papelaria Giseveral e Services na Beira, Moçambique — preços acessíveis.",
+    keywords: "material escolar Beira, papelaria Beira, comprar cadernos Beira, material de escritório Moçambique",
     date: "2026-03-05",
     category: "Dicas",
     image: stationery,
@@ -356,7 +371,10 @@ export const blogPosts: BlogPost[] = [
   },
   {
     slug: "quando-formatar-o-computador",
-    title: "Quando formatar o computador é a melhor solução?",
+    title: "Como formatar o computador na Beira — quando é necessário?",
+    metaTitle: "Formatar Computador na Beira | Giseveral e Services",
+    metaDescription: "Saiba quando formatar o computador é a melhor solução. Serviço de formatação profissional com instalação do Windows na Beira, Moçambique.",
+    keywords: "formatar computador Beira, instalar Windows Beira, formatação PC Moçambique, informática Beira",
     date: "2026-02-25",
     category: "Informática",
     image: format,

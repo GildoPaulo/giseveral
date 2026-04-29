@@ -2,7 +2,9 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { blogPosts, getPostBySlug, formatPtDate } from "@/data/blog";
-import { Calendar, Tag, ArrowLeft, Phone, MessageCircle } from "lucide-react";
+import { Calendar, Tag, ArrowLeft, Phone, MessageCircle, Wrench } from "lucide-react";
+
+const SITE_URL = "https://giseveral.pages.dev";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
@@ -13,17 +15,49 @@ export const Route = createFileRoute("/blog/$slug")({
   head: ({ loaderData }) => {
     const post = loaderData?.post;
     if (!post) return { meta: [{ title: "Artigo — Giseveral e Services" }] };
+
+    const metaTitle = post.metaTitle ?? `${post.title} | Giseveral e Services — Beira`;
+    const metaDesc = post.metaDescription ?? post.excerpt;
+    const canonical = `${SITE_URL}/blog/${post.slug}`;
+
+    const jsonLd = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": post.title,
+      "description": metaDesc,
+      "datePublished": post.date,
+      "author": { "@type": "Organization", "name": "Giseveral e Services" },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Giseveral e Services",
+        "address": { "@type": "PostalAddress", "addressLocality": "Beira", "addressCountry": "MZ" },
+      },
+      "image": typeof post.image === "string" ? post.image : undefined,
+      "url": canonical,
+      "inLanguage": "pt-MZ",
+    });
+
     return {
       meta: [
-        { title: `${post.title} — Giseveral e Services` },
-        { name: "description", content: post.excerpt },
-        { property: "og:title", content: post.title },
-        { property: "og:description", content: post.excerpt },
-        { property: "og:image", content: post.image },
+        { title: metaTitle },
+        { name: "description", content: metaDesc },
+        { name: "keywords", content: post.keywords ?? `${post.category.toLowerCase()}, ${post.title.toLowerCase()}, Beira, Moçambique, Giseveral` },
+        { name: "robots", content: "index, follow" },
+        { property: "og:title", content: metaTitle },
+        { property: "og:description", content: metaDesc },
+        { property: "og:image", content: typeof post.image === "string" ? post.image : "" },
         { property: "og:type", content: "article" },
+        { property: "og:url", content: canonical },
+        { property: "og:locale", content: "pt_MZ" },
+        { property: "article:published_time", content: post.date },
+        { property: "article:section", content: post.category },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: post.image },
+        { name: "twitter:title", content: metaTitle },
+        { name: "twitter:description", content: metaDesc },
+        { name: "twitter:image", content: typeof post.image === "string" ? post.image : "" },
       ],
+      links: [{ rel: "canonical", href: canonical }],
+      scripts: [{ type: "application/ld+json", children: jsonLd }],
     };
   },
   notFoundComponent: () => (
@@ -95,16 +129,28 @@ function BlogPostPage() {
 
         {/* CTA */}
         <div className="mt-12 rounded-2xl bg-gradient-hero p-6 md:p-8 text-brand-foreground shadow-elegant">
+          <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-2">Giseveral e Services — Beira, Moçambique</p>
           <h3 className="text-xl md:text-2xl font-bold">Precisa de ajuda profissional?</h3>
-          <p className="mt-2 text-brand-foreground/80">Fale com a equipa Giseveral — atendimento rápido e profissional na Beira.</p>
+          <p className="mt-2 text-brand-foreground/80">
+            A nossa equipa está disponível para te ajudar com {post.category === "Impressão" ? "impressão e reprografia" : post.category === "Redes" ? "instalação de redes e Wi-Fi" : post.category === "Informática" ? "formatação, reparação e manutenção de computadores" : "papelaria e serviços"} na Beira.
+          </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <a href="https://wa.me/258874383621" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-md bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white shadow-card transition-smooth hover:shadow-glow">
               <MessageCircle className="h-4 w-4" /> WhatsApp
             </a>
+            <Link
+              to="/loja"
+              className="inline-flex items-center gap-2 rounded-md bg-gold px-5 py-2.5 text-sm font-semibold text-gold-foreground shadow-card transition-smooth hover:shadow-glow"
+            >
+              <Wrench className="h-4 w-4" /> Pedir Serviço
+            </Link>
             <a href="tel:+258874383621" className="inline-flex items-center gap-2 rounded-md border border-brand-foreground/30 px-5 py-2.5 text-sm font-semibold text-brand-foreground hover:bg-brand-foreground/10">
               <Phone className="h-4 w-4" /> 874 383 621
             </a>
           </div>
+          <p className="mt-4 text-xs text-brand-foreground/60">
+            📍 Av. das FPLM, Beira · 🕐 Seg–Sáb 8h–18h
+          </p>
         </div>
       </article>
 

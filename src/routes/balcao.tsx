@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-r
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ShoppingBag, Package, Truck,
-  LogOut, Menu, X, ChevronRight,
+  LogOut, Menu, X, ChevronRight, BoxesIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,7 @@ export const Route = createFileRoute("/balcao")({
 const navItems = [
   { to: "/balcao/", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/balcao/pedidos", label: "Pedidos", icon: ShoppingBag },
+  { to: "/balcao/produtos", label: "Produtos", icon: BoxesIcon },
   { to: "/balcao/stock", label: "Stock", icon: Package },
   { to: "/balcao/entregas", label: "Entregas", icon: Truck },
 ] as const;
