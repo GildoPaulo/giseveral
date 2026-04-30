@@ -2,7 +2,7 @@ import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-r
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ShoppingBag, Package, Truck,
-  LogOut, Menu, X, ChevronRight, BoxesIcon,
+  LogOut, Menu, X, ChevronRight, BoxesIcon, BookOpen,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ const navItems = [
   { to: "/balcao/produtos", label: "Produtos", icon: BoxesIcon },
   { to: "/balcao/stock", label: "Stock", icon: Package },
   { to: "/balcao/entregas", label: "Entregas", icon: Truck },
+  { to: "/balcao/blog", label: "Blog + IA", icon: BookOpen },
 ] as const;
 
 function BalcaoLayout() {

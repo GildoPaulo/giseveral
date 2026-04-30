@@ -29,6 +29,7 @@ import { Route as BalcaoPedidosRouteImport } from './routes/balcao.pedidos'
 import { Route as BalcaoProdutosRouteImport } from './routes/balcao.produtos'
 import { Route as BalcaoStockRouteImport } from './routes/balcao.stock'
 import { Route as BalcaoEntregasRouteImport } from './routes/balcao.entregas'
+import { Route as BalcaoBlogRouteImport } from './routes/balcao.blog'
 import { Route as LojaIndexRouteImport } from './routes/loja.index'
 import { Route as LojaPapelariaRouteImport } from './routes/loja.papelaria'
 import { Route as LojaCarrinhoRouteImport } from './routes/loja.carrinho'
@@ -136,6 +137,11 @@ const BalcaoEntregasRoute = BalcaoEntregasRouteImport.update({
   path: '/entregas',
   getParentRoute: () => BalcaoRoute,
 } as any)
+const BalcaoBlogRoute = BalcaoBlogRouteImport.update({
+  id: '/balcao/blog',
+  path: '/blog',
+  getParentRoute: () => BalcaoRoute,
+} as any)
 const LojaIndexRoute = LojaIndexRouteImport.update({
   id: '/loja/',
   path: '/loja/',
@@ -188,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/balcao/entregas': typeof BalcaoEntregasRoute
+  '/balcao/blog': typeof BalcaoBlogRoute
   '/loja/': typeof LojaIndexRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
@@ -216,6 +223,7 @@ export interface FileRoutesByTo {
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/balcao/entregas': typeof BalcaoEntregasRoute
+  '/balcao/blog': typeof BalcaoBlogRoute
   '/loja': typeof LojaIndexRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
@@ -245,6 +253,7 @@ export interface FileRoutesById {
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/balcao/entregas': typeof BalcaoEntregasRoute
+  '/balcao/blog': typeof BalcaoBlogRoute
   '/loja/': typeof LojaIndexRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
@@ -275,6 +284,7 @@ export interface FileRouteTypes {
     | '/balcao/produtos'
     | '/balcao/stock'
     | '/balcao/entregas'
+    | '/balcao/blog'
     | '/loja/'
     | '/loja/papelaria'
     | '/loja/carrinho'
@@ -303,6 +313,7 @@ export interface FileRouteTypes {
     | '/balcao/produtos'
     | '/balcao/stock'
     | '/balcao/entregas'
+    | '/balcao/blog'
     | '/loja'
     | '/loja/papelaria'
     | '/loja/carrinho'
@@ -331,6 +342,7 @@ export interface FileRouteTypes {
     | '/balcao/produtos'
     | '/balcao/stock'
     | '/balcao/entregas'
+    | '/balcao/blog'
     | '/loja/'
     | '/loja/papelaria'
     | '/loja/carrinho'
@@ -369,6 +381,7 @@ export interface BalcaoRouteChildren {
   BalcaoProdutosRoute: typeof BalcaoProdutosRoute
   BalcaoStockRoute: typeof BalcaoStockRoute
   BalcaoEntregasRoute: typeof BalcaoEntregasRoute
+  BalcaoBlogRoute: typeof BalcaoBlogRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -499,6 +512,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoEntregasRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/blog': {
+      id: '/balcao/blog'
+      path: '/blog'
+      fullPath: '/balcao/blog'
+      preLoaderRoute: typeof BalcaoBlogRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -564,6 +584,7 @@ const balcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoProdutosRoute: BalcaoProdutosRoute,
   BalcaoStockRoute: BalcaoStockRoute,
   BalcaoEntregasRoute: BalcaoEntregasRoute,
+  BalcaoBlogRoute: BalcaoBlogRoute,
 }
 
 const BalcaoRouteWithChildren = BalcaoRoute._addFileChildren(balcaoRouteChildren)
