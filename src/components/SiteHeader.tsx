@@ -32,15 +32,15 @@ export function SiteHeader() {
           </div>
         </Link>
 
-        <nav className="hidden lg:flex items-center gap-1">
+        <nav className="hidden lg:flex items-center gap-0.5">
           {navItems.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               activeOptions={{ exact: item.to === "/" }}
-              activeProps={{ className: "text-brand bg-accent" }}
-              inactiveProps={{ className: "text-foreground/70 hover:text-brand hover:bg-accent" }}
-              className="rounded-md px-3 py-2 text-sm font-medium transition-smooth"
+              activeProps={{ className: "text-brand border-b-2 border-gold" }}
+              inactiveProps={{ className: "text-foreground/65 hover:text-brand border-b-2 border-transparent" }}
+              className="px-3 py-[1.1rem] text-sm font-medium transition-smooth"
             >
               {item.label}
             </Link>
