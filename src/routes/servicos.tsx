@@ -21,7 +21,6 @@ const categorias = [
     title: "Reprografia",
     subtitle: "Impressão, fotocópias, digitalização e encadernação",
     items: ["Impressão a cores e preto e branco", "Fotocópias rápidas", "Digitalização de documentos", "Encadernação e plastificação"],
-    color: "from-blue-600 to-blue-800",
     badge: "Mais popular",
   },
   {
@@ -30,7 +29,6 @@ const categorias = [
     title: "Papelaria",
     subtitle: "Material escolar e de escritório completo",
     items: ["Material escolar e cadernos", "Material de escritório", "Pastas, canetas e estojos", "Resmas de papel e blocos"],
-    color: "from-amber-600 to-amber-800",
     badge: null,
   },
   {
@@ -39,7 +37,6 @@ const categorias = [
     title: "Design Gráfico",
     subtitle: "Criamos a identidade visual da tua marca",
     items: ["Flyers e panfletos", "Cartazes e banners", "Logos e identidade visual", "Convites personalizados"],
-    color: "from-purple-600 to-purple-800",
     badge: null,
   },
   {
@@ -48,7 +45,6 @@ const categorias = [
     title: "Assistência Informática",
     subtitle: "Formatação, Windows, vírus e reparação",
     items: ["Formatação de computadores", "Instalação de Windows e programas", "Remoção de vírus e malware", "Optimização e upgrade"],
-    color: "from-teal-600 to-teal-800",
     badge: null,
   },
   {
@@ -57,7 +53,6 @@ const categorias = [
     title: "Redes e Tecnologia",
     subtitle: "Internet, Wi-Fi, cabeamento e routers",
     items: ["Instalação de Wi-Fi e LAN", "Configuração de routers", "Cabeamento estruturado", "Diagnóstico de rede"],
-    color: "from-emerald-600 to-emerald-800",
     badge: null,
   },
 ];
@@ -80,8 +75,8 @@ function ServicosPage() {
               params={{ slug: cat.slug }}
               className="group relative rounded-2xl border border-border bg-card shadow-card overflow-hidden transition-smooth hover:shadow-elegant hover:-translate-y-1"
             >
-              {/* Color top bar */}
-              <div className={`h-1.5 w-full bg-gradient-to-r ${cat.color}`} />
+              {/* Brand accent bar */}
+              <div className="h-1 w-full bg-gradient-brand" />
 
               {cat.badge && (
                 <span className="absolute top-5 right-4 rounded-full bg-gold text-gold-foreground text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide">
@@ -92,7 +87,7 @@ function ServicosPage() {
               <div className="p-6">
                 {/* Icon + title */}
                 <div className="flex items-start gap-4">
-                  <div className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${cat.color} text-white shadow-card`}>
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-brand text-brand-foreground shadow-card transition-smooth group-hover:bg-gradient-gold group-hover:text-gold-foreground">
                     <cat.icon className="h-6 w-6" />
                   </div>
                   <div className="flex-1 min-w-0">

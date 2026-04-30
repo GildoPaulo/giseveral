@@ -5,12 +5,10 @@ import printing from "@/assets/printing.jpg";
 import documents from "@/assets/documents.jpg";
 import repair from "@/assets/computer-repair.jpg";
 import windows from "@/assets/windows-install.jpg";
-import technician from "@/assets/technician.jpg";
 import router from "@/assets/router.jpg";
 import network from "@/assets/network.jpg";
 import cabling from "@/assets/blog-cabling.jpg";
 import stationery from "@/assets/stationery.jpg";
-import design from "@/assets/design.jpg";
 
 type Slide = { img: string; category: string; title: string; to: string };
 
@@ -19,12 +17,10 @@ const slides: Slide[] = [
   { img: documents, category: "Reprografia", title: "Documentos, fotocópias e digitalização", to: "/servicos" },
   { img: repair, category: "Informática", title: "Reparação e manutenção de computadores", to: "/informatica" },
   { img: windows, category: "Informática", title: "Instalação de Windows e software", to: "/informatica" },
-  { img: technician, category: "Informática", title: "Assistência técnica especializada", to: "/informatica" },
   { img: router, category: "Redes", title: "Configuração de routers e Wi-Fi", to: "/redes" },
   { img: network, category: "Redes", title: "Instalação de redes empresariais", to: "/redes" },
   { img: cabling, category: "Redes", title: "Cabeamento estruturado profissional", to: "/redes" },
   { img: stationery, category: "Papelaria", title: "Material escolar e de escritório", to: "/servicos" },
-  { img: design, category: "Design Gráfico", title: "Flyers, cartazes e publicidade", to: "/servicos" },
 ];
 
 export function HeroCarousel() {
