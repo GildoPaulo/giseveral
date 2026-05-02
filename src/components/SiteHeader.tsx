@@ -1,12 +1,13 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  Menu, X, User, LogIn, ShoppingCart, Bell,
+  Menu, X, User, LogIn, ShoppingCart, Bell, Sun, Moon,
   Package, Wrench, Truck, CheckCircle2, Tag, AlertTriangle, BellOff,
 } from "lucide-react";
 import logo from "@/assets/logo.jpeg";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const navItems = [
   { to: "/", label: "Home" },
@@ -52,6 +53,11 @@ const TYPE_LABELS: Record<NotifType, string> = {
   done: "Concluído", promo: "Promoção", alert: "Alerta",
 };
 
+const NOTIF_LINKS: Record<NotifType, string> = {
+  order: "/conta", progress: "/conta", delivery: "/conta",
+  done: "/conta", promo: "/precos", alert: "/conta",
+};
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
@@ -59,6 +65,8 @@ export function SiteHeader() {
   const [filter, setFilter] = useState<NotifType | "all">("all");
   const { user } = useAuth();
   const { totalItems } = useCart();
+  const { theme, toggle } = useTheme();
+  const navigate = useNavigate();
 
   const unread = NOTIFICATIONS.filter((n) => !readIds.includes(n.id)).length;
   function markAllRead() { setReadIds(NOTIFICATIONS.map((n) => n.id)); }
@@ -105,6 +113,7 @@ export function SiteHeader() {
             )}
           </Link>
 
+          {user && (
           <div className="relative">
               <button
                 onClick={() => setBellOpen((v) => !v)}
@@ -175,7 +184,7 @@ export function SiteHeader() {
                           return (
                             <li
                               key={n.id}
-                              onClick={() => markRead(n.id)}
+                              onClick={() => { markRead(n.id); setBellOpen(false); navigate({ to: NOTIF_LINKS[n.type] }); }}
                               className={`flex gap-3 px-4 py-3.5 border-b border-border last:border-0 cursor-pointer hover:bg-muted/50 transition-colors ${isUnread ? "bg-brand/[0.03]" : ""}`}
                             >
                               <div className={`flex-shrink-0 mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${meta.badge}`}>
@@ -209,6 +218,15 @@ export function SiteHeader() {
                 </>
               )}
             </div>
+          )}
+
+          <button
+            onClick={toggle}
+            className="rounded-md border border-border p-2 text-foreground hover:bg-accent transition-smooth"
+            aria-label={theme === "dark" ? "Modo claro" : "Modo escuro"}
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
 
           {user ? (
             <Link

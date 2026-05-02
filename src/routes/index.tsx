@@ -79,11 +79,11 @@ function Index() {
             {/* Left: text */}
             <div className="[text-shadow:_0_2px_12px_rgb(0_0_0_/_50%)]">
               <span className="inline-flex items-center gap-2 rounded-full border border-gold/60 bg-gold/25 px-3 py-1 text-xs font-bold tracking-widest text-gold uppercase backdrop-blur-sm">
-                ✦ Giseveral Services · Soluções profissionais na Beira
+                ✦ Giseveral e Services · Soluções profissionais na Beira
               </span>
-              <h1 className="mt-5 font-extrabold leading-[1.08] text-white">
-                <span className="text-gold">Giseveral e Services</span><br />
-                <span className="text-white/90 text-3xl md:text-4xl">Soluções profissionais na Beira</span>
+              <h1 className="mt-5 font-extrabold leading-[1.15] text-white">
+                <span className="text-white/90 text-3xl md:text-4xl font-semibold">Bem-vindo à</span><br />
+                <span className="text-gold">Giseveral e Services</span>
               </h1>
               <p className="mt-5 text-base md:text-lg text-white/90 min-h-[2.5rem]">
                 <TypewriterText phrases={typewriterPhrases} className="text-gold font-semibold" />

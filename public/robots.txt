@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Páginas privadas — não indexar
+Disallow: /login
+Disallow: /registo
+Disallow: /conta
+Disallow: /balcao/
+Disallow: /loja/carrinho
+Disallow: /loja/checkout
+Disallow: /loja/pedido/
+
+# Sitemap
+Sitemap: https://giseveral.com/sitemap.xml
