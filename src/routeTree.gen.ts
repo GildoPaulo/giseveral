@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as ServicosRouteImport } from './routes/servicos'
+import { Route as ServicosIndexRouteImport } from './routes/servicos.index'
 import { Route as ServicosSlugRouteImport } from './routes/servicos.$slug'
 import { Route as RegistoRouteImport } from './routes/registo'
 import { Route as RedesRouteImport } from './routes/redes'
@@ -51,10 +52,15 @@ const ServicosRoute = ServicosRouteImport.update({
   path: '/servicos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ServicosIndexRoute = ServicosIndexRouteImport.update({
+  id: '/servicos/',
+  path: '/',
+  getParentRoute: () => ServicosRoute,
+} as any)
 const ServicosSlugRoute = ServicosSlugRouteImport.update({
   id: '/servicos/$slug',
-  path: '/servicos/$slug',
-  getParentRoute: () => rootRouteImport,
+  path: '$slug',
+  getParentRoute: () => ServicosRoute,
 } as any)
 const RegistoRoute = RegistoRouteImport.update({
   id: '/registo',
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
   '/servicos': typeof ServicosRoute
+  '/servicos/': typeof ServicosIndexRoute
   '/servicos/$slug': typeof ServicosSlugRoute
   '/sobre': typeof SobreRoute
   '/balcao': typeof BalcaoRoute
@@ -241,7 +248,7 @@ export interface FileRoutesByTo {
   '/precos': typeof PrecosRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
-  '/servicos': typeof ServicosRoute
+  '/servicos': typeof ServicosIndexRoute
   '/servicos/$slug': typeof ServicosSlugRoute
   '/sobre': typeof SobreRoute
   '/balcao': typeof BalcaoRoute
@@ -276,6 +283,7 @@ export interface FileRoutesById {
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
   '/servicos': typeof ServicosRoute
+  '/servicos/': typeof ServicosIndexRoute
   '/servicos/$slug': typeof ServicosSlugRoute
   '/sobre': typeof SobreRoute
   '/balcao': typeof BalcaoRoute
@@ -311,6 +319,7 @@ export interface FileRouteTypes {
     | '/redes'
     | '/registo'
     | '/servicos'
+    | '/servicos/'
     | '/servicos/$slug'
     | '/sobre'
     | '/balcao'
@@ -377,6 +386,7 @@ export interface FileRouteTypes {
     | '/redes'
     | '/registo'
     | '/servicos'
+    | '/servicos/'
     | '/servicos/$slug'
     | '/sobre'
     | '/balcao'
@@ -411,7 +421,6 @@ export interface RootRouteChildren {
   RedesRoute: typeof RedesRoute
   RegistoRoute: typeof RegistoRoute
   ServicosRoute: typeof ServicosRoute
-  ServicosSlugRoute: typeof ServicosSlugRoute
   SobreRoute: typeof SobreRoute
   BalcaoRoute: typeof BalcaoRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -422,6 +431,11 @@ export interface RootRouteChildren {
   LojaCheckoutRoute: typeof LojaCheckoutRoute
   LojaPedidoIdRoute: typeof LojaPedidoIdRoute
   LojaProdutoIdRoute: typeof LojaProdutoIdRoute
+}
+
+export interface ServicosRouteChildren {
+  ServicosIndexRoute: typeof ServicosIndexRoute
+  ServicosSlugRoute: typeof ServicosSlugRoute
 }
 
 export interface BalcaoRouteChildren {
@@ -452,12 +466,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/servicos/': {
+      id: '/servicos/'
+      path: '/'
+      fullPath: '/servicos/'
+      preLoaderRoute: typeof ServicosIndexRouteImport
+      parentRoute: typeof ServicosRoute
+    }
     '/servicos/$slug': {
       id: '/servicos/$slug'
-      path: '/servicos/$slug'
+      path: '$slug'
       fullPath: '/servicos/$slug'
       preLoaderRoute: typeof ServicosSlugRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ServicosRoute
     }
     '/registo': {
       id: '/registo'
@@ -658,6 +679,13 @@ declare module '@tanstack/react-router' {
   }
 }
 
+const servicosRouteChildren: ServicosRouteChildren = {
+  ServicosIndexRoute: ServicosIndexRoute,
+  ServicosSlugRoute: ServicosSlugRoute,
+}
+
+const ServicosRouteWithChildren = ServicosRoute._addFileChildren(servicosRouteChildren)
+
 const balcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoIndexRoute: BalcaoIndexRoute,
   BalcaoPedidosRoute: BalcaoPedidosRoute,
@@ -683,8 +711,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrecosRoute: PrecosRoute,
   RedesRoute: RedesRoute,
   RegistoRoute: RegistoRoute,
-  ServicosRoute: ServicosRoute,
-  ServicosSlugRoute: ServicosSlugRoute,
+  ServicosRoute: ServicosRouteWithChildren,
   SobreRoute: SobreRoute,
   BalcaoRoute: BalcaoRouteWithChildren,
   BlogSlugRoute: BlogSlugRoute,

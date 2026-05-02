@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Phone, MapPin, Mail, MessageCircle } from "lucide-react";
+import { Phone, Map, Mail, MessageCircle } from "lucide-react";
 import logo from "@/assets/logo.jpeg";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 
@@ -62,7 +62,7 @@ export function SiteFooter() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 hover:text-gold transition-colors"
               >
-                <MapPin className="h-4 w-4 text-gold flex-shrink-0" />
+                <Map className="h-4 w-4 text-gold flex-shrink-0" />
                 <span>Beira, Esturro • Rua Alfredo Lawley</span>
               </a>
             </li>

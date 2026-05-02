@@ -105,8 +105,7 @@ export function SiteHeader() {
             )}
           </Link>
 
-          {user && (
-            <div className="relative">
+          <div className="relative">
               <button
                 onClick={() => setBellOpen((v) => !v)}
                 className="relative rounded-md border border-border p-2 text-foreground hover:bg-accent transition-smooth"
@@ -210,7 +209,6 @@ export function SiteHeader() {
                 </>
               )}
             </div>
-          )}
 
           {user ? (
             <Link
@@ -287,7 +285,7 @@ export function SiteHeader() {
               </Link>
             )}
             <Link
-              to="/contactos"
+              to="/orcamento"
               onClick={() => setOpen(false)}
               className="mt-2 inline-flex items-center justify-center rounded-md bg-gradient-gold px-4 py-2.5 text-sm font-semibold text-gold-foreground"
             >

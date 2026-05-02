@@ -11,7 +11,7 @@ import { PromoPopup } from "@/components/promos/PromoPopup";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import {
   Printer, Laptop, Network, BookOpen, ArrowRight, CheckCircle2, Phone,
-  Clock, MapPin, Zap, ShieldCheck, Award,
+  Clock, Map, Zap, ShieldCheck, Award,
 } from "lucide-react";
 import printing from "@/assets/printing.jpg";
 import repair from "@/assets/computer-repair.jpg";
@@ -42,7 +42,7 @@ const typewriterPhrases = [
 const stats = [
   { icon: CheckCircle2, value: "Qualidade",    label: "Garantida em todos os serviços" },
   { icon: Clock,        value: "Seg–Sáb",      label: "8h00 às 17h00" },
-  { icon: MapPin,       value: "Beira",         label: "Esturro · Rua Alfredo Lawley" },
+  { icon: Map,          value: "Beira",         label: "Esturro · Rua Alfredo Lawley" },
   { icon: Phone,        value: "874 383 621",   label: "WhatsApp e chamadas" },
 ];
 
@@ -82,8 +82,8 @@ function Index() {
                 ✦ Giseveral Services · Soluções profissionais na Beira
               </span>
               <h1 className="mt-5 font-extrabold leading-[1.08] text-white">
-                Bem-vindo à<br />
-                <span className="text-gold">Giseveral Services</span>
+                <span className="text-gold">Giseveral e Services</span><br />
+                <span className="text-white/90 text-3xl md:text-4xl">Soluções profissionais na Beira</span>
               </h1>
               <p className="mt-5 text-base md:text-lg text-white/90 min-h-[2.5rem]">
                 <TypewriterText phrases={typewriterPhrases} className="text-gold font-semibold" />

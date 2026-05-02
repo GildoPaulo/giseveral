@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Layout, PageHero } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
-import { Phone, MapPin, Mail, MessageCircle } from "lucide-react";
+import { Phone, Map, Mail, MessageCircle } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/contactos")({
@@ -58,7 +58,7 @@ function ContactosPage() {
               rel="noopener noreferrer"
               className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 shadow-card transition-smooth hover:shadow-elegant"
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-gold text-gold-foreground"><MapPin className="h-5 w-5" /></div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-gold text-gold-foreground"><Map className="h-5 w-5" /></div>
               <div>
                 <div className="text-sm text-muted-foreground">Localização</div>
                 <div className="font-semibold text-brand">Beira, Esturro • Rua Alfredo Lawley</div>

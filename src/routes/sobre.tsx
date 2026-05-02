@@ -4,7 +4,7 @@ import { WhatsAppFab } from "@/components/WhatsAppFab";
 import {
   Award, Zap, ShieldCheck, Briefcase, Eye, Target,
   Printer, Laptop, Network, BookOpen, Palette, CheckCircle2, Phone,
-  Users, Clock, MapPin, TrendingUp,
+  Users, Clock, Map, TrendingUp,
 } from "lucide-react";
 
 export const Route = createFileRoute("/sobre")({
@@ -38,7 +38,7 @@ const stats = [
   { icon: Users,     value: "500+",  label: "Clientes satisfeitos" },
   { icon: Clock,     value: "10+",   label: "Anos de experiência" },
   { icon: TrendingUp,value: "5",     label: "Áreas de serviço" },
-  { icon: MapPin,    value: "Beira", label: "Beira, Esturro • Rua Alfredo Lawley" },
+  { icon: Map,    value: "Beira", label: "Beira, Esturro • Rua Alfredo Lawley" },
 ];
 
 function SobrePage() {

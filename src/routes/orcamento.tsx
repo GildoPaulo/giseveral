@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Layout } from "@/components/Layout";
 import { useEffect, useRef, useState } from "react";
 import {
   Printer, Palette, Laptop, Network, BookOpen, HelpCircle,
@@ -167,7 +168,8 @@ function OrcamentoPage() {
   const waMsg = buildWhatsAppMsg(service, description, name, deadline);
 
   return (
-    <div className="min-h-screen bg-muted/30">
+    <Layout>
+    <div className="bg-muted/30">
       {/* Hero */}
       <div className="bg-gradient-hero text-brand-foreground py-12 px-4">
         <div className="container mx-auto max-w-2xl text-center">
@@ -377,5 +379,6 @@ function OrcamentoPage() {
         </div>
       </div>
     </div>
+    </Layout>
   );
 }
