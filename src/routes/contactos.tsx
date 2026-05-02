@@ -65,9 +65,9 @@ function ContactosPage() {
                 <div className="text-xs text-gold mt-0.5">Ver no Google Maps →</div>
               </div>
             </a>
-            <a href="mailto:giseveral.services@outlook.com?subject=Contacto%20via%20site&body=Ol%C3%A1%20Giseveral%2C" className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 shadow-card transition-smooth hover:shadow-elegant">
+            <a href="mailto:geral@giseveral.com?subject=Contacto%20via%20site&body=Ol%C3%A1%20Giseveral%2C" className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 shadow-card transition-smooth hover:shadow-elegant">
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-brand text-brand-foreground"><Mail className="h-5 w-5" /></div>
-              <div className="min-w-0"><div className="text-sm text-muted-foreground">Email</div><div className="font-semibold text-brand break-all">giseveral.services@outlook.com</div></div>
+              <div className="min-w-0"><div className="text-sm text-muted-foreground">Email</div><div className="font-semibold text-brand break-all">geral@giseveral.com</div></div>
             </a>
           </div>
         </div>

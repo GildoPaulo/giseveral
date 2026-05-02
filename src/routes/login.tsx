@@ -11,6 +11,7 @@ export const Route = createFileRoute("/login")({
     meta: [
       { title: "Entrar — Giseveral e Services" },
       { name: "description", content: "Aceda à sua conta Giseveral e Services para pedir serviços e acompanhar o histórico." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: LoginPage,

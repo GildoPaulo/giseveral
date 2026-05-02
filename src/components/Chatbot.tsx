@@ -38,7 +38,7 @@ function ruleAnswer(input: string): string {
   if (/(localiza|onde|endereco|endereço|beira)/.test(q))
     return "📍 Estamos na Beira, Esturro • Rua Alfredo Lawley, Moçambique. Atendemos Seg–Sáb, 8h–17h.";
   if (/(contact|telefon|whats|email)/.test(q))
-    return "📞 WhatsApp/Tel: 874 383 621\n📧 giseveral.services@outlook.com";
+    return "📞 WhatsApp/Tel: 874 383 621\n📧 geral@giseveral.com";
   if (/(preco|preço|quanto|custa|valor|orcament)/.test(q))
     return "💰 Diga-me qual serviço precisa e dou o preço exacto! Ou consulte a página Preços do site.";
   if (/(horari|aberto|funciona)/.test(q))

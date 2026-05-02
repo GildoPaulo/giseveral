@@ -8,6 +8,7 @@ import { PromoBanner } from "@/components/promos/PromoBanner";
 import { PromoSlider } from "@/components/promos/PromoSlider";
 import { MiniBanner } from "@/components/promos/MiniBanner";
 import { PromoPopup } from "@/components/promos/PromoPopup";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 import {
   Printer, Laptop, Network, BookOpen, ArrowRight, CheckCircle2, Phone,
   Clock, MapPin, Zap, ShieldCheck, Award,
@@ -271,6 +272,11 @@ function Index() {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* ── NEWSLETTER ───────────────────────────────────── */}
+      <section className="container mx-auto px-4 pb-16">
+        <NewsletterSignup variant="inline" />
       </section>
 
       {/* ── PROMO BANNER (full campaign section) ────────── */}

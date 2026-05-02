@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Phone, MapPin, Mail, MessageCircle } from "lucide-react";
 import logo from "@/assets/logo.jpeg";
+import { NewsletterSignup } from "@/components/NewsletterSignup";
 
 export function SiteFooter() {
   return (
@@ -66,11 +67,12 @@ export function SiteFooter() {
               </a>
             </li>
             <li>
-              <a href="mailto:giseveral.services@outlook.com" className="flex items-center gap-2 hover:text-gold transition-colors break-all">
-                <Mail className="h-4 w-4 text-gold flex-shrink-0" /><span>giseveral.services@outlook.com</span>
+              <a href="mailto:geral@giseveral.com" className="flex items-center gap-2 hover:text-gold transition-colors break-all">
+                <Mail className="h-4 w-4 text-gold flex-shrink-0" /><span>geral@giseveral.com</span>
               </a>
             </li>
           </ul>
+          <NewsletterSignup variant="footer" />
         </div>
       </div>
       <div className="border-t border-white/10">

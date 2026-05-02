@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useRef, useState, useMemo } from "react";
 import {
   BookOpen, Sparkles, CheckCircle2, AlertTriangle, XCircle,
   Copy, RefreshCw, Loader2, Eye, Save, ChevronDown, ChevronUp,
-  FileText, LayoutTemplate, Wand2,
+  FileText, LayoutTemplate, Wand2, Upload,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/balcao/blog")({
@@ -306,6 +307,21 @@ function BalcaoBlog() {
   const [editing, setEditing] = useState<Draft>(emptyDraft());
   const [showList, setShowList] = useState(true);
   const [previewMode, setPreviewMode] = useState(false);
+  const [imgUploading, setImgUploading] = useState(false);
+  const imgInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleCoverUpload(file: File) {
+    if (file.size > 5 * 1024 * 1024) { toast.error("Imagem demasiado grande (máx 5 MB)"); return; }
+    setImgUploading(true);
+    const ext = file.name.split(".").pop();
+    const path = `blog/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("service-uploads").upload(path, file, { upsert: true });
+    if (error) { toast.error("Erro no upload"); setImgUploading(false); return; }
+    const { data: { publicUrl } } = supabase.storage.from("service-uploads").getPublicUrl(path);
+    setEditing((p) => ({ ...p, imageUrl: publicUrl }));
+    setImgUploading(false);
+    toast.success("Imagem carregada!");
+  }
 
   const slug = useMemo(() => slugify(editing.title), [editing.title]);
   const { score, checks } = useMemo(
@@ -601,13 +617,22 @@ function BalcaoBlog() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL da imagem de capa</label>
-                  <input
-                    value={editing.imageUrl}
-                    onChange={(e) => setEditing((p) => ({ ...p, imageUrl: e.target.value }))}
-                    placeholder="https://..."
-                    className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
-                  />
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Imagem de capa</label>
+                  <div className="mt-1.5 flex gap-2">
+                    <input
+                      value={editing.imageUrl}
+                      onChange={(e) => setEditing((p) => ({ ...p, imageUrl: e.target.value }))}
+                      placeholder="https://... ou carrega um ficheiro →"
+                      className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                    />
+                    <input ref={imgInputRef} type="file" accept="image/*" className="hidden"
+                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }} />
+                    <button type="button" disabled={imgUploading} onClick={() => imgInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-muted px-3 text-xs font-medium hover:bg-muted/70 disabled:opacity-60 shrink-0">
+                      {imgUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                      Upload
+                    </button>
+                  </div>
                 </div>
               </div>
             </>

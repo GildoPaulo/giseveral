@@ -12,6 +12,7 @@ export const Route = createFileRoute("/registo")({
     meta: [
       { title: "Criar Conta — Giseveral e Services" },
       { name: "description", content: "Crie a sua conta para pedir serviços de impressão, informática e redes mais rapidamente." },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: SignupPage,
