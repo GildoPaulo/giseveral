@@ -3,7 +3,7 @@ import { useState, useMemo } from "react";
 import {
   BookOpen, Sparkles, CheckCircle2, AlertTriangle, XCircle,
   Copy, RefreshCw, Loader2, Eye, Save, ChevronDown, ChevronUp,
-  FileText,
+  FileText, LayoutTemplate, Wand2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -364,6 +364,23 @@ function BalcaoBlog() {
 
   const wordCount = editing.content.trim().split(/\s+/).filter(Boolean).length;
 
+  /* structured sections */
+  const [sections, setSections] = useState({ intro: "", development: "", conclusion: "", cta: "" });
+  const [showStructure, setShowStructure] = useState(false);
+
+  function applyStructure() {
+    const cta = sections.cta.trim() || "Contacte a Giseveral e Services em Beira, Esturro • Rua Alfredo Lawley. Ligue/WhatsApp: 874 383 621 ou visite-nos Seg–Sáb 8h–17h.";
+    const built = [
+      sections.intro.trim()       && `${sections.intro.trim()}`,
+      sections.development.trim() && `${sections.development.trim()}`,
+      sections.conclusion.trim()  && `${sections.conclusion.trim()}`,
+      `${cta}`,
+    ].filter(Boolean).join("\n\n");
+    if (!built.trim()) { toast.error("Preenche pelo menos uma secção"); return; }
+    setEditing((p) => ({ ...p, content: built }));
+    toast.success("Estrutura aplicada no conteúdo!");
+  }
+
   /* list view */
   if (showList) {
     return (
@@ -518,6 +535,52 @@ function BalcaoBlog() {
                   placeholder={"Escreva o conteúdo do artigo aqui...\n\nSepare os parágrafos com uma linha em branco.\n\nDica: mencione 'Beira' e use a palavra-chave pelo menos 2 vezes."}
                   className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand/30 font-mono leading-relaxed"
                 />
+              </div>
+
+              {/* Structured sections helper */}
+              <div className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+                <button
+                  onClick={() => setShowStructure((v) => !v)}
+                  className="flex w-full items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <LayoutTemplate className="h-4 w-4 text-gold" />
+                    <span className="text-sm font-semibold text-foreground">Estrutura Guiada do Artigo</span>
+                    <span className="text-[10px] rounded-full bg-gold/10 text-gold px-2 py-0.5 font-medium">Recomendado</span>
+                  </div>
+                  {showStructure ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                </button>
+
+                {showStructure && (
+                  <div className="px-5 pb-5 space-y-4 border-t border-border">
+                    <p className="text-xs text-muted-foreground pt-4">Preenche as secções e clica "Aplicar no conteúdo" para gerar o texto estruturado automaticamente.</p>
+
+                    {[
+                      { key: "intro" as const,       label: "🔹 Introdução",   placeholder: "Qual é o problema que o cliente tem? Por que este tema é importante?\nEx: Muitos utilizadores em Beira perdem dados por não protegerem o PC contra vírus...", rows: 4 },
+                      { key: "development" as const, label: "🔹 Desenvolvimento", placeholder: "Explica a solução ou o tema em detalhe.\nEx: Existem várias formas de proteger o seu computador: antivírus actualizado, evitar pen-drives desconhecidas...", rows: 6 },
+                      { key: "conclusion" as const,  label: "🔹 Conclusão",    placeholder: "Resume os pontos principais.\nEx: Proteger o seu PC é simples e acessível. Com pequenos cuidados diários pode evitar grandes problemas...", rows: 4 },
+                      { key: "cta" as const,         label: "🔹 CTA (Chamada à acção)", placeholder: "Contacte a Giseveral e Services em Beira, Esturro • Rua Alfredo Lawley. Ligue/WhatsApp: 874 383 621 ou visite-nos Seg–Sáb 8h–17h.", rows: 3 },
+                    ].map(({ key, label, placeholder, rows }) => (
+                      <div key={key}>
+                        <label className="block text-xs font-bold text-muted-foreground mb-1.5">{label}</label>
+                        <textarea
+                          value={sections[key]}
+                          onChange={(e) => setSections((p) => ({ ...p, [key]: e.target.value }))}
+                          rows={rows}
+                          placeholder={placeholder}
+                          className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand/30 leading-relaxed"
+                        />
+                      </div>
+                    ))}
+
+                    <button
+                      onClick={applyStructure}
+                      className="flex items-center gap-2 rounded-lg bg-gradient-gold px-5 py-2.5 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth"
+                    >
+                      <Wand2 className="h-4 w-4" /> Aplicar estrutura no conteúdo
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Excerpt + Image */}

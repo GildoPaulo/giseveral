@@ -4,9 +4,13 @@ import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { TypewriterText } from "@/components/TypewriterText";
+import { PromoBanner } from "@/components/promos/PromoBanner";
+import { PromoSlider } from "@/components/promos/PromoSlider";
+import { MiniBanner } from "@/components/promos/MiniBanner";
+import { PromoPopup } from "@/components/promos/PromoPopup";
 import {
   Printer, Laptop, Network, BookOpen, ArrowRight, CheckCircle2, Phone,
-  Users, Clock, Star, MapPin, Zap, ShieldCheck, Award,
+  Clock, MapPin, Zap, ShieldCheck, Award,
 } from "lucide-react";
 import printing from "@/assets/printing.jpg";
 import repair from "@/assets/computer-repair.jpg";
@@ -26,26 +30,26 @@ export const Route = createFileRoute("/")({
 });
 
 const typewriterPhrases = [
-  "Impressão rápida e profissional de documentos",
-  "Assistência informática e formatação de computadores",
-  "Instalação e configuração de redes Wi-Fi e LAN",
-  "Papelaria completa para estudantes e empresas",
-  "Design gráfico e criação de materiais publicitários",
-  "Soluções tecnológicas rápidas e confiáveis",
+  "Impressão rápida, cores e P&B a preços acessíveis",
+  "Assistência informática — formatação, vírus e upgrades",
+  "Instalação de redes Wi-Fi e LAN para casa e empresa",
+  "Papelaria completa para estudantes e escritórios",
+  "Design gráfico — logos, flyers e identidade visual",
+  "Orçamentos rápidos · WhatsApp 874 383 621",
 ];
 
 const stats = [
-  { icon: Users,   value: "500+",  label: "Clientes satisfeitos" },
-  { icon: Clock,   value: "10+",   label: "Anos de experiência" },
-  { icon: Star,    value: "5",     label: "Áreas de serviço" },
-  { icon: MapPin,  value: "Beira", label: "Av. das FPLM, Moçambique" },
+  { icon: CheckCircle2, value: "Qualidade",    label: "Garantida em todos os serviços" },
+  { icon: Clock,        value: "Seg–Sáb",      label: "8h00 às 17h00" },
+  { icon: MapPin,       value: "Beira",         label: "Esturro · Rua Alfredo Lawley" },
+  { icon: Phone,        value: "874 383 621",   label: "WhatsApp e chamadas" },
 ];
 
 const highlights = [
-  { icon: Printer,  title: "Reprografia",       desc: "Impressão, fotocópias, encadernação e plastificação a preços acessíveis.",    to: "/servicos" },
-  { icon: Laptop,   title: "Informática",        desc: "Formatação, Windows, remoção de vírus e instalação de programas.",            to: "/servicos" },
-  { icon: Network,  title: "Redes & Wi-Fi",      desc: "Instalação de routers, LAN, cabeamento e extensão de sinal Wi-Fi.",           to: "/servicos" },
-  { icon: BookOpen, title: "Papelaria",           desc: "Material escolar e de escritório — cadernos, canetas, pastas e mais.",        to: "/loja/papelaria" },
+  { icon: Printer,  title: "Reprografia",       desc: "Impressão, fotocópias, encadernação e plastificação a preços acessíveis.",    slug: "reprografia" as const },
+  { icon: Laptop,   title: "Informática",        desc: "Formatação, Windows, remoção de vírus e instalação de programas.",            slug: "informatica" as const },
+  { icon: Network,  title: "Redes & Wi-Fi",      desc: "Instalação de routers, LAN, cabeamento e extensão de sinal Wi-Fi.",           slug: "redes" as const },
+  { icon: BookOpen, title: "Papelaria",           desc: "Material escolar e de escritório — cadernos, canetas, pastas e mais.",        slug: "papelaria" as const },
 ];
 
 const whyUs = [
@@ -74,17 +78,17 @@ function Index() {
             {/* Left: text */}
             <div className="[text-shadow:_0_2px_12px_rgb(0_0_0_/_50%)]">
               <span className="inline-flex items-center gap-2 rounded-full border border-gold/60 bg-gold/25 px-3 py-1 text-xs font-bold tracking-widest text-gold uppercase backdrop-blur-sm">
-                ✦ Giseveral e Services · Beira, Moçambique
+                ✦ Giseveral Services · Soluções profissionais na Beira
               </span>
               <h1 className="mt-5 font-extrabold leading-[1.08] text-white">
-                Soluções completas<br />
-                <span className="text-gold">num só lugar</span>
+                Bem-vindo à<br />
+                <span className="text-gold">Giseveral Services</span>
               </h1>
               <p className="mt-5 text-base md:text-lg text-white/90 min-h-[2.5rem]">
                 <TypewriterText phrases={typewriterPhrases} className="text-gold font-semibold" />
               </p>
               <p className="mt-3 text-sm md:text-base text-white/80 max-w-md">
-                Da impressão à tecnologia, a Giseveral resolve tudo por si com rapidez, qualidade e preço justo.
+                Transformamos ideias em soluções reais com qualidade, rapidez e confiança.
               </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
@@ -117,10 +121,13 @@ function Index() {
         </div>
       </section>
 
+      {/* ── PROMO SLIDER (desktop only, auto) ───────────── */}
+      <PromoSlider />
+
       {/* ── STATS STRIP ──────────────────────────────────── */}
       <section className="bg-brand text-brand-foreground">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-brand-foreground/10">
+          <div className="grid grid-cols-2 lg:grid-cols-4">
             {stats.map((s) => (
               <div key={s.label} className="flex flex-col sm:flex-row items-center justify-center gap-3 py-6 px-4 text-center sm:text-left">
                 <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-brand-foreground/10">
@@ -136,6 +143,9 @@ function Index() {
         </div>
       </section>
 
+      {/* ── MINI BANNER (dismissable strip) ─────────────── */}
+      <MiniBanner />
+
       {/* ── HIGHLIGHTS ───────────────────────────────────── */}
       <section className="container mx-auto px-4 py-16 md:py-20">
         <div className="text-center max-w-2xl mx-auto mb-12">
@@ -147,7 +157,8 @@ function Index() {
           {highlights.map((h) => (
             <Link
               key={h.title}
-              to={h.to}
+              to="/servicos/$slug"
+              params={{ slug: h.slug }}
               className="group rounded-2xl border border-border bg-card p-6 shadow-card transition-smooth hover:-translate-y-1.5 hover:shadow-elegant hover:border-gold/40"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-brand text-brand-foreground transition-smooth group-hover:bg-gradient-gold group-hover:text-gold-foreground group-hover:scale-110">
@@ -172,13 +183,14 @@ function Index() {
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { img: printing, title: "Reprografia",  text: "Impressão a cores e P&B, fotocópias, encadernação e plastificação com materiais de qualidade.", to: "/servicos" },
-              { img: repair,   title: "Informática",  text: "Formatação, instalação de Windows, remoção de vírus e diagnóstico rápido de hardware.", to: "/servicos" },
-              { img: network,  title: "Redes",        text: "Instalação Wi-Fi, redes LAN, routers e cabeamento estruturado para residências e empresas.", to: "/servicos" },
+              { img: printing, title: "Reprografia",  text: "Impressão a cores e P&B, fotocópias, encadernação e plastificação com materiais de qualidade.", slug: "reprografia" },
+              { img: repair,   title: "Informática",  text: "Formatação, instalação de Windows, remoção de vírus e diagnóstico rápido de hardware.", slug: "informatica" },
+              { img: network,  title: "Redes",        text: "Instalação Wi-Fi, redes LAN, routers e cabeamento estruturado para residências e empresas.", slug: "redes" },
             ].map((s) => (
               <Link
                 key={s.title}
-                to={s.to}
+                to="/servicos/$slug"
+                params={{ slug: s.slug }}
                 className="group overflow-hidden rounded-2xl bg-card shadow-card transition-smooth hover:shadow-elegant"
               >
                 <div className="aspect-video overflow-hidden">
@@ -245,7 +257,7 @@ function Index() {
                 Fazer Pedido Online
               </Link>
               <Link
-                to="/contactos"
+                to="/orcamento"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand-foreground/30 bg-white/10 px-6 py-3 text-sm font-semibold text-brand-foreground hover:bg-white/20 transition-smooth"
               >
                 Pedir Orçamento
@@ -260,6 +272,12 @@ function Index() {
           </div>
         </div>
       </section>
+
+      {/* ── PROMO BANNER (full campaign section) ────────── */}
+      <PromoBanner />
+
+      {/* ── POPUP (desktop, once per session) ───────────── */}
+      <PromoPopup />
 
       <WhatsAppFab />
     </Layout>

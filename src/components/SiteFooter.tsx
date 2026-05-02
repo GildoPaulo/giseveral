@@ -22,36 +22,61 @@ export function SiteFooter() {
         <div>
           <h4 className="text-sm font-semibold text-gold mb-4">Navegação</h4>
           <ul className="space-y-2 text-sm text-brand-foreground/80">
-            <li><Link to="/" className="hover:text-gold">Home</Link></li>
-            <li><Link to="/sobre" className="hover:text-gold">Sobre Nós</Link></li>
-            <li><Link to="/servicos" className="hover:text-gold">Serviços</Link></li>
-            <li><Link to="/galeria" className="hover:text-gold">Galeria</Link></li>
+            <li><Link to="/" className="hover:text-gold transition-colors">Home</Link></li>
+            <li><Link to="/sobre" className="hover:text-gold transition-colors">Sobre Nós</Link></li>
+            <li><Link to="/servicos" className="hover:text-gold transition-colors">Serviços</Link></li>
+            <li><Link to="/galeria" className="hover:text-gold transition-colors">Galeria</Link></li>
+            <li><Link to="/blog" className="hover:text-gold transition-colors">Blog</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="text-sm font-semibold text-gold mb-4">Serviços</h4>
           <ul className="space-y-2 text-sm text-brand-foreground/80">
-            <li><Link to="/informatica" className="hover:text-gold">Informática</Link></li>
-            <li><Link to="/redes" className="hover:text-gold">Redes</Link></li>
-            <li><Link to="/precos" className="hover:text-gold">Preços</Link></li>
-            <li><Link to="/contactos" className="hover:text-gold">Contactos</Link></li>
+            <li><Link to="/servicos/$slug" params={{ slug: "reprografia" }} className="hover:text-gold transition-colors">Reprografia</Link></li>
+            <li><Link to="/servicos/$slug" params={{ slug: "informatica" }} className="hover:text-gold transition-colors">Informática</Link></li>
+            <li><Link to="/servicos/$slug" params={{ slug: "redes" }} className="hover:text-gold transition-colors">Redes</Link></li>
+            <li><Link to="/precos" className="hover:text-gold transition-colors">Preços</Link></li>
+            <li><Link to="/contactos" className="hover:text-gold transition-colors">Contactos</Link></li>
           </ul>
         </div>
 
         <div>
           <h4 className="text-sm font-semibold text-gold mb-4">Contactos</h4>
           <ul className="space-y-3 text-sm text-brand-foreground/80">
-            <li><a href="sms:+258874383621" className="flex items-center gap-2 hover:text-gold"><Phone className="h-4 w-4 text-gold" /><span>874 383 621</span></a></li>
-            <li><a href="https://wa.me/258874383621" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-gold"><MessageCircle className="h-4 w-4 text-gold" /><span>WhatsApp</span></a></li>
-            <li className="flex items-center gap-2"><MapPin className="h-4 w-4 text-gold" /><span>Beira, Moçambique</span></li>
-            <li><a href="mailto:giseveral.services@outlook.com" className="flex items-center gap-2 hover:text-gold break-all"><Mail className="h-4 w-4 text-gold shrink-0" /><span>giseveral.services@outlook.com</span></a></li>
+            <li>
+              <a href="tel:+258874383621" className="flex items-center gap-2 hover:text-gold transition-colors">
+                <Phone className="h-4 w-4 text-gold flex-shrink-0" /><span>874 383 621</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://wa.me/258874383621" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-gold transition-colors">
+                <MessageCircle className="h-4 w-4 text-gold flex-shrink-0" /><span>WhatsApp</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://www.google.com/maps/search/?api=1&query=Beira,+Esturro,+Rua+Alfredo+Lawley,+Mo%C3%A7ambique"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 hover:text-gold transition-colors"
+              >
+                <MapPin className="h-4 w-4 text-gold flex-shrink-0" />
+                <span>Beira, Esturro • Rua Alfredo Lawley</span>
+              </a>
+            </li>
+            <li>
+              <a href="mailto:giseveral.services@outlook.com" className="flex items-center gap-2 hover:text-gold transition-colors break-all">
+                <Mail className="h-4 w-4 text-gold flex-shrink-0" /><span>giseveral.services@outlook.com</span>
+              </a>
+            </li>
           </ul>
         </div>
       </div>
       <div className="border-t border-white/10">
-        <div className="container mx-auto px-4 py-5 text-center text-xs text-brand-foreground/60">
-          © {new Date().getFullYear()} Giseveral e Services. Todos os direitos reservados.
+        <div className="container mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-brand-foreground/60">
+          <span>© {new Date().getFullYear()} Giseveral e Services. Todos os direitos reservados.</span>
+          <span>Beira, Moçambique</span>
         </div>
       </div>
     </footer>

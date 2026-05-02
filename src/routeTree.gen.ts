@@ -20,6 +20,7 @@ import { Route as InformaticaRouteImport } from './routes/informatica'
 import { Route as GaleriaRouteImport } from './routes/galeria'
 import { Route as ContactosRouteImport } from './routes/contactos'
 import { Route as ContaRouteImport } from './routes/conta'
+import { Route as OrcamentoRouteImport } from './routes/orcamento'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BalcaoRouteImport } from './routes/balcao'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
@@ -30,6 +31,9 @@ import { Route as BalcaoProdutosRouteImport } from './routes/balcao.produtos'
 import { Route as BalcaoStockRouteImport } from './routes/balcao.stock'
 import { Route as BalcaoEntregasRouteImport } from './routes/balcao.entregas'
 import { Route as BalcaoBlogRouteImport } from './routes/balcao.blog'
+import { Route as BalcaoServicosRouteImport } from './routes/balcao.servicos'
+import { Route as BalcaoGaleriaRouteImport } from './routes/balcao.galeria'
+import { Route as BalcaoCampanhasRouteImport } from './routes/balcao.campanhas'
 import { Route as LojaIndexRouteImport } from './routes/loja.index'
 import { Route as LojaPapelariaRouteImport } from './routes/loja.papelaria'
 import { Route as LojaCarrinhoRouteImport } from './routes/loja.carrinho'
@@ -92,6 +96,11 @@ const ContaRoute = ContaRouteImport.update({
   path: '/conta',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OrcamentoRoute = OrcamentoRouteImport.update({
+  id: '/orcamento',
+  path: '/orcamento',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -142,6 +151,21 @@ const BalcaoBlogRoute = BalcaoBlogRouteImport.update({
   path: '/blog',
   getParentRoute: () => BalcaoRoute,
 } as any)
+const BalcaoServicosRoute = BalcaoServicosRouteImport.update({
+  id: '/balcao/servicos',
+  path: '/servicos',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoCampanhasRoute = BalcaoCampanhasRouteImport.update({
+  id: '/balcao/campanhas',
+  path: '/campanhas',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoGaleriaRoute = BalcaoGaleriaRouteImport.update({
+  id: '/balcao/galeria',
+  path: '/galeria',
+  getParentRoute: () => BalcaoRoute,
+} as any)
 const LojaIndexRoute = LojaIndexRouteImport.update({
   id: '/loja/',
   path: '/loja/',
@@ -180,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/galeria': typeof GaleriaRoute
   '/informatica': typeof InformaticaRoute
   '/login': typeof LoginRoute
+  '/orcamento': typeof OrcamentoRoute
   '/precos': typeof PrecosRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
@@ -195,6 +220,9 @@ export interface FileRoutesByFullPath {
   '/balcao/stock': typeof BalcaoStockRoute
   '/balcao/entregas': typeof BalcaoEntregasRoute
   '/balcao/blog': typeof BalcaoBlogRoute
+  '/balcao/servicos': typeof BalcaoServicosRoute
+  '/balcao/galeria': typeof BalcaoGaleriaRoute
+  '/balcao/campanhas': typeof BalcaoCampanhasRoute
   '/loja/': typeof LojaIndexRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
@@ -209,6 +237,7 @@ export interface FileRoutesByTo {
   '/galeria': typeof GaleriaRoute
   '/informatica': typeof InformaticaRoute
   '/login': typeof LoginRoute
+  '/orcamento': typeof OrcamentoRoute
   '/precos': typeof PrecosRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
@@ -224,6 +253,9 @@ export interface FileRoutesByTo {
   '/balcao/stock': typeof BalcaoStockRoute
   '/balcao/entregas': typeof BalcaoEntregasRoute
   '/balcao/blog': typeof BalcaoBlogRoute
+  '/balcao/servicos': typeof BalcaoServicosRoute
+  '/balcao/galeria': typeof BalcaoGaleriaRoute
+  '/balcao/campanhas': typeof BalcaoCampanhasRoute
   '/loja': typeof LojaIndexRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
@@ -239,6 +271,7 @@ export interface FileRoutesById {
   '/galeria': typeof GaleriaRoute
   '/informatica': typeof InformaticaRoute
   '/login': typeof LoginRoute
+  '/orcamento': typeof OrcamentoRoute
   '/precos': typeof PrecosRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
@@ -254,6 +287,9 @@ export interface FileRoutesById {
   '/balcao/stock': typeof BalcaoStockRoute
   '/balcao/entregas': typeof BalcaoEntregasRoute
   '/balcao/blog': typeof BalcaoBlogRoute
+  '/balcao/servicos': typeof BalcaoServicosRoute
+  '/balcao/galeria': typeof BalcaoGaleriaRoute
+  '/balcao/campanhas': typeof BalcaoCampanhasRoute
   '/loja/': typeof LojaIndexRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
@@ -270,6 +306,7 @@ export interface FileRouteTypes {
     | '/galeria'
     | '/informatica'
     | '/login'
+    | '/orcamento'
     | '/precos'
     | '/redes'
     | '/registo'
@@ -285,6 +322,9 @@ export interface FileRouteTypes {
     | '/balcao/stock'
     | '/balcao/entregas'
     | '/balcao/blog'
+    | '/balcao/servicos'
+    | '/balcao/galeria'
+    | '/balcao/campanhas'
     | '/loja/'
     | '/loja/papelaria'
     | '/loja/carrinho'
@@ -299,6 +339,7 @@ export interface FileRouteTypes {
     | '/galeria'
     | '/informatica'
     | '/login'
+    | '/orcamento'
     | '/precos'
     | '/redes'
     | '/registo'
@@ -314,6 +355,9 @@ export interface FileRouteTypes {
     | '/balcao/stock'
     | '/balcao/entregas'
     | '/balcao/blog'
+    | '/balcao/servicos'
+    | '/balcao/galeria'
+    | '/balcao/campanhas'
     | '/loja'
     | '/loja/papelaria'
     | '/loja/carrinho'
@@ -328,6 +372,7 @@ export interface FileRouteTypes {
     | '/galeria'
     | '/informatica'
     | '/login'
+    | '/orcamento'
     | '/precos'
     | '/redes'
     | '/registo'
@@ -343,6 +388,9 @@ export interface FileRouteTypes {
     | '/balcao/stock'
     | '/balcao/entregas'
     | '/balcao/blog'
+    | '/balcao/servicos'
+    | '/balcao/galeria'
+    | '/balcao/campanhas'
     | '/loja/'
     | '/loja/papelaria'
     | '/loja/carrinho'
@@ -358,6 +406,7 @@ export interface RootRouteChildren {
   GaleriaRoute: typeof GaleriaRoute
   InformaticaRoute: typeof InformaticaRoute
   LoginRoute: typeof LoginRoute
+  OrcamentoRoute: typeof OrcamentoRoute
   PrecosRoute: typeof PrecosRoute
   RedesRoute: typeof RedesRoute
   RegistoRoute: typeof RegistoRoute
@@ -382,6 +431,9 @@ export interface BalcaoRouteChildren {
   BalcaoStockRoute: typeof BalcaoStockRoute
   BalcaoEntregasRoute: typeof BalcaoEntregasRoute
   BalcaoBlogRoute: typeof BalcaoBlogRoute
+  BalcaoServicosRoute: typeof BalcaoServicosRoute
+  BalcaoGaleriaRoute: typeof BalcaoGaleriaRoute
+  BalcaoCampanhasRoute: typeof BalcaoCampanhasRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -433,6 +485,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/orcamento': {
+      id: '/orcamento'
+      path: '/orcamento'
+      fullPath: '/orcamento'
+      preLoaderRoute: typeof OrcamentoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/informatica': {
@@ -519,6 +578,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoBlogRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/servicos': {
+      id: '/balcao/servicos'
+      path: '/servicos'
+      fullPath: '/balcao/servicos'
+      preLoaderRoute: typeof BalcaoServicosRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/galeria': {
+      id: '/balcao/galeria'
+      path: '/galeria'
+      fullPath: '/balcao/galeria'
+      preLoaderRoute: typeof BalcaoGaleriaRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/campanhas': {
+      id: '/balcao/campanhas'
+      path: '/campanhas'
+      fullPath: '/balcao/campanhas'
+      preLoaderRoute: typeof BalcaoCampanhasRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -585,6 +665,9 @@ const balcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoStockRoute: BalcaoStockRoute,
   BalcaoEntregasRoute: BalcaoEntregasRoute,
   BalcaoBlogRoute: BalcaoBlogRoute,
+  BalcaoServicosRoute: BalcaoServicosRoute,
+  BalcaoGaleriaRoute: BalcaoGaleriaRoute,
+  BalcaoCampanhasRoute: BalcaoCampanhasRoute,
 }
 
 const BalcaoRouteWithChildren = BalcaoRoute._addFileChildren(balcaoRouteChildren)
@@ -596,6 +679,7 @@ const rootRouteChildren: RootRouteChildren = {
   GaleriaRoute: GaleriaRoute,
   InformaticaRoute: InformaticaRoute,
   LoginRoute: LoginRoute,
+  OrcamentoRoute: OrcamentoRoute,
   PrecosRoute: PrecosRoute,
   RedesRoute: RedesRoute,
   RegistoRoute: RegistoRoute,

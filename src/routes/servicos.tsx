@@ -107,12 +107,9 @@ function ServicosPage() {
                 </ul>
 
                 {/* CTA */}
-                <div className="mt-6 flex items-center justify-between">
-                  <span className="text-sm font-semibold text-brand group-hover:text-gold transition-colors">
-                    Ver detalhes e preços
-                  </span>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted group-hover:bg-gradient-brand transition-smooth">
-                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-brand-foreground transition-smooth" />
+                <div className="mt-6">
+                  <div className="inline-flex items-center gap-2 rounded-lg bg-gradient-brand px-4 py-2.5 text-sm font-semibold text-brand-foreground shadow-card group-hover:bg-gradient-gold group-hover:shadow-glow transition-smooth">
+                    Ver detalhes e preços <ArrowRight className="h-3.5 w-3.5" />
                   </div>
                 </div>
               </div>
@@ -156,7 +153,7 @@ function ServicosPage() {
               { num: "10+", label: "Anos de experiência" },
               { num: "500+", label: "Clientes satisfeitos" },
               { num: "1 dia", label: "Entrega rápida" },
-              { num: "📍", label: "Av. das FPLM, Beira" },
+              { num: "📍", label: "Beira, Esturro • Rua Alfredo Lawley" },
             ].map((stat) => (
               <div key={stat.label} className="rounded-xl border border-border bg-card p-4 shadow-card">
                 <p className="text-2xl font-bold text-brand">{stat.num}</p>

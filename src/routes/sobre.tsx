@@ -38,7 +38,7 @@ const stats = [
   { icon: Users,     value: "500+",  label: "Clientes satisfeitos" },
   { icon: Clock,     value: "10+",   label: "Anos de experiência" },
   { icon: TrendingUp,value: "5",     label: "Áreas de serviço" },
-  { icon: MapPin,    value: "Beira", label: "Av. das FPLM, Moçambique" },
+  { icon: MapPin,    value: "Beira", label: "Beira, Esturro • Rua Alfredo Lawley" },
 ];
 
 function SobrePage() {

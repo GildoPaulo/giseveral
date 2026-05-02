@@ -390,7 +390,7 @@ function PrecosPage() {
               </p>
               <div className="mt-5 flex flex-wrap gap-3 justify-center">
                 <Link
-                  to="/contactos"
+                  to="/orcamento"
                   className="inline-flex items-center gap-2 rounded-md bg-gradient-gold px-6 py-3 text-sm font-semibold text-gold-foreground shadow-card hover:shadow-glow transition-smooth"
                 >
                   Pedir Orçamento

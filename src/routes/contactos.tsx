@@ -52,10 +52,19 @@ function ContactosPage() {
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#25D366] text-white"><MessageCircle className="h-5 w-5" /></div>
               <div><div className="text-sm text-muted-foreground">WhatsApp</div><div className="font-semibold text-brand">Enviar mensagem</div></div>
             </a>
-            <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 shadow-card">
+            <a
+              href="https://www.google.com/maps/search/?api=1&query=Rua+Alfredo+Lawley,+Esturro,+Beira,+Mo%C3%A7ambique"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 shadow-card transition-smooth hover:shadow-elegant"
+            >
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-gold text-gold-foreground"><MapPin className="h-5 w-5" /></div>
-              <div><div className="text-sm text-muted-foreground">Localização</div><div className="font-semibold text-brand">Beira, Moçambique</div></div>
-            </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Localização</div>
+                <div className="font-semibold text-brand">Beira, Esturro • Rua Alfredo Lawley</div>
+                <div className="text-xs text-gold mt-0.5">Ver no Google Maps →</div>
+              </div>
+            </a>
             <a href="mailto:giseveral.services@outlook.com?subject=Contacto%20via%20site&body=Ol%C3%A1%20Giseveral%2C" className="flex items-center gap-4 rounded-xl border border-border bg-card p-5 shadow-card transition-smooth hover:shadow-elegant">
               <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-gradient-brand text-brand-foreground"><Mail className="h-5 w-5" /></div>
               <div className="min-w-0"><div className="text-sm text-muted-foreground">Email</div><div className="font-semibold text-brand break-all">giseveral.services@outlook.com</div></div>

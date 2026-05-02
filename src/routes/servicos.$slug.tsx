@@ -116,7 +116,7 @@ const SERVICES: Record<string, ServiceData> = {
       { title: "Mochilas e Estojos", description: "Mochilas escolares resistentes e estojos práticos para estudantes de todos os níveis." },
     ],
     steps: [
-      { num: "1", title: "Visita a loja", desc: "Vem à nossa loja na Av. das FPLM ou encomena por WhatsApp." },
+      { num: "1", title: "Visita a loja", desc: "Vem à nossa loja na Beira, Esturro • Rua Alfredo Lawley ou encomena por WhatsApp." },
       { num: "2", title: "Escolhe o material", desc: "Grande variedade de marcas e modelos disponíveis." },
       { num: "3", title: "Leva no próprio dia", desc: "Stock disponível para entrega imediata." },
     ],
@@ -527,7 +527,7 @@ function ServicoPage() {
               <Phone className="h-4 w-4" /> 874 383 621
             </a>
           </div>
-          <p className="mt-5 text-xs text-brand-foreground/60">📍 Av. das FPLM, Beira · Seg–Sáb 8h–18h</p>
+          <p className="mt-5 text-xs text-brand-foreground/60">Beira, Esturro • Rua Alfredo Lawley · Seg–Sáb 8h–18h</p>
         </div>
       </section>
 

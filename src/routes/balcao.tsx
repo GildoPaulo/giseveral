@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ShoppingBag, Package, Truck,
   LogOut, Menu, X, ChevronRight, BoxesIcon, BookOpen,
+  Wrench, Images, Megaphone,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +22,9 @@ const navItems = [
   { to: "/balcao/produtos", label: "Produtos", icon: BoxesIcon },
   { to: "/balcao/stock", label: "Stock", icon: Package },
   { to: "/balcao/entregas", label: "Entregas", icon: Truck },
+  { to: "/balcao/servicos", label: "Serviços", icon: Wrench },
+  { to: "/balcao/galeria", label: "Galeria", icon: Images },
+  { to: "/balcao/campanhas", label: "Campanhas", icon: Megaphone },
   { to: "/balcao/blog", label: "Blog + IA", icon: BookOpen },
 ] as const;
 

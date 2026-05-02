@@ -3,24 +3,26 @@ import useEmblaCarousel from "embla-carousel-react";
 import { Link } from "@tanstack/react-router";
 import printing from "@/assets/printing.jpg";
 import documents from "@/assets/documents.jpg";
-import repair from "@/assets/computer-repair.jpg";
 import windows from "@/assets/windows-install.jpg";
 import router from "@/assets/router.jpg";
-import network from "@/assets/network.jpg";
 import cabling from "@/assets/blog-cabling.jpg";
 import stationery from "@/assets/stationery.jpg";
+import techNet1 from "@/assets/network-africa-1.jpg";
+import techNet2 from "@/assets/network-africa-2.jpg";
+import techNet3 from "@/assets/network-africa-3.jpg";
 
-type Slide = { img: string; category: string; title: string; to: string };
+type Slide = { img: string; category: string; title: string; slug: string };
 
 const slides: Slide[] = [
-  { img: printing, category: "Reprografia", title: "Impressão profissional a cores e P&B", to: "/servicos" },
-  { img: documents, category: "Reprografia", title: "Documentos, fotocópias e digitalização", to: "/servicos" },
-  { img: repair, category: "Informática", title: "Reparação e manutenção de computadores", to: "/informatica" },
-  { img: windows, category: "Informática", title: "Instalação de Windows e software", to: "/informatica" },
-  { img: router, category: "Redes", title: "Configuração de routers e Wi-Fi", to: "/redes" },
-  { img: network, category: "Redes", title: "Instalação de redes empresariais", to: "/redes" },
-  { img: cabling, category: "Redes", title: "Cabeamento estruturado profissional", to: "/redes" },
-  { img: stationery, category: "Papelaria", title: "Material escolar e de escritório", to: "/servicos" },
+  { img: printing,   category: "Reprografia", title: "Impressão profissional a cores e P&B",            slug: "reprografia" },
+  { img: documents,  category: "Reprografia", title: "Documentos, fotocópias e digitalização",            slug: "reprografia" },
+  { img: techNet1,   category: "Redes",       title: "Gestão de infra-estruturas de rede e servidores",  slug: "redes"       },
+  { img: techNet2,   category: "Informática", title: "Assistência técnica rápida e profissional",         slug: "informatica" },
+  { img: windows,    category: "Informática", title: "Instalação de Windows, programas e antivírus",      slug: "informatica" },
+  { img: techNet3,   category: "Redes",       title: "Instalação e configuração de redes empresariais",   slug: "redes"       },
+  { img: router,     category: "Redes",       title: "Configuração de routers e extensão Wi-Fi",          slug: "redes"       },
+  { img: cabling,    category: "Redes",       title: "Cabeamento estruturado profissional",                slug: "redes"       },
+  { img: stationery, category: "Papelaria",   title: "Material escolar e de escritório",                  slug: "papelaria"   },
 ];
 
 export function HeroCarousel() {
@@ -48,7 +50,8 @@ export function HeroCarousel() {
           {slides.map((s, i) => (
             <div key={i} className="relative min-w-0 flex-[0_0_100%]">
               <Link
-                to={s.to}
+                to="/servicos/$slug"
+                params={{ slug: s.slug }}
                 aria-label={`Ver serviços de ${s.category}`}
                 className="group block relative aspect-[4/3] md:aspect-[16/10] w-full"
               >

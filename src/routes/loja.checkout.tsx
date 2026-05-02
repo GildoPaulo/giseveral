@@ -102,6 +102,7 @@ function Checkout() {
     handleSubmit,
     watch,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -117,6 +118,18 @@ function Checkout() {
   useEffect(() => {
     supabase.from("delivery_zones").select("*").eq("active", true).then(({ data }) => setZones(data ?? []));
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("full_name, phone, email").eq("id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        if (data.full_name) setValue("customer_name", data.full_name);
+        if (data.phone) setValue("customer_phone", data.phone);
+        const email = data.email ?? user.email;
+        if (email) setValue("customer_email", email);
+      });
+  }, [user, setValue]);
 
   useEffect(() => {
     setSelectedZone(zones.find((z) => z.id === zoneId) ?? null);
@@ -369,7 +382,7 @@ function Checkout() {
               </div>
               <div className="grid sm:grid-cols-2 gap-3 mb-4">
                 {[
-                  { value: "pickup", label: "Levantar na loja", icon: Store, desc: "Gratuito · Av. das FPLM, Beira" },
+                  { value: "pickup", label: "Levantar na loja", icon: Store, desc: "Gratuito · Beira, Esturro • Rua Alfredo Lawley" },
                   { value: "delivery", label: "Entrega ao domicílio", icon: Truck, desc: "Taxa calculada por zona" },
                 ].map(({ value, label, icon: Icon, desc }) => (
                   <label key={value} className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-smooth ${deliveryType === value ? "border-gold bg-gold/5 ring-1 ring-gold/30" : "border-border hover:border-gold/40"}`}>

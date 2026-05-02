@@ -149,7 +149,7 @@ function BlogPostPage() {
             </a>
           </div>
           <p className="mt-4 text-xs text-brand-foreground/60">
-            📍 Av. das FPLM, Beira · 🕐 Seg–Sáb 8h–18h
+            Beira, Esturro • Rua Alfredo Lawley · Seg–Sáb 8h–18h
           </p>
         </div>
       </article>

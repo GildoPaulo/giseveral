@@ -10,7 +10,7 @@ const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemi
 const SYSTEM_PROMPT = `Você é o assistente virtual da Giseveral e Services, empresa em Beira, Moçambique.
 Responda SEMPRE em Português. Respostas curtas (máx 3 frases). Seja amigável e direto.
 
-EMPRESA: Av. das FPLM, Beira · Tel/WhatsApp: 874 383 621 · Seg-Sáb 8h-17h
+EMPRESA: Beira, Esturro • Rua Alfredo Lawley · Tel/WhatsApp: 874 383 621 · Seg-Sáb 8h-17h
 
 PREÇOS:
 - Impressão P&B: 5 MZN/pág · Cores: 15 MZN/pág · Fotocópia: 3 MZN/pág (50+ pág: -10%, 100+ pág: -20%)
@@ -36,7 +36,7 @@ function ruleAnswer(input: string): string {
   if (/(design|gráfic|logo|cartão|flyer|banner)/.test(q))
     return "🎨 Logotipo: 1.500 MZN · Cartão de visita: 300 MZN · Panfleto A5: 400 MZN. Quer saber mais?";
   if (/(localiza|onde|endereco|endereço|beira)/.test(q))
-    return "📍 Estamos na Av. das FPLM, Beira, Moçambique. Atendemos Seg–Sáb, 8h–17h.";
+    return "📍 Estamos na Beira, Esturro • Rua Alfredo Lawley, Moçambique. Atendemos Seg–Sáb, 8h–17h.";
   if (/(contact|telefon|whats|email)/.test(q))
     return "📞 WhatsApp/Tel: 874 383 621\n📧 giseveral.services@outlook.com";
   if (/(preco|preço|quanto|custa|valor|orcament)/.test(q))
