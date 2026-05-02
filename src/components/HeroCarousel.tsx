@@ -7,9 +7,9 @@ import windows from "@/assets/windows-install.jpg";
 import router from "@/assets/router.jpg";
 import cabling from "@/assets/blog-cabling.jpg";
 import stationery from "@/assets/stationery.jpg";
-import techNet1 from "@/assets/network-africa-1.jpg";
-import techNet2 from "@/assets/network-africa-2.jpg";
-import techNet3 from "@/assets/network-africa-3.jpg";
+import techNet1 from "@/assets/network.jpg";
+import techNet2 from "@/assets/computer-repair.jpg";
+import techNet3 from "@/assets/router.jpg";
 
 type Slide = { img: string; category: string; title: string; slug: string };
 
