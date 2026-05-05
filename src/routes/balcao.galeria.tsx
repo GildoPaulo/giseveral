@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef } from "react";
-import { Upload, Trash2, Edit3, Check, X, Image, ExternalLink, Star } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Upload, Trash2, Edit3, Check, X, Image, ExternalLink, Star, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Link } from "@tanstack/react-router";
@@ -17,18 +17,10 @@ type GalleryItem = {
   client: string;
   category: string;
   rating: number;
-  createdAt: string;
+  created_at: string;
 };
 
 const CATEGORIES = ["Impressão", "Informática", "Redes", "Design", "Papelaria", "Outro"];
-const LS_KEY = "giseveral_gallery";
-
-function loadItems(): GalleryItem[] {
-  try { return JSON.parse(localStorage.getItem(LS_KEY) ?? "[]"); } catch { return []; }
-}
-function saveItems(items: GalleryItem[]) {
-  localStorage.setItem(LS_KEY, JSON.stringify(items));
-}
 
 function StarPicker({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hover, setHover] = useState(0);
@@ -47,7 +39,8 @@ type ItemForm = { title: string; description: string; client: string; category: 
 const emptyForm = (): ItemForm => ({ title: "", description: "", client: "", category: "Impressão", rating: 5 });
 
 function BalcaoGaleria() {
-  const [items, setItems] = useState<GalleryItem[]>(loadItems);
+  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<ItemForm>(emptyForm());
@@ -55,6 +48,24 @@ function BalcaoGaleria() {
   const [previewFile, setPreviewFile] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    loadItems();
+  }, []);
+
+  async function loadItems() {
+    setLoading(true);
+    const { data, error } = await (supabase as any)
+      .from("gallery_items")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) {
+      toast.error("Erro ao carregar galeria");
+    } else {
+      setItems(data ?? []);
+    }
+    setLoading(false);
+  }
 
   async function handleUpload() {
     if (!selectedFile) { toast.error("Seleciona uma imagem primeiro"); return; }
@@ -68,40 +79,44 @@ function BalcaoGaleria() {
     if (uploadErr) { toast.error("Erro ao carregar: " + uploadErr.message); setUploading(false); return; }
     const { data: urlData } = supabase.storage.from("service-uploads").getPublicUrl(path);
 
-    const newItem: GalleryItem = {
-      id: crypto.randomUUID(),
-      url: urlData.publicUrl,
-      title: addForm.title.trim(),
-      description: addForm.description.trim(),
-      client: addForm.client.trim(),
-      category: addForm.category,
-      rating: addForm.rating,
-      createdAt: new Date().toISOString(),
-    };
-    const next = [newItem, ...items];
-    setItems(next);
-    saveItems(next);
-    setAddForm(emptyForm());
-    setSelectedFile(null);
-    setPreviewFile(null);
-    if (fileRef.current) fileRef.current.value = "";
+    const { data: inserted, error: dbErr } = await (supabase as any)
+      .from("gallery_items")
+      .insert({
+        url: urlData.publicUrl,
+        title: addForm.title.trim(),
+        description: addForm.description.trim(),
+        client: addForm.client.trim(),
+        category: addForm.category,
+        rating: addForm.rating,
+      })
+      .select()
+      .single();
+
+    if (dbErr) {
+      toast.error("Imagem carregada mas erro ao guardar: " + dbErr.message);
+    } else {
+      setItems((prev) => [inserted, ...prev]);
+      setAddForm(emptyForm());
+      setSelectedFile(null);
+      setPreviewFile(null);
+      if (fileRef.current) fileRef.current.value = "";
+      toast.success("Imagem adicionada à galeria!");
+    }
     setUploading(false);
-    toast.success("Imagem adicionada à galeria!");
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setSelectedFile(file);
-    const url = URL.createObjectURL(file);
-    setPreviewFile(url);
+    setPreviewFile(URL.createObjectURL(file));
   }
 
-  function deleteItem(id: string) {
+  async function deleteItem(id: string) {
     if (!confirm("Remover esta imagem da galeria?")) return;
-    const next = items.filter((i) => i.id !== id);
-    setItems(next);
-    saveItems(next);
+    const { error } = await (supabase as any).from("gallery_items").delete().eq("id", id);
+    if (error) { toast.error("Erro ao remover"); return; }
+    setItems((prev) => prev.filter((i) => i.id !== id));
     toast.success("Imagem removida");
   }
 
@@ -110,11 +125,14 @@ function BalcaoGaleria() {
     setEditForm({ title: item.title, description: item.description, client: item.client, category: item.category, rating: item.rating });
   }
 
-  function saveEdit() {
+  async function saveEdit() {
     if (!editId) return;
-    const next = items.map((i) => i.id === editId ? { ...i, ...editForm } : i);
-    setItems(next);
-    saveItems(next);
+    const { error } = await (supabase as any)
+      .from("gallery_items")
+      .update({ title: editForm.title, description: editForm.description, client: editForm.client, category: editForm.category, rating: editForm.rating })
+      .eq("id", editId);
+    if (error) { toast.error("Erro ao actualizar"); return; }
+    setItems((prev) => prev.map((i) => i.id === editId ? { ...i, ...editForm } : i));
     setEditId(null);
     toast.success("Imagem actualizada!");
   }
@@ -136,7 +154,6 @@ function BalcaoGaleria() {
       <div className="rounded-2xl border border-border bg-card shadow-card p-6">
         <h2 className="font-bold text-brand mb-4 flex items-center gap-2"><Upload className="h-4 w-4 text-gold" /> Adicionar trabalho</h2>
         <div className="grid md:grid-cols-2 gap-5">
-          {/* Image picker */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">Imagem *</label>
             <div
@@ -156,7 +173,6 @@ function BalcaoGaleria() {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
           </div>
 
-          {/* Metadata */}
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">Título *</label>
@@ -198,7 +214,11 @@ function BalcaoGaleria() {
       </div>
 
       {/* Gallery grid */}
-      {items.length === 0 ? (
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : items.length === 0 ? (
         <div className="rounded-2xl border-2 border-dashed border-border p-16 text-center">
           <Image className="h-12 w-12 text-muted-foreground/20 mx-auto mb-3" />
           <p className="font-medium text-muted-foreground">Galeria vazia</p>
@@ -209,7 +229,13 @@ function BalcaoGaleria() {
           {items.map((item) => (
             <div key={item.id} className="rounded-xl border border-border bg-card shadow-card overflow-hidden">
               <div className="aspect-video overflow-hidden bg-muted">
-                <img src={item.url} alt={item.title} className="h-full w-full object-cover" loading="lazy" />
+                <img
+                  src={item.url}
+                  alt={item.title}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                  onError={(e) => { (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='225' fill='%23f0f0f0'%3E%3Crect width='400' height='225'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23aaa' font-size='14'%3ESem imagem%3C/text%3E%3C/svg%3E"; }}
+                />
               </div>
 
               {editId === item.id ? (
