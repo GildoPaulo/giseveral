@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Layout, PageHero } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { blogPosts, formatPtDate, type BlogCategory } from "@/data/blog";
+import { supabase } from "@/integrations/supabase/client";
 import { Calendar, ArrowRight, Tag } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
@@ -17,6 +18,16 @@ export const Route = createFileRoute("/blog/")({
   component: BlogPage,
 });
 
+type PostItem = {
+  slug: string;
+  title: string;
+  date: string;
+  category: BlogCategory;
+  image: string;
+  excerpt: string;
+  source: "static" | "db";
+};
+
 const categories: ("Todos" | BlogCategory)[] = ["Todos", "Informática", "Impressão", "Redes", "Dicas"];
 
 const categoryColor: Record<BlogCategory, string> = {
@@ -28,10 +39,45 @@ const categoryColor: Record<BlogCategory, string> = {
 
 function BlogPage() {
   const [filter, setFilter] = useState<"Todos" | BlogCategory>("Todos");
+  const [dbPosts, setDbPosts] = useState<PostItem[]>([]);
+
+  useEffect(() => {
+    (supabase as any)
+      .from("blog_posts")
+      .select("slug, title, date, category, image_url, excerpt")
+      .eq("published", true)
+      .order("created_at", { ascending: false })
+      .then(({ data }: { data: any[] | null }) => {
+        if (!data) return;
+        const mapped: PostItem[] = data.map((r) => ({
+          slug: r.slug,
+          title: r.title,
+          date: r.date,
+          category: r.category as BlogCategory,
+          image: r.image_url ?? "",
+          excerpt: r.excerpt ?? "",
+          source: "db",
+        }));
+        setDbPosts(mapped);
+      });
+  }, []);
+
+  const staticItems: PostItem[] = blogPosts.map((p) => ({
+    slug: p.slug,
+    title: p.title,
+    date: p.date,
+    category: p.category,
+    image: p.image as string,
+    excerpt: p.excerpt,
+    source: "static",
+  }));
+
+  const dbSlugs = new Set(dbPosts.map((p) => p.slug));
+  const allPosts = [...dbPosts, ...staticItems.filter((p) => !dbSlugs.has(p.slug))];
 
   const posts = useMemo(
-    () => (filter === "Todos" ? blogPosts : blogPosts.filter((p) => p.category === filter)),
-    [filter],
+    () => (filter === "Todos" ? allPosts : allPosts.filter((p) => p.category === filter)),
+    [filter, dbPosts],
   );
 
   return (
@@ -39,7 +85,6 @@ function BlogPage() {
       <PageHero title="Blog" subtitle="Dicas, novidades e conhecimento técnico para o seu dia a dia." />
 
       <section className="container mx-auto px-4 py-12">
-        {/* Filtros */}
         <div className="flex flex-wrap gap-2 mb-10">
           {categories.map((c) => (
             <button
@@ -56,7 +101,6 @@ function BlogPage() {
           ))}
         </div>
 
-        {/* Grid */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.map((p) => (
             <article
@@ -68,14 +112,13 @@ function BlogPage() {
                   src={p.image}
                   alt={p.title}
                   loading="lazy"
-                  width={1280}
-                  height={768}
                   className="h-full w-full object-cover transition-smooth group-hover:scale-105"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                 />
               </Link>
               <div className="flex flex-1 flex-col p-5">
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-semibold ${categoryColor[p.category]}`}>
+                  <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-semibold ${categoryColor[p.category] ?? "bg-muted text-muted-foreground"}`}>
                     <Tag className="h-3 w-3" /> {p.category}
                   </span>
                   <span className="inline-flex items-center gap-1">

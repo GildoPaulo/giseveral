@@ -58,7 +58,7 @@ function UrgencyWidget({ c }: { c: Campaign }) {
 
 export function PromoBanner() {
   const [c, setC] = useState<Campaign | null>(null);
-  useEffect(() => { setC(getActiveCampaigns("banner")[0] ?? null); }, []);
+  useEffect(() => { getActiveCampaigns("banner").then((list) => setC(list[0] ?? null)); }, []);
   if (!c) return null;
 
   return (

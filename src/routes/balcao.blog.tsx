@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import {
   BookOpen, Sparkles, CheckCircle2, AlertTriangle, XCircle,
-  Copy, RefreshCw, Loader2, Eye, Save, ChevronDown, ChevronUp,
-  FileText, LayoutTemplate, Wand2, Upload,
+  RefreshCw, Loader2, Eye, Save, ChevronDown, ChevronUp,
+  FileText, LayoutTemplate, Wand2, Upload, Globe, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -292,8 +292,38 @@ type Draft = {
 function loadDrafts(): Draft[] {
   try { return JSON.parse(localStorage.getItem("blog_drafts") ?? "[]"); } catch { return []; }
 }
-function saveDrafts(drafts: Draft[]) {
+function saveDraftsLocal(drafts: Draft[]) {
   localStorage.setItem("blog_drafts", JSON.stringify(drafts));
+}
+
+async function publishToSupabase(draft: Draft, slug: string): Promise<void> {
+  const contentJson = draft.content
+    .split(/\n{2,}/)
+    .filter(Boolean)
+    .map((block) => ({ paragraphs: [block.trim()] }));
+
+  const row = {
+    slug,
+    title: draft.title,
+    date: new Date().toISOString().split("T")[0],
+    category: draft.category,
+    image_url: draft.imageUrl,
+    excerpt: draft.excerpt,
+    meta_title: draft.title,
+    meta_description: draft.excerpt,
+    keywords: draft.keyword,
+    content: contentJson,
+    published: true,
+  };
+
+  const { error } = await (supabase as any)
+    .from("blog_posts")
+    .upsert(row, { onConflict: "slug" });
+  if (error) throw error;
+}
+
+async function deleteFromSupabase(slug: string): Promise<void> {
+  await (supabase as any).from("blog_posts").delete().eq("slug", slug);
 }
 
 const emptyDraft = (): Draft => ({
@@ -304,11 +334,22 @@ const emptyDraft = (): Draft => ({
 
 function BalcaoBlog() {
   const [drafts, setDrafts] = useState<Draft[]>(loadDrafts);
+  const [publishedSlugs, setPublishedSlugs] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<Draft>(emptyDraft());
   const [showList, setShowList] = useState(true);
   const [previewMode, setPreviewMode] = useState(false);
   const [imgUploading, setImgUploading] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const imgInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    (supabase as any)
+      .from("blog_posts")
+      .select("slug")
+      .then(({ data }: { data: { slug: string }[] | null }) => {
+        if (data) setPublishedSlugs(new Set(data.map((r) => r.slug)));
+      });
+  }, []);
 
   async function handleCoverUpload(file: File) {
     if (file.size > 5 * 1024 * 1024) { toast.error("Imagem demasiado grande (máx 5 MB)"); return; }
@@ -339,7 +380,7 @@ function BalcaoBlog() {
     const existing = drafts.find((d) => d.id === updated.id);
     const next = existing ? drafts.map((d) => (d.id === updated.id ? updated : d)) : [...drafts, updated];
     setDrafts(next);
-    saveDrafts(next);
+    saveDraftsLocal(next);
     toast.success("Rascunho guardado!");
   }
 
@@ -347,26 +388,37 @@ function BalcaoBlog() {
     if (!confirm("Eliminar este rascunho?")) return;
     const next = drafts.filter((d) => d.id !== id);
     setDrafts(next);
-    saveDrafts(next);
+    saveDraftsLocal(next);
     if (editing.id === id) { setEditing(emptyDraft()); setShowList(true); }
   }
 
-  function exportJson() {
-    const blogPostObj = {
-      slug,
-      title: editing.title,
-      date: new Date().toISOString().split("T")[0],
-      category: editing.category,
-      excerpt: editing.excerpt,
-      keywords: editing.keyword,
-      content: editing.content
-        .split(/\n{2,}/)
-        .filter(Boolean)
-        .map((block) => ({ paragraphs: [block.trim()] })),
-    };
-    const json = JSON.stringify(blogPostObj, null, 2);
-    navigator.clipboard.writeText(json);
-    toast.success("JSON copiado! Cola em src/data/blog.ts");
+  async function publish() {
+    if (!canPublish) return;
+    setPublishing(true);
+    try {
+      await publishToSupabase(editing, slug);
+      setPublishedSlugs((prev) => new Set([...prev, slug]));
+      const updated = { ...editing, slug };
+      const existing = drafts.find((d) => d.id === updated.id);
+      const next = existing ? drafts.map((d) => (d.id === updated.id ? updated : d)) : [...drafts, updated];
+      setDrafts(next);
+      saveDraftsLocal(next);
+      toast.success("Artigo publicado no site!");
+    } catch (e) {
+      toast.error("Erro ao publicar: " + (e instanceof Error ? e.message : "desconhecido"));
+    } finally {
+      setPublishing(false);
+    }
+  }
+
+  async function unpublish(draftSlug: string) {
+    try {
+      await deleteFromSupabase(draftSlug);
+      setPublishedSlugs((prev) => { const s = new Set(prev); s.delete(draftSlug); return s; });
+      toast.success("Artigo removido do site");
+    } catch {
+      toast.error("Erro ao despublicar");
+    }
   }
 
   function applyAi(s: AiSuggestions) {
@@ -416,11 +468,10 @@ function BalcaoBlog() {
           </button>
         </div>
 
-        {/* SQL notice */}
-        <div className="rounded-xl border border-blue-200 bg-blue-50 dark:bg-blue-950/30 p-4 text-sm">
-          <p className="font-semibold text-blue-700 dark:text-blue-400">ℹ️ Como publicar artigos no site</p>
-          <p className="mt-1 text-blue-600 dark:text-blue-500 text-xs">
-            Os rascunhos ficam guardados no browser. Quando o artigo atingir score ≥ 70, usa o botão <strong>Exportar JSON</strong> e cola o objeto no array <code className="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">blogPosts</code> em <code className="font-mono bg-blue-100 dark:bg-blue-900/50 px-1 rounded">src/data/blog.ts</code>.
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30 p-4 text-sm">
+          <p className="font-semibold text-emerald-700 dark:text-emerald-400">✅ Publicação directa no site</p>
+          <p className="mt-1 text-emerald-600 dark:text-emerald-500 text-xs">
+            Quando o score atingir ≥ 70, usa o botão <strong>Publicar no site</strong> — o artigo aparece imediatamente em <strong>/blog</strong>.
           </p>
         </div>
 
@@ -446,8 +497,16 @@ function BalcaoBlog() {
                     <p className="text-xs text-muted-foreground">{d.category} · {d.content.trim().split(/\s+/).filter(Boolean).length} palavras · {new Date(d.createdAt).toLocaleDateString("pt-MZ")}</p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {ok && <span className="text-[10px] font-bold rounded-full bg-green-100 text-green-600 px-2 py-0.5">Pronto</span>}
+                    {publishedSlugs.has(slugify(d.title)) && (
+                      <span className="text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 flex items-center gap-1">
+                        <Globe className="h-2.5 w-2.5" /> Online
+                      </span>
+                    )}
+                    {ok && !publishedSlugs.has(slugify(d.title)) && <span className="text-[10px] font-bold rounded-full bg-green-100 text-green-600 px-2 py-0.5">Pronto</span>}
                     <button onClick={() => editDraft(d)} className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors">Editar</button>
+                    {publishedSlugs.has(slugify(d.title)) && (
+                      <button onClick={() => unpublish(slugify(d.title))} className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition-colors">Despublicar</button>
+                    )}
                     <button onClick={() => deleteDraft(d.id)} className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors">Eliminar</button>
                   </div>
                 </div>
@@ -481,12 +540,13 @@ function BalcaoBlog() {
           <Save className="h-3.5 w-3.5" /> Guardar rascunho
         </button>
         <button
-          onClick={exportJson}
-          disabled={!canPublish}
+          onClick={publish}
+          disabled={!canPublish || publishing}
           className="flex items-center gap-2 rounded-lg bg-gradient-gold px-4 py-2 text-xs font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth disabled:opacity-40"
           title={!canPublish ? "Score mínimo 70/100 para publicar" : ""}
         >
-          <Copy className="h-3.5 w-3.5" /> Exportar JSON
+          {publishing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Globe className="h-3.5 w-3.5" />}
+          {publishedSlugs.has(slug) ? "Actualizar no site" : "Publicar no site"}
           {!canPublish && <span className="text-[9px] opacity-70">(min. 70)</span>}
         </button>
       </div>

@@ -6,7 +6,7 @@ export function MiniBanner() {
   const [c, setC] = useState<Campaign | null>(null);
   const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => { setC(getActiveCampaigns("mini")[0] ?? null); }, []);
+  useEffect(() => { getActiveCampaigns("mini").then((list) => setC(list[0] ?? null)); }, []);
 
   if (!c || dismissed) return null;
 

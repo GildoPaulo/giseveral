@@ -7,7 +7,7 @@ export function PromoSlider() {
   const [idx, setIdx] = useState(0);
   const [tick, setTick] = useState(0);
 
-  useEffect(() => { setCampaigns(getActiveCampaigns("slider").slice(0, 3)); }, []);
+  useEffect(() => { getActiveCampaigns("slider").then((list) => setCampaigns(list.slice(0, 3))); }, []);
 
   useEffect(() => {
     if (campaigns.length < 2) return;

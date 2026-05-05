@@ -1,15 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Megaphone, Plus, Edit3, Trash2, ToggleLeft, ToggleRight,
   Check, X, Upload, Image, Timer, Package, Tag, Calendar,
-  Monitor, Rows3, LayoutGrid, Maximize2,
+  Monitor, Rows3, LayoutGrid, Maximize2, Loader2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   type Campaign, type CampaignType, type UrgencyType,
-  loadCampaigns, saveCampaigns, getCampaignStatus,
+  loadCampaigns, createCampaign, updateCampaign, deleteCampaign,
+  toggleCampaignActive, getCampaignStatus,
 } from "@/lib/campaigns";
 
 export const Route = createFileRoute("/balcao/campanhas")({
@@ -59,18 +60,25 @@ const URGENCY_OPTS: { id: UrgencyType; label: string; placeholder: string; icon:
 ];
 
 function BalcaoCampanhas() {
-  const [campaigns, setCampaigns] = useState<Campaign[]>(loadCampaigns);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [draft, setDraft] = useState<FormDraft>(emptyDraft());
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    loadCampaigns()
+      .then(setCampaigns)
+      .catch(() => toast.error("Erro ao carregar campanhas"))
+      .finally(() => setLoading(false));
+  }, []);
+
   const liveCount      = campaigns.filter((c) => getCampaignStatus(c) === "live").length;
   const scheduledCount = campaigns.filter((c) => getCampaignStatus(c) === "scheduled").length;
   const expiredCount   = campaigns.filter((c) => getCampaignStatus(c) === "expired").length;
-
-  function persist(next: Campaign[]) { setCampaigns(next); saveCampaigns(next); }
 
   function openCreate() { setEditId(null); setDraft(emptyDraft()); setShowForm(true); }
   function openEdit(c: Campaign) {
@@ -82,30 +90,48 @@ function BalcaoCampanhas() {
 
   function cancelForm() { setShowForm(false); setEditId(null); setDraft(emptyDraft()); }
 
-  function saveDraft() {
+  async function saveDraft() {
     if (!draft.title.trim()) { toast.error("Título obrigatório"); return; }
-    if (editId) {
-      persist(campaigns.map((c) => c.id === editId ? { ...c, ...draft, startsAt: draft.startsAt || new Date().toISOString(), endsAt: draft.endsAt } : c));
-      toast.success("Campanha actualizada!");
-    } else {
-      const newC: Campaign = { ...draft, id: crypto.randomUUID(), startsAt: draft.startsAt || new Date().toISOString(), endsAt: draft.endsAt, createdAt: new Date().toISOString() };
-      persist([newC, ...campaigns]);
-      toast.success("Campanha criada!");
+    setSaving(true);
+    try {
+      if (editId) {
+        await updateCampaign(editId, draft);
+        setCampaigns((prev) => prev.map((c) => c.id === editId ? { ...c, ...draft } : c));
+        toast.success("Campanha actualizada!");
+      } else {
+        const created = await createCampaign(draft);
+        setCampaigns((prev) => [created, ...prev]);
+        toast.success("Campanha criada!");
+      }
+      cancelForm();
+    } catch (e) {
+      toast.error("Erro ao guardar campanha");
+    } finally {
+      setSaving(false);
     }
-    cancelForm();
   }
 
-  function deleteCampaign(id: string) {
+  async function handleDelete(id: string) {
     if (!confirm("Remover esta campanha?")) return;
-    persist(campaigns.filter((c) => c.id !== id));
-    toast.success("Campanha removida");
+    try {
+      await deleteCampaign(id);
+      setCampaigns((prev) => prev.filter((c) => c.id !== id));
+      toast.success("Campanha removida");
+    } catch {
+      toast.error("Erro ao remover");
+    }
   }
 
-  function toggleActive(id: string) {
-    const next = campaigns.map((c) => c.id === id ? { ...c, active: !c.active } : c);
-    persist(next);
-    const c = next.find((x) => x.id === id)!;
-    toast.success(c.active ? "Campanha activada" : "Campanha desactivada");
+  async function handleToggle(id: string) {
+    const c = campaigns.find((x) => x.id === id)!;
+    const next = !c.active;
+    try {
+      await toggleCampaignActive(id, next);
+      setCampaigns((prev) => prev.map((x) => x.id === id ? { ...x, active: next } : x));
+      toast.success(next ? "Campanha activada" : "Campanha desactivada");
+    } catch {
+      toast.error("Erro ao actualizar");
+    }
   }
 
   async function uploadImage(file: File) {
@@ -122,6 +148,14 @@ function BalcaoCampanhas() {
   }
 
   const set = (patch: Partial<FormDraft>) => setDraft((d) => ({ ...d, ...patch }));
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -214,7 +248,7 @@ function BalcaoCampanhas() {
                 disabled={uploading}
                 className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-50 transition-smooth"
               >
-                {uploading ? <span className="animate-spin h-4 w-4 border-b-2 border-brand rounded-full" /> : <Upload className="h-4 w-4" />}
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                 Carregar
               </button>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f); }} />
@@ -296,7 +330,7 @@ function BalcaoCampanhas() {
           <div>
             <label className="block text-sm font-medium text-foreground mb-1">Prova social</label>
             <input value={draft.socialProof} onChange={(e) => set({ socialProof: e.target.value })}
-              placeholder='Ex: "147 pessoas viram esta oferta hoje" ou "Restam 4 unidades"'
+              placeholder='"147 pessoas viram esta oferta hoje" ou "Restam 4 unidades"'
               className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
           </div>
 
@@ -332,9 +366,10 @@ function BalcaoCampanhas() {
 
           {/* Actions */}
           <div className="flex gap-3">
-            <button onClick={saveDraft}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-brand-foreground hover:shadow-elegant transition-smooth">
-              <Check className="h-4 w-4" /> {editId ? "Guardar alterações" : "Criar campanha"}
+            <button onClick={saveDraft} disabled={saving}
+              className="inline-flex items-center gap-2 rounded-xl bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-brand-foreground hover:shadow-elegant transition-smooth disabled:opacity-60">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              {editId ? "Guardar alterações" : "Criar campanha"}
             </button>
             <button onClick={cancelForm} className="rounded-xl border border-border px-5 py-2.5 text-sm font-medium hover:bg-muted transition-smooth">
               Cancelar
@@ -364,7 +399,6 @@ function BalcaoCampanhas() {
               className={`rounded-2xl border bg-card shadow-card overflow-hidden transition-smooth ${c.active && status === "live" ? "border-border" : "border-dashed border-muted-foreground/25 opacity-70"}`}
             >
               <div className="flex items-start gap-4 p-5">
-                {/* Image or placeholder */}
                 <div className="flex-shrink-0 h-14 w-20 rounded-lg overflow-hidden bg-muted border border-border">
                   {c.imageUrl
                     ? <img src={c.imageUrl} alt={c.title} className="h-full w-full object-cover" />
@@ -397,7 +431,7 @@ function BalcaoCampanhas() {
 
               <div className="border-t border-border grid grid-cols-3 divide-x divide-border">
                 <button
-                  onClick={() => toggleActive(c.id)}
+                  onClick={() => handleToggle(c.id)}
                   className={`flex items-center justify-center gap-1.5 py-3 text-xs font-medium hover:bg-muted transition-colors ${c.active ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}
                 >
                   {c.active ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
@@ -410,7 +444,7 @@ function BalcaoCampanhas() {
                   <Edit3 className="h-4 w-4" /> Editar
                 </button>
                 <button
-                  onClick={() => deleteCampaign(c.id)}
+                  onClick={() => handleDelete(c.id)}
                   className="flex items-center justify-center gap-1.5 py-3 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                 >
                   <Trash2 className="h-4 w-4" /> Remover

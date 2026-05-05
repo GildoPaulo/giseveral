@@ -11,11 +11,13 @@ export function PromoPopup() {
   useEffect(() => {
     if (window.innerWidth < 768) return;
     if (sessionStorage.getItem(POPUP_SESSION_KEY)) return;
-    const list = getActiveCampaigns("popup");
-    if (list.length === 0) return;
-    setC(list[0]);
-    const timer = setTimeout(() => setVisible(true), 2500);
-    return () => clearTimeout(timer);
+    let cancelled = false;
+    getActiveCampaigns("popup").then((list) => {
+      if (cancelled || list.length === 0) return;
+      setC(list[0]);
+      setTimeout(() => { if (!cancelled) setVisible(true); }, 2500);
+    });
+    return () => { cancelled = true; };
   }, []);
 
   function close() {

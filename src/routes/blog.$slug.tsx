@@ -1,7 +1,9 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { blogPosts, getPostBySlug, formatPtDate } from "@/data/blog";
+import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Tag, ArrowLeft, Phone, MessageCircle, Wrench } from "lucide-react";
 
 const SITE_URL = "https://giseveral.pages.dev";
@@ -9,11 +11,10 @@ const SITE_URL = "https://giseveral.pages.dev";
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
     const post = getPostBySlug(params.slug);
-    if (!post) throw notFound();
-    return { post };
+    return { post: post ?? null, slug: params.slug };
   },
   head: ({ loaderData }) => {
-    const post = loaderData?.post;
+    const post = loaderData?.post ?? null;
     if (!post) return { meta: [{ title: "Artigo — Giseveral e Services" }] };
 
     const metaTitle = post.metaTitle ?? `${post.title} | Giseveral e Services — Beira`;
@@ -75,7 +76,59 @@ export const Route = createFileRoute("/blog/$slug")({
 });
 
 function BlogPostPage() {
-  const { post } = Route.useLoaderData();
+  const { post: staticPost, slug } = Route.useLoaderData();
+  const [post, setPost] = useState<typeof staticPost | null>(staticPost);
+  const [notFoundState, setNotFoundState] = useState(false);
+
+  useEffect(() => {
+    if (staticPost) return;
+    (supabase as any)
+      .from("blog_posts")
+      .select("*")
+      .eq("slug", slug)
+      .eq("published", true)
+      .single()
+      .then(({ data }: { data: any }) => {
+        if (!data) { setNotFoundState(true); return; }
+        setPost({
+          slug: data.slug,
+          title: data.title,
+          date: data.date,
+          category: data.category,
+          image: data.image_url ?? "",
+          excerpt: data.excerpt ?? "",
+          metaTitle: data.meta_title,
+          metaDescription: data.meta_description,
+          keywords: data.keywords,
+          content: Array.isArray(data.content) ? data.content : [],
+        });
+      });
+  }, [slug, staticPost]);
+
+  if (notFoundState) {
+    return (
+      <Layout>
+        <section className="container mx-auto px-4 py-24 text-center">
+          <h1 className="text-3xl font-bold text-brand">Artigo não encontrado</h1>
+          <p className="mt-3 text-muted-foreground">O artigo que procura não existe ou foi movido.</p>
+          <Link to="/blog" className="mt-6 inline-flex items-center gap-2 rounded-md bg-gradient-gold px-5 py-2.5 text-sm font-semibold text-gold-foreground">
+            <ArrowLeft className="h-4 w-4" /> Voltar ao blog
+          </Link>
+        </section>
+      </Layout>
+    );
+  }
+
+  if (!post) {
+    return (
+      <Layout>
+        <div className="flex justify-center py-32">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+        </div>
+      </Layout>
+    );
+  }
+
   const related = blogPosts.filter((p) => p.slug !== post.slug).slice(0, 3);
 
   return (
