@@ -145,19 +145,19 @@ function BalcaoNoticias() {
       tags: form.tags, published: form.published, comments_enabled: form.comments_enabled,
     };
 
-    let err: { message: string } | null = null;
-    if (isNew) {
-      const { error } = await supabase.from("hub_news").insert({ id: form.id, ...payload });
-      err = error;
-      if (!err) setItems((prev) => [form, ...prev]);
-    } else {
-      const { error } = await supabase.from("hub_news").update(payload).eq("id", form.id);
-      err = error;
-      if (!err) setItems((prev) => prev.map((n) => n.id === form.id ? form : n));
-    }
+    const { error } = await (supabase as any).from("hub_news").upsert(
+      { id: form.id, ...payload },
+      { onConflict: "id" },
+    );
 
-    if (err) toast.error("Erro ao guardar: " + err.message);
-    else { toast.success("Notícia guardada!"); setEditing(null); }
+    if (error) {
+      toast.error("Erro ao guardar: " + error.message);
+    } else {
+      if (isNew) setItems((prev) => [form, ...prev]);
+      else setItems((prev) => prev.map((n) => n.id === form.id ? form : n));
+      toast.success("Notícia guardada!");
+      setEditing(null);
+    }
     setSaving(false);
   }
 

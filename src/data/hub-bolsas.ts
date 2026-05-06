@@ -212,6 +212,12 @@ export const HUB_NEWS: NewsItem[] = [
     author: "Equipa Giseveral",
     relatedScholarship: "chevening-2026",
     tags: ["Chevening", "Reino Unido", "Mestrado", "2026"],
+    content: [
+      "As candidaturas à Bolsa Chevening 2026 abrem oficialmente em Agosto de 2026. Este programa é financiado pelo Governo do Reino Unido e oferece mestrado completo a estudantes de todo o mundo, incluindo Moçambique.",
+      "A Bolsa Chevening cobre a totalidade das propinas universitárias, uma bolsa mensal para despesas de vida no Reino Unido, bilhetes de avião de ida e volta, e um subsídio para despesas adicionais de chegada.",
+      "Para se candidatar, os estudantes moçambicanos devem ter pelo menos dois anos de experiência profissional, uma licenciatura reconhecida, e domínio do inglês. As candidaturas são feitas exclusivamente online através do portal oficial Chevening.",
+      "A Giseveral e Services pode ajudar-te a preparar toda a documentação necessária: revisão do currículo, carta de motivação, tradução e autenticação de documentos. Contacta-nos pelo WhatsApp para mais informações.",
+    ],
   },
   {
     id: "n2",
@@ -221,6 +227,13 @@ export const HUB_NEWS: NewsItem[] = [
     date: "2026-04-22",
     author: "Equipa Giseveral",
     relatedScholarship: "daad-2026",
+    tags: ["DAAD", "Alemanha", "Europa"],
+    content: [
+      "O Serviço Alemão de Intercâmbio Académico (DAAD) actualizou o valor das bolsas para estudantes internacionais em 2026. O subsídio mensal passou de 934€ para 992€, reflectindo o aumento do custo de vida na Alemanha e restantes países europeus.",
+      "Esta actualização aplica-se a todos os programas de bolsas DAAD, incluindo mestrado, doutoramento e estágios de investigação. Os candidatos beneficiam também de seguro de saúde, apoio à habitação e um subsídio de viagem.",
+      "Para estudantes moçambicanos, a bolsa DAAD representa uma oportunidade única de formação em universidades de referência mundial. O processo de candidatura exige certificados académicos reconhecidos e competência em alemão ou inglês, dependendo do programa.",
+      "Se precisas de apoio na preparação da candidatura, a Giseveral está disponível para revisão de documentos, impressão e autenticação.",
+    ],
   },
   {
     id: "n3",
@@ -230,6 +243,12 @@ export const HUB_NEWS: NewsItem[] = [
     date: "2026-04-15",
     author: "Equipa Giseveral",
     tags: ["Portugal", "Coimbra", "PALOP"],
+    content: [
+      "A Universidade de Coimbra, uma das mais antigas da Europa, anunciou a abertura de 100 vagas com propinas reduzidas para estudantes provenientes dos Países Africanos de Língua Portuguesa (PALOP), incluindo Moçambique.",
+      "As vagas abrangem cursos de licenciatura, mestrado e doutoramento em áreas como Direito, Engenharia, Medicina, Ciências Sociais e Humanidades. As propinas reduzidas representam uma poupança de até 60% face aos valores normais.",
+      "Os candidatos moçambicanos devem apresentar certificados de habilitações reconhecidos pelo Ministério da Educação, carta de motivação em português, e comprovativos de situação financeira. As candidaturas decorrem entre Abril e Junho de 2026.",
+      "A Giseveral e Services apoia estudantes na digitalização, impressão e envio de documentos para candidaturas a universidades estrangeiras.",
+    ],
   },
   {
     id: "n4",
@@ -239,6 +258,13 @@ export const HUB_NEWS: NewsItem[] = [
     date: "2026-04-10",
     author: "Equipa Giseveral",
     relatedScholarship: "erasmus-mundus-2026",
+    tags: ["Erasmus", "Europa", "Mestrado"],
+    content: [
+      "O prazo para candidaturas ao programa Erasmus Mundus 2026 encerra a 15 de Fevereiro. Este programa europeu oferece bolsas integrais para mestrados conjuntos realizados em dois ou mais países da União Europeia.",
+      "As bolsas Erasmus Mundus cobrem propinas, subsídio mensal de 1.000€ para estudantes de países fora da Europa, seguro de saúde e despesas de viagem. A duração é de 1 a 2 anos, dependendo do programa escolhido.",
+      "Os candidatos moçambicanos concorrem em igualdade com outros estudantes internacionais. A selecção é feita com base no mérito académico, carta de motivação, referências e entrevista em alguns programas.",
+      "Atenção: com o prazo a terminar em breve, é fundamental organizar toda a documentação com urgência. A Giseveral pode ajudar com impressão, digitalização e envio de documentos com brevidade.",
+    ],
   },
   {
     id: "n5",
@@ -248,6 +274,13 @@ export const HUB_NEWS: NewsItem[] = [
     date: "2026-04-05",
     author: "Equipa Giseveral",
     relatedScholarship: "fulbright-2026",
+    tags: ["Fulbright", "EUA", "Investigação"],
+    content: [
+      "O programa Fulbright anunciou uma nova categoria de bolsas especificamente destinada a investigadores africanos. Esta iniciativa visa reforçar a investigação científica em África e criar pontes académicas entre o continente africano e os Estados Unidos da América.",
+      "A nova categoria abrange bolsas de doutoramento e pós-doutoramento nas áreas de Ciências, Tecnologia, Engenharia, Matemática (STEM), Saúde Pública, Ciências Sociais e Humanidades com foco em África.",
+      "Para investigadores moçambicanos, esta é uma oportunidade histórica de aceder às melhores universidades americanas com bolsa integral. Os candidatos devem ter mestrado concluído ou estar em fase final de doutoramento, com publicações académicas relevantes.",
+      "O processo de candidatura inclui um projecto de investigação detalhado, duas cartas de recomendação académica e entrevista. A Giseveral apoia na preparação e impressão de todos os documentos necessários.",
+    ],
   },
   {
     id: "n6",
@@ -257,6 +290,12 @@ export const HUB_NEWS: NewsItem[] = [
     date: "2026-03-28",
     author: "Equipa Giseveral",
     tags: ["Banco Mundial", "Moçambique", "Mestrado"],
+    content: [
+      "O Banco Mundial anunciou o financiamento de 50 bolsas integrais para estudantes moçambicanos realizarem mestrados em universidades internacionais de referência. O programa enquadra-se na iniciativa de desenvolvimento do capital humano em Moçambique.",
+      "As bolsas destinam-se a áreas estratégicas para o desenvolvimento nacional: Economia e Finanças, Engenharia Civil e Infraestruturas, Saúde Pública, Agricultura Sustentável e Gestão Ambiental. A preferência é dada a candidatos com experiência em organizações públicas ou de desenvolvimento.",
+      "Cada bolsa inclui propinas integrais, subsídio mensal para despesas de vida, seguro de saúde, bilhetes de avião e um subsídio de instalação. A duração é de 1 a 2 anos, com compromisso de regressar a Moçambique após a conclusão do mestrado.",
+      "As candidaturas são apresentadas através do Ministério da Educação e Desenvolvimento Humano. Para apoio na preparação do dossier de candidatura, a Giseveral e Services está disponível na Beira.",
+    ],
   },
 ];
 

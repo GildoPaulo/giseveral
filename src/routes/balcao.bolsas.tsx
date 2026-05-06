@@ -238,19 +238,19 @@ function BalcaoBolsas() {
       allow_applications: form.allow_applications,
     };
 
-    let err: { message: string } | null = null;
-    if (isNew) {
-      const { error } = await supabase.from("hub_scholarships").insert({ id: form.id, ...payload });
-      err = error;
-      if (!err) setItems((prev) => [form, ...prev]);
-    } else {
-      const { error } = await supabase.from("hub_scholarships").update(payload).eq("id", form.id);
-      err = error;
-      if (!err) setItems((prev) => prev.map((s) => s.id === form.id ? form : s));
-    }
+    const { error } = await (supabase as any).from("hub_scholarships").upsert(
+      { id: form.id, ...payload },
+      { onConflict: "id" },
+    );
 
-    if (err) toast.error("Erro ao guardar: " + err.message);
-    else { toast.success("Bolsa guardada!"); setEditing(null); }
+    if (error) {
+      toast.error("Erro ao guardar: " + error.message);
+    } else {
+      if (isNew) setItems((prev) => [form, ...prev]);
+      else setItems((prev) => prev.map((s) => s.id === form.id ? form : s));
+      toast.success("Bolsa guardada!");
+      setEditing(null);
+    }
     setSaving(false);
   }
 
