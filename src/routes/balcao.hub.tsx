@@ -132,6 +132,8 @@ function BalcaoHub() {
         fileUrl = supabase.storage.from("hub-documents").getPublicUrl(path).data.publicUrl;
       }
 
+      const { data: { user } } = await supabase.auth.getUser();
+
       const payload = {
         title: form.title.trim(),
         author: form.author.trim() || "Giseveral Editorial",
@@ -146,16 +148,18 @@ function BalcaoHub() {
       };
 
       if (editing) {
-        const { error } = await supabase
+        const { error, count } = await supabase
           .from("hub_documents")
           .update(payload)
-          .eq("id", editing.id);
+          .eq("id", editing.id)
+          .select("id", { count: "exact", head: true });
         if (error) throw error;
+        if (count === 0) throw new Error("Sem permissão para actualizar este documento.");
         toast.success("Documento actualizado!");
       } else {
         const { error } = await supabase
           .from("hub_documents")
-          .insert(payload);
+          .insert({ ...payload, user_id: user?.id ?? null });
         if (error) throw error;
         toast.success("Documento criado!");
       }

@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { FileText, ChevronLeft, ChevronRight, Lock, ZoomIn } from "lucide-react";
+import { FileText, ChevronLeft, ChevronRight, Lock, ZoomIn, ExternalLink } from "lucide-react";
 
 interface Props {
   pages?: number;
   title: string;
   previewPages?: number;
+  url?: string;
 }
 
-// Deterministic "lorem" lines derived from the title to make each doc look unique
 function mockLines(seed: number, count: number, maxWidth: number[]): number[] {
   const lines: number[] = [];
   let s = seed;
@@ -26,20 +26,14 @@ function MockPage({ pageNum, title, total }: { pageNum: number; title: string; t
 
   return (
     <div className="relative bg-white shadow-md rounded-sm mx-auto w-full max-w-[540px] aspect-[1/1.414] overflow-hidden flex-shrink-0">
-      {/* Page content */}
       <div className="absolute inset-0 p-6 sm:p-10 flex flex-col gap-0 text-[0px]">
-        {/* Page header (first page only) */}
         {pageNum === 1 && (
           <>
             <div className="h-5 rounded bg-foreground/75 mb-1" style={{ width: "72%" }} />
             <div className="h-2.5 rounded bg-foreground/25 mb-4 mt-2" style={{ width: "45%" }} />
           </>
         )}
-
-        {/* Section heading */}
         <div className="h-3 rounded bg-foreground/50 mb-3 mt-1" style={{ width: `${38 + (pageNum * 7 % 20)}%` }} />
-
-        {/* Body paragraph */}
         {bodyLines.map((w, i) => (
           <div
             key={`b${i}`}
@@ -47,34 +41,20 @@ function MockPage({ pageNum, title, total }: { pageNum: number; title: string; t
             style={{ height: "8px", width: `${w}%` }}
           />
         ))}
-
-        {/* Second section */}
         <div className="h-3 rounded bg-foreground/45 mt-3 mb-3" style={{ width: `${30 + (seed % 25)}%` }} />
         {section2Lines.map((w, i) => (
-          <div
-            key={`s${i}`}
-            className="rounded bg-foreground/12 mb-1.5"
-            style={{ height: "8px", width: `${w}%` }}
-          />
+          <div key={`s${i}`} className="rounded bg-foreground/12 mb-1.5" style={{ height: "8px", width: `${w}%` }} />
         ))}
-
-        {/* Footer */}
         <div className="absolute bottom-4 inset-x-6 sm:inset-x-10 flex items-center justify-between">
           <div className="h-1.5 w-16 rounded bg-foreground/15" />
           <span className="text-[8px] text-foreground/30 font-medium">{pageNum} / {total}</span>
           <div className="h-1.5 w-16 rounded bg-foreground/15" />
         </div>
       </div>
-
-      {/* Stripe pattern */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{
-          background: "repeating-linear-gradient(45deg,transparent,transparent 48px,rgba(0,0,0,0.012) 48px,rgba(0,0,0,0.012) 96px)",
-        }}
+        style={{ background: "repeating-linear-gradient(45deg,transparent,transparent 48px,rgba(0,0,0,0.012) 48px,rgba(0,0,0,0.012) 96px)" }}
       />
-
-      {/* Watermark */}
       <div className="absolute inset-0 grid place-items-center pointer-events-none select-none">
         <span
           className="font-extrabold tracking-widest text-brand/7"
@@ -83,8 +63,6 @@ function MockPage({ pageNum, title, total }: { pageNum: number; title: string; t
           GISEVERAL HUB
         </span>
       </div>
-
-      {/* Corner badge */}
       <div className="absolute bottom-6 right-4 pointer-events-none">
         <span className="text-[8px] text-brand/30 font-bold tracking-wider">PRÉ-VISUALIZAÇÃO</span>
       </div>
@@ -92,10 +70,11 @@ function MockPage({ pageNum, title, total }: { pageNum: number; title: string; t
   );
 }
 
-export function PdfViewer({ pages = 1, title, previewPages = 3 }: Props) {
+export function PdfViewer({ pages = 1, title, previewPages = 3, url }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
   const visiblePages = Math.min(pages, previewPages);
   const locked = pages > previewPages;
+  const [embedError, setEmbedError] = useState(false);
 
   return (
     <div className="rounded-xl overflow-hidden border border-border">
@@ -106,54 +85,76 @@ export function PdfViewer({ pages = 1, title, previewPages = 3 }: Props) {
           <span className="truncate max-w-[200px] sm:max-w-none">Pré-visualização · {title}</span>
         </span>
         <div className="flex items-center gap-3 flex-shrink-0">
-          <div className="flex items-center gap-1 opacity-80">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage <= 1}
-              className="rounded p-0.5 hover:bg-white/20 disabled:opacity-30 transition-colors"
-              aria-label="Página anterior"
+          {url && !embedError && (
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity"
+              title="Abrir PDF"
             >
-              <ChevronLeft className="h-3.5 w-3.5" />
-            </button>
-            <span className="tabular-nums">{currentPage} / {pages}</span>
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(visiblePages, p + 1))}
-              disabled={currentPage >= visiblePages}
-              className="rounded p-0.5 hover:bg-white/20 disabled:opacity-30 transition-colors"
-              aria-label="Próxima página"
-            >
-              <ChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          )}
+          {!url && (
+            <div className="flex items-center gap-1 opacity-80">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1}
+                className="rounded p-0.5 hover:bg-white/20 disabled:opacity-30 transition-colors"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+              <span className="tabular-nums">{currentPage} / {pages}</span>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(visiblePages, p + 1))}
+                disabled={currentPage >= visiblePages}
+                className="rounded p-0.5 hover:bg-white/20 disabled:opacity-30 transition-colors"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
           <span className="opacity-60"><ZoomIn className="h-3.5 w-3.5" /></span>
         </div>
       </div>
 
-      {/* Pages */}
-      <div className="bg-muted/30 p-4 sm:p-6 space-y-4 max-h-[640px] overflow-y-auto">
-        {Array.from({ length: visiblePages }).map((_, i) => (
-          <MockPage key={i} pageNum={i + 1} title={title} total={pages} />
-        ))}
+      {/* Content */}
+      {url && !embedError ? (
+        /* Real PDF embed */
+        <div className="bg-muted/30 w-full" style={{ height: "640px" }}>
+          <iframe
+            src={`${url}#toolbar=0&navpanes=0&scrollbar=1`}
+            title={title}
+            className="w-full h-full border-0"
+            onError={() => setEmbedError(true)}
+          />
+        </div>
+      ) : (
+        /* Mock skeleton preview */
+        <div className="bg-muted/30 p-4 sm:p-6 space-y-4 max-h-[640px] overflow-y-auto">
+          {Array.from({ length: visiblePages }).map((_, i) => (
+            <MockPage key={i} pageNum={i + 1} title={title} total={pages} />
+          ))}
 
-        {locked && (
-          <div className="relative mx-auto w-full max-w-[540px]">
-            {/* Blurred next page hint */}
-            <div className="rounded-sm overflow-hidden" style={{ filter: "blur(6px)", opacity: 0.4, pointerEvents: "none" }}>
-              <MockPage pageNum={visiblePages + 1} title={title} total={pages} />
-            </div>
-            {/* Overlay */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/70 backdrop-blur-sm rounded-sm">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand/10 border border-brand/20">
-                <Lock className="h-5 w-5 text-brand" />
+          {locked && (
+            <div className="relative mx-auto w-full max-w-[540px]">
+              <div className="rounded-sm overflow-hidden" style={{ filter: "blur(6px)", opacity: 0.4, pointerEvents: "none" }}>
+                <MockPage pageNum={visiblePages + 1} title={title} total={pages} />
               </div>
-              <p className="text-sm font-semibold text-foreground">
-                + {pages - visiblePages} página{pages - visiblePages !== 1 ? "s" : ""} bloqueadas
-              </p>
-              <p className="text-xs text-muted-foreground">Descarregue para aceder ao documento completo</p>
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/70 backdrop-blur-sm rounded-sm">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand/10 border border-brand/20">
+                  <Lock className="h-5 w-5 text-brand" />
+                </div>
+                <p className="text-sm font-semibold text-foreground">
+                  + {pages - visiblePages} página{pages - visiblePages !== 1 ? "s" : ""} bloqueadas
+                </p>
+                <p className="text-xs text-muted-foreground">Descarregue para aceder ao documento completo</p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

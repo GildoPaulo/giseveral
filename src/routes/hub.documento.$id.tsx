@@ -174,7 +174,7 @@ function HubDocumentoPage() {
             </div>
 
             {/* PDF Preview */}
-            <PdfViewer pages={doc.pages} title={doc.title} previewPages={2} />
+            <PdfViewer pages={doc.pages} title={doc.title} previewPages={2} url={doc.fileUrl} />
 
             {/* Description */}
             <div className="mt-6 rounded-xl bg-card border border-border p-6">
