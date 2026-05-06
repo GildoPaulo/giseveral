@@ -1,10 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState, useEffect, FormEvent } from "react";
 import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
-import { SCHOLARSHIPS, HUB_NEWS, HUB_GUIDES, type Scholarship } from "@/data/hub-bolsas";
-import { fetchScholarships } from "@/lib/hub";
+import { SCHOLARSHIPS, HUB_NEWS, HUB_GUIDES, type Scholarship, type NewsItem } from "@/data/hub-bolsas";
+import { fetchScholarships, fetchHubNews } from "@/lib/hub";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -27,6 +27,7 @@ export const Route = createFileRoute("/hub/bolsas")({
 
 function HubBolsasPage() {
   const [allScholarships, setAllScholarships] = useState<Scholarship[]>(SCHOLARSHIPS);
+  const [allNews, setAllNews] = useState<NewsItem[]>(HUB_NEWS);
   const [q, setQ] = useState("");
   const [country, setCountry] = useState("all");
   const [level, setLevel] = useState("all");
@@ -37,6 +38,7 @@ function HubBolsasPage() {
 
   useEffect(() => {
     fetchScholarships().then(setAllScholarships);
+    fetchHubNews().then(setAllNews);
   }, []);
 
   const countries = useMemo(() => Array.from(new Set(allScholarships.map((s) => s.country))).sort(), [allScholarships]);
@@ -239,7 +241,7 @@ function HubBolsasPage() {
           </div>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {HUB_NEWS.map((n) => (
+          {allNews.map((n) => (
             <Link key={n.id} to="/hub/noticias/$id" params={{ id: n.id }} className="group rounded-2xl bg-card border border-border p-6 shadow-card hover:shadow-elegant hover:-translate-y-1 transition-smooth">
               <div className="flex items-center gap-2 mb-3">
                 <span className="inline-flex items-center rounded-full bg-brand/10 text-brand px-2.5 py-0.5 text-xs font-semibold">{n.category}</span>
@@ -266,7 +268,7 @@ function HubBolsasPage() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {HUB_GUIDES.map((g) => (
-              <article key={g.id} className="rounded-2xl bg-card border border-border p-6 shadow-card hover:shadow-elegant transition-smooth">
+              <Link key={g.id} to={g.link as never} className="rounded-2xl bg-card border border-border p-6 shadow-card hover:shadow-elegant hover:-translate-y-1 transition-smooth block">
                 <div className="text-4xl mb-3">{g.icon}</div>
                 <h3 className="font-bold text-lg mb-2 text-brand">{g.title}</h3>
                 <p className="text-sm text-muted-foreground mb-4">{g.description}</p>
@@ -274,7 +276,7 @@ function HubBolsasPage() {
                   <span className="text-xs text-muted-foreground">⏱ {g.readTime} de leitura</span>
                   <ArrowRight className="h-4 w-4 text-brand" />
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>
@@ -347,9 +349,13 @@ function ScholarshipCard({ s, compact = false }: { s: Scholarship; compact?: boo
   const daysLeft = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const expired = daysLeft < 0;
   const urgent = !expired && daysLeft <= 30;
+  const navigate = useNavigate();
 
   return (
-    <article className="group flex flex-col rounded-2xl bg-card border border-border overflow-hidden shadow-card hover:shadow-elegant hover:-translate-y-1 transition-smooth">
+    <article
+      onClick={() => navigate({ to: "/hub/bolsas/$id", params: { id: s.id } })}
+      className="group flex flex-col rounded-2xl bg-card border border-border overflow-hidden shadow-card hover:shadow-elegant hover:-translate-y-1 transition-smooth cursor-pointer"
+    >
       <div className={`text-brand-foreground p-5 relative ${expired ? "bg-muted" : "bg-gradient-hero"}`}>
         <div className="absolute top-3 right-3 text-3xl">{s.flag}</div>
         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold mb-2 ${expired ? "bg-muted-foreground/30 text-foreground/60" : "bg-gold text-gold-foreground"}`}>
@@ -396,6 +402,7 @@ function ScholarshipCard({ s, compact = false }: { s: Scholarship; compact?: boo
           <Link
             to="/hub/bolsas/$id"
             params={{ id: s.id }}
+            onClick={(e) => e.stopPropagation()}
             className="flex items-center justify-center rounded-md border border-border px-3 py-2 text-xs font-medium text-foreground hover:bg-accent transition-smooth"
           >
             Ver guia
@@ -407,6 +414,7 @@ function ScholarshipCard({ s, compact = false }: { s: Scholarship; compact?: boo
           ) : (
             <a
               href={s.applyUrl}
+              onClick={(e) => e.stopPropagation()}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-1 rounded-md bg-gradient-brand px-3 py-2 text-xs font-semibold text-brand-foreground hover:shadow-card transition-smooth"

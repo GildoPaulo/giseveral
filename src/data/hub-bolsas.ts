@@ -266,13 +266,14 @@ export interface Guide {
   description: string;
   icon: string;
   readTime: string;
+  link: string;
 }
 
 export const HUB_GUIDES: Guide[] = [
-  { id: "g1", title: "Como escrever uma carta de motivação vencedora", description: "Estrutura, exemplos e erros a evitar para conquistar a comissão de avaliação.", icon: "✍️", readTime: "8 min" },
-  { id: "g2", title: "Conseguir bolsa sem IELTS — é possível?", description: "Lista de bolsas e universidades que aceitam alternativas ao IELTS.", icon: "🌍", readTime: "6 min" },
-  { id: "g3", title: "Documentos necessários para estudar fora", description: "Checklist completo: passaporte, transcripts, cartas, traduções juramentadas.", icon: "📄", readTime: "5 min" },
-  { id: "g4", title: "Como obter visto de estudante (passo a passo)", description: "Guia para vistos da Europa, EUA, Reino Unido e Brasil.", icon: "🛂", readTime: "10 min" },
-  { id: "g5", title: "10 dicas para a entrevista da bolsa", description: "Perguntas comuns, postura e como destacar o seu perfil.", icon: "🎤", readTime: "7 min" },
-  { id: "g6", title: "Vida de estudante internacional: o que esperar", description: "Custos, alojamento, trabalho part-time e adaptação cultural.", icon: "🏠", readTime: "9 min" },
+  { id: "g1", title: "Como escrever uma carta de motivação vencedora", description: "Estrutura, exemplos e erros a evitar para conquistar a comissão de avaliação.", icon: "✍️", readTime: "8 min", link: "/hub/cartas" },
+  { id: "g2", title: "Conseguir bolsa sem IELTS — é possível?", description: "Lista de bolsas e universidades que aceitam alternativas ao IELTS.", icon: "🌍", readTime: "6 min", link: "/hub/bolsas" },
+  { id: "g3", title: "Documentos necessários para estudar fora", description: "Checklist completo: passaporte, transcripts, cartas, traduções juramentadas.", icon: "📄", readTime: "5 min", link: "/hub/explorar" },
+  { id: "g4", title: "Como obter visto de estudante (passo a passo)", description: "Guia para vistos da Europa, EUA, Reino Unido e Brasil.", icon: "🛂", readTime: "10 min", link: "/hub/explorar" },
+  { id: "g5", title: "10 dicas para a entrevista da bolsa", description: "Perguntas comuns, postura e como destacar o seu perfil.", icon: "🎤", readTime: "7 min", link: "/hub/bolsas" },
+  { id: "g6", title: "Vida de estudante internacional: o que esperar", description: "Custos, alojamento, trabalho part-time e adaptação cultural.", icon: "🏠", readTime: "9 min", link: "/hub/explorar" },
 ];

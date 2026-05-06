@@ -8,8 +8,14 @@ import { uploadHubDocument } from "@/lib/hub";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Upload, FileText, X, CheckCircle2, AlertCircle, LogIn,
-  ChevronLeft, Sparkles, Lock, Tag,
+  ChevronLeft, Sparkles, Lock, Tag, BookOpen,
 } from "lucide-react";
+import * as pdfjsLib from "pdfjs-dist";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.mjs",
+  import.meta.url,
+).toString();
 
 export const Route = createFileRoute("/hub/upload")({
   head: () => ({
@@ -31,9 +37,10 @@ type FormState = {
   category: DocCategory | "";
   description: string;
   tags: string;
+  pages: number;
 };
 
-const EMPTY_FORM: FormState = { title: "", author: "", category: "", description: "", tags: "" };
+const EMPTY_FORM: FormState = { title: "", author: "", category: "", description: "", tags: "", pages: 0 };
 
 function HubUploadPage() {
   const { user } = useAuth();
@@ -42,6 +49,7 @@ function HubUploadPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [pagesAuto, setPagesAuto] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -49,7 +57,7 @@ function HubUploadPage() {
 
   // ── File handling ──────────────────────────────────────────────────────────
 
-  function validateAndSetFile(f: File) {
+  async function validateAndSetFile(f: File) {
     setFileError(null);
     if (!f.name.toLowerCase().endsWith(".pdf")) {
       setFileError("Apenas ficheiros PDF são aceites.");
@@ -61,17 +69,27 @@ function HubUploadPage() {
     }
     setFile(f);
     // Auto-fill title from filename
+    const updates: Partial<FormState> = {};
     if (!form.title) {
-      const name = f.name.replace(/\.pdf$/i, "").replace(/[-_]/g, " ").trim();
-      setForm((p) => ({ ...p, title: name }));
+      updates.title = f.name.replace(/\.pdf$/i, "").replace(/[-_]/g, " ").trim();
     }
+    // Auto-detect page count
+    try {
+      const arrayBuffer = await f.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      updates.pages = pdf.numPages;
+      setPagesAuto(true);
+    } catch {
+      // silent — user can enter manually
+    }
+    if (Object.keys(updates).length > 0) setForm((p) => ({ ...p, ...updates }));
   }
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const f = e.dataTransfer.files[0];
-    if (f) validateAndSetFile(f);
+    if (f) void validateAndSetFile(f);
   }, [form.title]);
 
   // ── Form handling ──────────────────────────────────────────────────────────
@@ -121,6 +139,7 @@ function HubUploadPage() {
       description: form.description.trim(),
       tags,
       file_url: url,
+      pages: form.pages > 0 ? form.pages : 1,
       user_id: user.id,
       published: false,
       cover_hue: Math.floor(Math.random() * 360),
@@ -253,7 +272,7 @@ function HubUploadPage() {
                   type="file"
                   accept=".pdf,application/pdf"
                   className="hidden"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) validateAndSetFile(f); e.target.value = ""; }}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) void validateAndSetFile(f); e.target.value = ""; }}
                 />
               </div>
             ) : (
@@ -269,7 +288,7 @@ function HubUploadPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setFile(null)}
+                  onClick={() => { setFile(null); setPagesAuto(false); setForm((p) => ({ ...p, pages: 0 })); }}
                   className="rounded-md p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                   aria-label="Remover ficheiro"
                 >
@@ -331,6 +350,30 @@ function HubUploadPage() {
               </select>
               {errors.category && <p className="text-[11px] text-destructive mt-1">{errors.category}</p>}
             </div>
+          </div>
+
+          {/* Pages */}
+          <div>
+            <label htmlFor="pages" className="block text-sm font-semibold text-foreground mb-2">
+              <BookOpen className="inline h-3.5 w-3.5 mr-1" />
+              Número de páginas
+              {pagesAuto && (
+                <span className="ml-2 text-[10px] font-normal text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-0.5 rounded-full">
+                  ✓ detectado automaticamente
+                </span>
+              )}
+            </label>
+            <input
+              id="pages"
+              type="number"
+              min={1}
+              max={9999}
+              value={form.pages || ""}
+              onChange={(e) => { setPagesAuto(false); setForm((p) => ({ ...p, pages: parseInt(e.target.value) || 0 })); }}
+              placeholder="Ex: 24"
+              className="w-full sm:w-40 rounded-lg border border-border px-4 py-2.5 text-sm bg-background text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-brand/30 transition-smooth"
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">Preenchido automaticamente ao carregar o PDF. Pode editar se necessário.</p>
           </div>
 
           {/* Description */}

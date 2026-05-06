@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://giseveral.co.mz/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://giseveral.co.mz/explorar</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://giseveral.co.mz/categorias</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://giseveral.co.mz/bolsas</loc><changefreq>daily</changefreq><priority>0.95</priority></url>
+  <url><loc>https://giseveral.co.mz/sobre</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://giseveral.co.mz/contactos</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://giseveral.co.mz/faq</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://giseveral.co.mz/premium</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://giseveral.co.mz/upload</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://giseveral.co.mz/login</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://giseveral.co.mz/bolsas/chevening-2026</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://giseveral.co.mz/bolsas/daad-2026</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://giseveral.co.mz/bolsas/erasmus-mundus-2026</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://giseveral.co.mz/bolsas/fulbright-2026</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://giseveral.co.mz/bolsas/mext-japao</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://giseveral.co.mz/bolsas/csc-china</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://giseveral.co.mz/bolsas/calmette-portugal</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://giseveral.co.mz/bolsas/mandela-rhodes</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://giseveral.co.mz/noticias/n1</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://giseveral.co.mz/noticias/n2</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://giseveral.co.mz/noticias/n3</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://giseveral.co.mz/noticias/n4</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://giseveral.co.mz/noticias/n5</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://giseveral.co.mz/noticias/n6</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+</urlset>

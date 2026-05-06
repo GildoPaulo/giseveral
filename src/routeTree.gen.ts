@@ -34,6 +34,7 @@ import { Route as LojaCarrinhoRouteImport } from './routes/loja.carrinho'
 import { Route as HubUploadRouteImport } from './routes/hub.upload'
 import { Route as HubExplorarRouteImport } from './routes/hub.explorar'
 import { Route as HubExamesRouteImport } from './routes/hub.exames'
+import { Route as HubCreditosRouteImport } from './routes/hub.creditos'
 import { Route as HubCartasRouteImport } from './routes/hub.cartas'
 import { Route as HubBolsasRouteImport } from './routes/hub.bolsas'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
@@ -181,6 +182,11 @@ const HubExamesRoute = HubExamesRouteImport.update({
   path: '/hub/exames',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HubCreditosRoute = HubCreditosRouteImport.update({
+  id: '/hub/creditos',
+  path: '/hub/creditos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HubCartasRoute = HubCartasRouteImport.update({
   id: '/hub/cartas',
   path: '/hub/cartas',
@@ -316,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/blog/$slug': typeof BlogSlugRoute
   '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
+  '/hub/creditos': typeof HubCreditosRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
   '/hub/upload': typeof HubUploadRoute
@@ -362,6 +369,7 @@ export interface FileRoutesByTo {
   '/blog/$slug': typeof BlogSlugRoute
   '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
+  '/hub/creditos': typeof HubCreditosRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
   '/hub/upload': typeof HubUploadRoute
@@ -411,6 +419,7 @@ export interface FileRoutesById {
   '/blog/$slug': typeof BlogSlugRoute
   '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
+  '/hub/creditos': typeof HubCreditosRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
   '/hub/upload': typeof HubUploadRoute
@@ -461,6 +470,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/hub/bolsas'
     | '/hub/cartas'
+    | '/hub/creditos'
     | '/hub/exames'
     | '/hub/explorar'
     | '/hub/upload'
@@ -507,6 +517,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/hub/bolsas'
     | '/hub/cartas'
+    | '/hub/creditos'
     | '/hub/exames'
     | '/hub/explorar'
     | '/hub/upload'
@@ -555,6 +566,7 @@ export interface FileRouteTypes {
     | '/blog/$slug'
     | '/hub/bolsas'
     | '/hub/cartas'
+    | '/hub/creditos'
     | '/hub/exames'
     | '/hub/explorar'
     | '/hub/upload'
@@ -592,6 +604,7 @@ export interface RootRouteChildren {
   BlogSlugRoute: typeof BlogSlugRoute
   HubBolsasRoute: typeof HubBolsasRouteWithChildren
   HubCartasRoute: typeof HubCartasRoute
+  HubCreditosRoute: typeof HubCreditosRoute
   HubExamesRoute: typeof HubExamesRouteWithChildren
   HubExplorarRoute: typeof HubExplorarRoute
   HubUploadRoute: typeof HubUploadRoute
@@ -782,6 +795,13 @@ declare module '@tanstack/react-router' {
       path: '/hub/exames'
       fullPath: '/hub/exames'
       preLoaderRoute: typeof HubExamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/creditos': {
+      id: '/hub/creditos'
+      path: '/hub/creditos'
+      fullPath: '/hub/creditos'
+      preLoaderRoute: typeof HubCreditosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub/cartas': {
@@ -1024,6 +1044,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSlugRoute: BlogSlugRoute,
   HubBolsasRoute: HubBolsasRouteWithChildren,
   HubCartasRoute: HubCartasRoute,
+  HubCreditosRoute: HubCreditosRoute,
   HubExamesRoute: HubExamesRouteWithChildren,
   HubExplorarRoute: HubExplorarRoute,
   HubUploadRoute: HubUploadRoute,

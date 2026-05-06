@@ -13,6 +13,7 @@ export interface DocItem {
   tags: string[];
   premium?: boolean;
   cover: number; // hue 0-360 for procedural gradient
+  coverImageUrl?: string; // optional real cover image (overrides gradient)
   fileUrl?: string;
 }
 
@@ -25,7 +26,7 @@ export const DOC_CATEGORIES: { id: DocCategory; label: string; icon: string; des
 
 export const HUB_DOCUMENTS: DocItem[] = [
   {
-    id: "1",
+    id: "exame-admissao-uem-engenharia-2024",
     title: "Exame de Admissão UEM - Engenharia 2024",
     author: "Carlos Mucavele",
     category: "exames",
@@ -38,7 +39,7 @@ export const HUB_DOCUMENTS: DocItem[] = [
     cover: 222,
   },
   {
-    id: "2",
+    id: "modelo-cv-profissional-mocambique",
     title: "Modelo de CV Profissional - Moçambique",
     author: "Ana Sitoe",
     category: "cvs",
@@ -51,7 +52,7 @@ export const HUB_DOCUMENTS: DocItem[] = [
     cover: 45,
   },
   {
-    id: "3",
+    id: "monografia-energias-renovaveis-mocambique",
     title: "Monografia: Energias Renováveis em Moçambique",
     author: "Hélder Macuácua",
     category: "trabalhos",
@@ -65,7 +66,7 @@ export const HUB_DOCUMENTS: DocItem[] = [
     cover: 142,
   },
   {
-    id: "4",
+    id: "calculo-i-sebenta-uem",
     title: "Cálculo I - Sebenta UEM",
     author: "Prof. Tembe",
     category: "livros",
@@ -78,7 +79,7 @@ export const HUB_DOCUMENTS: DocItem[] = [
     cover: 200,
   },
   {
-    id: "5",
+    id: "exame-matematica-12-classe-2023",
     title: "Exame de Matemática 12ª Classe - 2023",
     author: "Ministério da Educação",
     category: "exames",
@@ -91,7 +92,7 @@ export const HUB_DOCUMENTS: DocItem[] = [
     cover: 12,
   },
   {
-    id: "6",
+    id: "carta-motivacao-bolsa-estudos",
     title: "Carta de Motivação para Bolsa de Estudos",
     author: "Inês Chissano",
     category: "cvs",
@@ -104,7 +105,7 @@ export const HUB_DOCUMENTS: DocItem[] = [
     cover: 280,
   },
   {
-    id: "7",
+    id: "relatorio-estagio-banco-bim",
     title: "Relatório de Estágio - Banco BIM",
     author: "João Nhaca",
     category: "trabalhos",
@@ -117,7 +118,7 @@ export const HUB_DOCUMENTS: DocItem[] = [
     cover: 340,
   },
   {
-    id: "8",
+    id: "manual-direito-constitucional-mocambicano",
     title: "Manual de Direito Constitucional Moçambicano",
     author: "Dr. Mbeve",
     category: "livros",

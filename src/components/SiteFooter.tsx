@@ -26,8 +26,10 @@ export function SiteFooter() {
             <li><Link to="/" className="hover:text-gold transition-colors">Home</Link></li>
             <li><Link to="/sobre" className="hover:text-gold transition-colors">Sobre Nós</Link></li>
             <li><Link to="/servicos" className="hover:text-gold transition-colors">Serviços</Link></li>
+            <li><Link to="/loja" className="hover:text-gold transition-colors">Loja</Link></li>
             <li><Link to="/galeria" className="hover:text-gold transition-colors">Galeria</Link></li>
             <li><Link to="/blog" className="hover:text-gold transition-colors">Blog</Link></li>
+            <li><Link to="/hub" className="hover:text-gold transition-colors">Hub Académico</Link></li>
           </ul>
         </div>
 

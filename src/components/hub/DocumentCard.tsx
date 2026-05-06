@@ -29,10 +29,12 @@ export function DocumentCard({ doc, variant = "default" }: Props) {
         className="group flex items-center gap-4 rounded-xl bg-card border border-border px-4 py-3.5 hover:border-brand/30 hover:shadow-card transition-smooth"
       >
         <div
-          className="flex-shrink-0 h-12 w-12 rounded-lg grid place-items-center"
-          style={{ background: `linear-gradient(135deg, hsl(${doc.cover} 55% 48%), hsl(${doc.cover} 65% 30%))` }}
+          className="flex-shrink-0 h-12 w-12 rounded-lg grid place-items-center overflow-hidden"
+          style={!doc.coverImageUrl ? { background: `linear-gradient(135deg, hsl(${doc.cover} 55% 48%), hsl(${doc.cover} 65% 30%))` } : undefined}
         >
-          <FileText className="h-5 w-5 text-white/80" />
+          {doc.coverImageUrl
+            ? <img src={doc.coverImageUrl} alt={doc.title} className="h-full w-full object-cover" />
+            : <FileText className="h-5 w-5 text-white/80" />}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5">
@@ -58,10 +60,12 @@ export function DocumentCard({ doc, variant = "default" }: Props) {
         className="group flex gap-3 rounded-lg bg-card border border-border p-3 hover:border-brand/30 hover:shadow-card transition-smooth"
       >
         <div
-          className="flex-shrink-0 h-10 w-10 rounded-md grid place-items-center"
-          style={{ background: `linear-gradient(135deg, hsl(${doc.cover} 55% 48%), hsl(${doc.cover} 65% 30%))` }}
+          className="flex-shrink-0 h-10 w-10 rounded-md grid place-items-center overflow-hidden"
+          style={!doc.coverImageUrl ? { background: `linear-gradient(135deg, hsl(${doc.cover} 55% 48%), hsl(${doc.cover} 65% 30%))` } : undefined}
         >
-          <FileText className="h-4 w-4 text-white/80" />
+          {doc.coverImageUrl
+            ? <img src={doc.coverImageUrl} alt={doc.title} className="h-full w-full object-cover" />
+            : <FileText className="h-4 w-4 text-white/80" />}
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-xs font-semibold text-foreground group-hover:text-brand transition-smooth line-clamp-2 leading-tight">
@@ -87,14 +91,17 @@ export function DocumentCard({ doc, variant = "default" }: Props) {
       {/* Cover */}
       <div
         className="aspect-[4/3] relative overflow-hidden"
-        style={{
+        style={!doc.coverImageUrl ? {
           background: `linear-gradient(135deg, hsl(${doc.cover} 58% 44%) 0%, hsl(${doc.cover} 70% 26%) 100%)`,
-        }}
+        } : undefined}
       >
-        {/* Page count icon */}
-        <div className="absolute inset-0 grid place-items-center">
-          <FileText className="h-16 w-16 text-white/20 group-hover:scale-110 transition-smooth" />
-        </div>
+        {doc.coverImageUrl ? (
+          <img src={doc.coverImageUrl} alt={doc.title} className="absolute inset-0 h-full w-full object-cover group-hover:scale-105 transition-smooth" />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center">
+            <FileText className="h-16 w-16 text-white/20 group-hover:scale-110 transition-smooth" />
+          </div>
+        )}
 
         {/* Category badge */}
         <div className="absolute top-3 left-3">

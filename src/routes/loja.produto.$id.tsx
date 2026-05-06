@@ -107,6 +107,7 @@ function ProdutoPage() {
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState<"descricao" | "avaliacoes">("descricao");
   const [activeImg, setActiveImg] = useState(0);
+  const [imgError, setImgError] = useState(false);
   const [localReviews, setLocalReviews] = useState(reviews);
   const [reviewRating, setReviewRating] = useState(0);
   const [reviewComment, setReviewComment] = useState("");
@@ -195,11 +196,12 @@ function ProdutoPage() {
           <div className="space-y-3">
             {/* Main image */}
             <div className="relative overflow-hidden rounded-2xl bg-muted aspect-square flex items-center justify-center border border-border">
-              {images.length > 0 ? (
+              {images.length > 0 && !imgError ? (
                 <img
                   src={images[activeImg] ?? images[0]}
                   alt={product.name}
                   className="h-full w-full object-contain p-4 hover:scale-105 transition-smooth"
+                  onError={() => setImgError(true)}
                 />
               ) : (
                 <div className="flex flex-col items-center gap-3 text-muted-foreground">

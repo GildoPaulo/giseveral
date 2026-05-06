@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Giseveral Hub Design System
+   All colors MUST be HSL.
+   Brand: deep navy #1a2a4f, white, sunny yellow #ffc107
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 40% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 40% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 40% 12%;
+
+    /* Brand navy */
+    --primary: 222 50% 21%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 222 60% 32%;
+
+    /* Soft surface */
+    --secondary: 220 30% 96%;
+    --secondary-foreground: 222 50% 21%;
+
+    --muted: 220 20% 96%;
+    --muted-foreground: 222 15% 45%;
+
+    /* Sunny yellow accent */
+    --accent: 45 100% 51%;
+    --accent-foreground: 222 50% 15%;
+    --accent-glow: 45 100% 60%;
+
+    --destructive: 0 75% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 70% 38%;
+    --success-foreground: 0 0% 100%;
+
+    --border: 220 20% 90%;
+    --input: 220 20% 90%;
+    --ring: 222 50% 21%;
+
+    --radius: 0.875rem;
+
+    /* Gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(222 55% 18%) 0%, hsl(222 50% 28%) 60%, hsl(222 60% 35%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(45 100% 55%) 0%, hsl(38 100% 50%) 100%);
+    --gradient-soft: linear-gradient(180deg, hsl(220 30% 98%) 0%, hsl(0 0% 100%) 100%);
+
+    /* Shadows */
+    --shadow-card: 0 4px 20px -8px hsl(222 50% 21% / 0.12);
+    --shadow-card-hover: 0 12px 32px -10px hsl(222 50% 21% / 0.22);
+    --shadow-elegant: 0 20px 60px -20px hsl(222 50% 21% / 0.35);
+    --shadow-accent: 0 8px 24px -8px hsl(45 100% 51% / 0.45);
+
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222 40% 8%;
+    --foreground: 0 0% 98%;
+    --card: 222 40% 11%;
+    --card-foreground: 0 0% 98%;
+    --popover: 222 40% 11%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 45 100% 55%;
+    --primary-foreground: 222 50% 12%;
+    --secondary: 222 30% 18%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 222 30% 18%;
+    --muted-foreground: 220 15% 65%;
+    --accent: 45 100% 55%;
+    --accent-foreground: 222 50% 12%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 30% 20%;
+    --input: 222 30% 20%;
+    --ring: 45 100% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight;
+  }
+}
+
+@layer components {
+  .container-px {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
+
+  .watermark-overlay {
+    background-image: repeating-linear-gradient(
+      -35deg,
+      transparent,
+      transparent 140px,
+      hsl(var(--primary) / 0.06) 140px,
+      hsl(var(--primary) / 0.06) 280px
+    );
+  }
+
+  .hover-lift {
+    @apply transition-smooth hover:-translate-y-1 hover:shadow-card-hover;
+  }
+
+  .story-link {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-accent after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+  .bg-gradient-accent {
+    background: var(--gradient-accent);
+  }
+  .bg-gradient-soft {
+    background: var(--gradient-soft);
+  }
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+  .shadow-card-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+  .shadow-accent {
+    box-shadow: var(--shadow-accent);
+  }
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+}

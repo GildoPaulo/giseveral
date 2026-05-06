@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { TypewriterText } from "@/components/TypewriterText";
@@ -8,9 +9,12 @@ import { MiniBanner } from "@/components/promos/MiniBanner";
 import { PromoPopup } from "@/components/promos/PromoPopup";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { motion } from "framer-motion";
+import { fetchHubNews } from "@/lib/hub";
+import { HUB_NEWS, type NewsItem } from "@/data/hub-bolsas";
 import {
   Printer, Laptop, Network, BookOpen, ArrowRight, CheckCircle2, Phone,
   Clock, Zap, ShieldCheck, Award, Star, Users, TrendingUp,
+  GraduationCap, FileText, Crown, Calendar,
 } from "lucide-react";
 import printing from "@/assets/printing.jpg";
 import repair from "@/assets/computer-repair.jpg";
@@ -77,6 +81,12 @@ const whyUs = [
 ];
 
 function Index() {
+  const [news, setNews] = useState<NewsItem[]>(HUB_NEWS.slice(0, 3));
+
+  useEffect(() => {
+    fetchHubNews().then((data) => setNews(data.slice(0, 3)));
+  }, []);
+
   return (
     <Layout>
 
@@ -396,6 +406,79 @@ function Index() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-foreground/20 px-6 py-3.5 text-sm font-medium text-brand-foreground/80 hover:bg-white/10 transition-smooth">
                 <Phone className="h-4 w-4" /> 874 383 621
               </a>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ── HUB ACADÉMICO ────────────────────────────────── */}
+      <section className="container mx-auto max-w-6xl px-4 pb-20">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+          <div className="rounded-3xl bg-gradient-hero text-brand-foreground overflow-hidden relative">
+            <div className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 rounded-full bg-gold/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-white/5 blur-3xl" />
+
+            <div className="relative grid lg:grid-cols-2 gap-0">
+              {/* Left: info */}
+              <div className="p-8 md:p-12">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-bold mb-5">
+                  <BookOpen className="h-3.5 w-3.5" /> GISEVERAL HUB — PLATAFORMA ACADÉMICA
+                </div>
+                <h2 className="text-3xl md:text-4xl font-extrabold mb-4 leading-tight">
+                  Bolsas, documentos e exames para estudantes
+                </h2>
+                <p className="text-brand-foreground/80 mb-6 max-w-md">
+                  Acede a exames resolvidos, trabalhos académicos e bolsas internacionais. Partilha e ganha créditos.
+                </p>
+                <div className="grid sm:grid-cols-3 gap-3 mb-8">
+                  {[
+                    { icon: FileText, label: "Documentos", desc: "Exames e trabalhos" },
+                    { icon: GraduationCap, label: "Bolsas", desc: "Chevening, DAAD…" },
+                    { icon: Crown, label: "Premium", desc: "Downloads ilimitados" },
+                  ].map((f) => (
+                    <div key={f.label} className="rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 p-3 text-center">
+                      <f.icon className="h-5 w-5 text-gold mx-auto mb-1" />
+                      <p className="text-xs font-bold">{f.label}</p>
+                      <p className="text-[10px] text-brand-foreground/60">{f.desc}</p>
+                    </div>
+                  ))}
+                </div>
+                <Link
+                  to="/hub"
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-gold px-6 py-3 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth"
+                >
+                  Entrar no Hub <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+
+              {/* Right: recent news */}
+              <div className="bg-black/20 p-6 md:p-8 flex flex-col justify-center">
+                <p className="text-xs font-bold uppercase tracking-wider text-gold mb-4">Últimas notícias educativas</p>
+                <div className="space-y-3">
+                  {news.map((n) => (
+                    <Link
+                      key={n.id}
+                      to="/hub/noticias/$id"
+                      params={{ id: n.id }}
+                      className="flex items-start gap-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 p-3 transition-smooth group"
+                    >
+                      <span className="inline-flex items-center rounded-full bg-gold/20 text-gold px-2 py-0.5 text-[10px] font-semibold flex-shrink-0 mt-0.5">
+                        {n.category}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold leading-tight group-hover:text-gold transition-colors line-clamp-2">{n.title}</p>
+                        <p className="text-[10px] text-brand-foreground/50 mt-1 flex items-center gap-1">
+                          <Calendar className="h-2.5 w-2.5" /> {new Date(n.date).toLocaleDateString("pt-PT")}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-3.5 w-3.5 text-brand-foreground/30 group-hover:text-gold flex-shrink-0 mt-0.5 transition-colors" />
+                    </Link>
+                  ))}
+                </div>
+                <Link to="/hub/bolsas" className="mt-4 text-xs text-gold/70 hover:text-gold transition-colors font-medium flex items-center gap-1">
+                  Ver todas as notícias <ArrowRight className="h-3 w-3" />
+                </Link>
+              </div>
             </div>
           </div>
         </motion.div>

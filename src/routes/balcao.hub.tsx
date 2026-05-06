@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { DOC_CATEGORIES, type DocCategory } from "@/data/hub-documents";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, Upload, X, Crown,
   FileText, Download, CheckCircle2, AlertTriangle, Search, Filter,
@@ -21,6 +22,7 @@ type HubDoc = {
   description: string;
   tags: string[];
   cover_hue: number;
+  cover_image_url?: string | null;
   premium: boolean;
   published: boolean;
   downloads: number;
@@ -37,13 +39,15 @@ type FormData = {
   description: string;
   tags: string;
   cover_hue: string;
+  cover_image_url: string | null;
   premium: boolean;
   published: boolean;
 };
 
 const EMPTY: FormData = {
   title: "", author: "Giseveral Editorial", category: "", pages: "1",
-  description: "", tags: "", cover_hue: "210", premium: false, published: true,
+  description: "", tags: "", cover_hue: "210", cover_image_url: null,
+  premium: false, published: true,
 };
 
 function BalcaoHub() {
@@ -102,6 +106,7 @@ function BalcaoHub() {
       title: d.title, author: d.author, category: d.category as DocCategory,
       pages: String(d.pages), description: d.description,
       tags: d.tags.join(", "), cover_hue: String(d.cover_hue),
+      cover_image_url: d.cover_image_url ?? null,
       premium: d.premium, published: d.published,
     });
     setFile(null);
@@ -146,20 +151,20 @@ function BalcaoHub() {
         published: form.published,
         ...(fileUrl !== undefined && { file_url: fileUrl }),
       };
+      // cover_image_url requires DB column: ALTER TABLE hub_documents ADD COLUMN cover_image_url TEXT;
+      const payloadWithCover = { ...payload, cover_image_url: form.cover_image_url };
 
       if (editing) {
-        const { error, count } = await supabase
-          .from("hub_documents")
-          .update(payload)
-          .eq("id", editing.id)
-          .select("id", { count: "exact", head: true });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.from("hub_documents") as any)
+          .update(payloadWithCover)
+          .eq("id", editing.id);
         if (error) throw error;
-        if (count === 0) throw new Error("Sem permissão para actualizar este documento.");
         toast.success("Documento actualizado!");
       } else {
-        const { error } = await supabase
-          .from("hub_documents")
-          .insert({ ...payload, user_id: user?.id ?? null });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.from("hub_documents") as any)
+          .insert({ ...payloadWithCover, user_id: user?.id ?? null });
         if (error) throw error;
         toast.success("Documento criado!");
       }
@@ -454,6 +459,16 @@ function BalcaoHub() {
                   </div>
                 </div>
 
+                {/* Cover image */}
+                <ImageUpload
+                  value={form.cover_image_url}
+                  onChange={(v) => setField("cover_image_url", v)}
+                  label="Imagem de capa (opcional)"
+                  hint="Se não tiver imagem, será usada a cor da capa abaixo."
+                  bucket="images"
+                  folder="hub-covers"
+                />
+
                 {/* Pages + Cover hue */}
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
@@ -466,7 +481,7 @@ function BalcaoHub() {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1.5">
-                      Cor da capa (0–360)
+                      Cor da capa (fallback)
                     </label>
                     <div className="flex items-center gap-2">
                       <input

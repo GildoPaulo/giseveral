@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { HUB_DOCUMENTS, type DocItem } from "@/data/hub-documents";
-import { SCHOLARSHIPS, type Scholarship, type ScholarshipLevel, type CoverageType } from "@/data/hub-bolsas";
+import { SCHOLARSHIPS, HUB_NEWS, type Scholarship, type ScholarshipLevel, type CoverageType, type NewsItem } from "@/data/hub-bolsas";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -14,6 +14,7 @@ export type HubDocument = {
   tags: string[];
   file_url: string | null;
   cover_hue: number;
+  cover_image_url?: string | null;
   premium: boolean;
   published: boolean;
   downloads: number;
@@ -51,6 +52,7 @@ function dbDocToLocal(d: HubDocument): DocItem {
     tags: d.tags,
     fileUrl: d.file_url ?? undefined,
     cover: d.cover_hue,
+    coverImageUrl: d.cover_image_url ?? undefined,
     premium: d.premium,
     downloads: d.downloads,
     views: d.views,
@@ -230,6 +232,34 @@ export async function fetchScholarships(): Promise<Scholarship[]> {
     }));
   } catch {
     return SCHOLARSHIPS;
+  }
+}
+
+// ── Fetch hub news ────────────────────────────────────────────────────────────
+
+export async function fetchHubNews(): Promise<NewsItem[]> {
+  try {
+    const { data, error } = await supabase
+      .from("hub_news")
+      .select("id, title, excerpt, category, date, author, tags, content")
+      .eq("published", true)
+      .order("date", { ascending: false })
+      .limit(6);
+
+    if (error || !data || data.length === 0) return HUB_NEWS;
+
+    return data.map((d) => ({
+      id: d.id,
+      title: d.title,
+      excerpt: d.excerpt ?? "",
+      category: d.category as NewsItem["category"],
+      date: d.date,
+      author: d.author ?? undefined,
+      tags: d.tags ?? [],
+      content: Array.isArray(d.content) ? (d.content as string[]) : undefined,
+    }));
+  } catch {
+    return HUB_NEWS;
   }
 }
 

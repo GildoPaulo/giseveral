@@ -96,8 +96,8 @@ function HubDocumentoPage() {
     }
     if (!premium && !doc.premium && credits <= 0) {
       toast.error("Sem créditos suficientes.", {
-        description: "Torne-se Premium para downloads ilimitados.",
-        action: { label: "Saber mais", onClick: () => navigate({ to: "/orcamento" }) },
+        description: "Compre créditos ou torne-se Premium para downloads ilimitados.",
+        action: { label: "Obter créditos", onClick: () => navigate({ to: "/hub/creditos" }) },
       });
       return;
     }
@@ -230,12 +230,20 @@ function HubDocumentoPage() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold/15">
                   <Coins className="h-5 w-5 text-gold" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground">{premium ? "Conta Premium" : "Os seus créditos"}</p>
                   <p className="font-bold text-foreground">
                     {premium ? "∞ ilimitados" : `${credits} crédito${credits !== 1 ? "s" : ""}`}
                   </p>
                 </div>
+                {!premium && (
+                  <Link
+                    to="/hub/creditos"
+                    className="text-[11px] font-semibold text-brand hover:text-gold transition-colors flex-shrink-0"
+                  >
+                    + Obter
+                  </Link>
+                )}
               </div>
             )}
 
@@ -273,10 +281,10 @@ function HubDocumentoPage() {
                   ))}
                 </ul>
                 <Link
-                  to="/orcamento"
+                  to="/hub/creditos"
                   className="flex items-center justify-center rounded-md bg-gradient-gold px-3 py-2 text-sm font-semibold text-gold-foreground"
                 >
-                  Saber mais
+                  Ver planos
                 </Link>
               </div>
             )}
