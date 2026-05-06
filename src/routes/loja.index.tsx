@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -27,10 +27,10 @@ export const Route = createFileRoute("/loja/")({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fadeUp: any = {
   hidden: { opacity: 0, y: 24 },
-  visible: (i = 0) => ({
+  visible: {
     opacity: 1, y: 0,
-    transition: { duration: 0.5, delay: i * 0.07, ease: [0.25, 0.46, 0.45, 0.94] },
-  }),
+    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

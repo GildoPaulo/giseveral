@@ -23,11 +23,11 @@ import technician from "@/assets/technician.jpg";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.55, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] } }),
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
 };
 const fadeIn = {
   hidden: { opacity: 0 },
-  visible: (i = 0) => ({ opacity: 1, transition: { duration: 0.5, delay: i * 0.1 } }),
+  visible: { opacity: 1, transition: { duration: 0.5 } },
 };
 const slideRight = {
   hidden: { opacity: 0, x: 60 },
@@ -35,7 +35,7 @@ const slideRight = {
 };
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.85 },
-  visible: (i = 0) => ({ opacity: 1, scale: 1, transition: { duration: 0.5, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] } }),
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
 };
 
 export const Route = createFileRoute("/")({
@@ -228,7 +228,7 @@ function Index() {
               <motion.div
                 key={s.label}
                 className="flex flex-col sm:flex-row items-center justify-center gap-3 py-7 px-4 text-center sm:text-left"
-                initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
+                initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
               >
                 <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-brand/8 dark:bg-brand/15">
                   <s.icon className="h-5 w-5 text-brand" />
@@ -261,7 +261,7 @@ function Index() {
           {highlights.map((h, i) => (
             <motion.div
               key={h.title}
-              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
+              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
             >
             <Link
               to="/servicos/$slug"
@@ -308,7 +308,7 @@ function Index() {
               { img: repair,   title: "Informática",  text: "Formatação, instalação de Windows, remoção de vírus e diagnóstico rápido de hardware.", slug: "informatica", badge: null },
               { img: network,  title: "Redes",        text: "Instalação Wi-Fi, redes LAN, routers e cabeamento estruturado para residências e empresas.", slug: "redes", badge: null },
             ].map((s, i) => (
-              <motion.div key={s.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}>
+              <motion.div key={s.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
               <Link
                 to="/servicos/$slug"
                 params={{ slug: s.slug }}
@@ -351,7 +351,7 @@ function Index() {
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {whyUs.map((w, i) => (
-            <motion.div key={w.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
+            <motion.div key={w.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
               className="group rounded-2xl border border-border bg-card p-6 shadow-card hover:border-brand/30 hover:shadow-elegant hover:-translate-y-1 transition-smooth">
               <div className="relative mb-5">
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/8 group-hover:bg-gradient-brand group-hover:text-brand-foreground transition-smooth">

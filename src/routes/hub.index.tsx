@@ -28,10 +28,10 @@ export const Route = createFileRoute("/hub/")({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fadeUp: any = {
   hidden: { opacity: 0, y: 28 },
-  visible: (i = 0) => ({
+  visible: {
     opacity: 1, y: 0,
-    transition: { duration: 0.55, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] },
-  }),
+    transition: { duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -148,7 +148,6 @@ function HubIndexPage() {
           ].map((s, i) => (
             <motion.div
               key={s.l}
-              custom={i}
               variants={fadeUp}
               className="text-center rounded-2xl bg-card border border-border p-5 shadow-card"
             >
@@ -229,7 +228,7 @@ function HubIndexPage() {
           className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5"
         >
           {popular.map((d, i) => (
-            <motion.div key={d.id} custom={i} variants={scaleCard} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+            <motion.div key={d.id} variants={scaleCard} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
               <DocumentCard doc={d} />
             </motion.div>
           ))}
@@ -261,7 +260,6 @@ function HubIndexPage() {
               ].map((s, i) => (
                 <motion.div
                   key={s.title}
-                  custom={i}
                   variants={fadeUp}
                   whileHover={{ y: -4, transition: { duration: 0.2 } }}
                   className="rounded-2xl bg-card border border-border p-6 shadow-card hover:shadow-elegant transition-smooth text-center"
@@ -334,7 +332,6 @@ function HubIndexPage() {
               ].map((f, i) => (
                 <motion.div
                   key={f.label}
-                  custom={i}
                   variants={scaleCard}
                   whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
                   className="aspect-square rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 grid place-items-center text-brand-foreground cursor-default"
@@ -377,7 +374,7 @@ function HubIndexPage() {
           className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5"
         >
           {recent.map((d, i) => (
-            <motion.div key={d.id} custom={i} variants={scaleCard} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+            <motion.div key={d.id} variants={scaleCard} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
               <DocumentCard doc={d} />
             </motion.div>
           ))}
@@ -433,7 +430,7 @@ function HubIndexPage() {
           </Link>
         </motion.div>
 
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={1}>
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
           <Link
             to="/hub/cartas"
             className="group flex items-center justify-between rounded-2xl bg-gradient-hero text-brand-foreground p-5 shadow-elegant hover:shadow-glow transition-smooth"
@@ -466,7 +463,6 @@ function HubIndexPage() {
           ].map((f, i) => (
             <motion.div
               key={f.title}
-              custom={i}
               variants={fadeUp}
               className="flex items-start gap-4 rounded-xl bg-card border border-border p-5 shadow-card"
             >

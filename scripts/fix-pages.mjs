@@ -17,12 +17,12 @@ if (cssFiles.length > 0) {
   console.log(`✓ CSS aliased: ${cssFiles[0]} → styles.css`)
 }
 
-// 4. Create _routes.json so Pages CDN serves /assets/* directly (bypasses the worker).
-//    Without this, the worker intercepts every /assets/* request and 404s CSS/JS/images.
+// 4. Create _routes.json so Pages CDN serves static assets directly (bypasses the worker).
+//    The worker should handle all app routes for SSR.
 writeFileSync('dist/client/_routes.json', JSON.stringify({
   version: 1,
   include: ['/*'],
-  exclude: ['/assets/*'],
+  exclude: ['/assets/*', '/robots.txt', '/sitemap.xml', '/favicon.ico', '/logo.jpeg', '/og-image.jpg'],
 }, null, 2) + '\n')
 
 // 5. Replace the Worker-specific wrangler.json with a valid Pages config
@@ -30,7 +30,8 @@ writeFileSync('dist/client/wrangler.json', JSON.stringify({
   name: 'giseveral',
   compatibility_date: '2025-09-24',
   compatibility_flags: ['nodejs_compat'],
-  pages_build_output_dir: '.'
+  pages_build_output_dir: '.',
+  main: '_worker.js'
 }, null, 2) + '\n')
 
 console.log('✓ Pages build ready: assets merged, _worker.js placed, CSS aliased, _routes.json written, wrangler.json patched')
