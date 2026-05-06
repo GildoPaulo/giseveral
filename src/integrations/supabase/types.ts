@@ -214,6 +214,7 @@ export type Database = {
           compare_price: number | null
           created_at: string
           description: string | null
+          featured: boolean
           id: string
           image_url: string | null
           name: string
@@ -230,6 +231,7 @@ export type Database = {
           compare_price?: number | null
           created_at?: string
           description?: string | null
+          featured?: boolean
           id?: string
           image_url?: string | null
           name: string
@@ -246,6 +248,7 @@ export type Database = {
           compare_price?: number | null
           created_at?: string
           description?: string | null
+          featured?: boolean
           id?: string
           image_url?: string | null
           name?: string
@@ -265,11 +268,337 @@ export type Database = {
           },
         ]
       }
+      hub_scholarships: {
+        Row: {
+          id: string
+          title: string
+          country: string
+          flag: string
+          level: string
+          area: string
+          coverage: string
+          language: string
+          deadline: string
+          institution: string
+          description: string | null
+          apply_url: string
+          benefits: string[]
+          requirements: string[]
+          process_steps: string[]
+          documents: string[]
+          tips: string[]
+          featured: boolean
+          active: boolean
+          created_at: string
+          content_rich: string | null
+          guides: Json
+          materials: Json
+          image_url: string | null
+          comments_enabled: boolean
+          allow_applications: boolean
+          views: number
+          applications_count: number
+        }
+        Insert: {
+          id: string
+          title: string
+          country: string
+          flag?: string
+          level: string
+          area: string
+          coverage: string
+          language: string
+          deadline: string
+          institution: string
+          description?: string | null
+          apply_url: string
+          benefits?: string[]
+          requirements?: string[]
+          process_steps?: string[]
+          documents?: string[]
+          tips?: string[]
+          featured?: boolean
+          active?: boolean
+          created_at?: string
+          content_rich?: string | null
+          guides?: Json
+          materials?: Json
+          image_url?: string | null
+          comments_enabled?: boolean
+          allow_applications?: boolean
+          views?: number
+          applications_count?: number
+        }
+        Update: {
+          id?: string
+          title?: string
+          country?: string
+          flag?: string
+          level?: string
+          area?: string
+          coverage?: string
+          language?: string
+          deadline?: string
+          institution?: string
+          description?: string | null
+          apply_url?: string
+          benefits?: string[]
+          requirements?: string[]
+          process_steps?: string[]
+          documents?: string[]
+          tips?: string[]
+          featured?: boolean
+          active?: boolean
+          created_at?: string
+          content_rich?: string | null
+          guides?: Json
+          materials?: Json
+          image_url?: string | null
+          comments_enabled?: boolean
+          allow_applications?: boolean
+          views?: number
+          applications_count?: number
+        }
+        Relationships: []
+      }
+      bolsa_comments: {
+        Row: {
+          id: string
+          scholarship_id: string
+          user_id: string
+          parent_id: string | null
+          content: string
+          author_name: string
+          is_admin: boolean
+          helpful_count: number
+          approved: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          scholarship_id: string
+          user_id: string
+          parent_id?: string | null
+          content: string
+          author_name?: string
+          is_admin?: boolean
+          helpful_count?: number
+          approved?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          scholarship_id?: string
+          user_id?: string
+          parent_id?: string | null
+          content?: string
+          author_name?: string
+          is_admin?: boolean
+          helpful_count?: number
+          approved?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      bolsa_applications: {
+        Row: {
+          id: string
+          scholarship_id: string
+          user_id: string | null
+          name: string
+          email: string
+          whatsapp: string
+          course: string | null
+          university: string | null
+          documents_have: string[]
+          help_needed: string[]
+          notes: string | null
+          status: string
+          admin_notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          scholarship_id: string
+          user_id?: string | null
+          name: string
+          email: string
+          whatsapp: string
+          course?: string | null
+          university?: string | null
+          documents_have?: string[]
+          help_needed?: string[]
+          notes?: string | null
+          status?: string
+          admin_notes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          scholarship_id?: string
+          user_id?: string | null
+          name?: string
+          email?: string
+          whatsapp?: string
+          course?: string | null
+          university?: string | null
+          documents_have?: string[]
+          help_needed?: string[]
+          notes?: string | null
+          status?: string
+          admin_notes?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_subscribers: {
+        Row: {
+          id: string
+          email: string
+          source: string
+          subscribed_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          source?: string
+          subscribed_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          source?: string
+          subscribed_at?: string
+        }
+        Relationships: []
+      }
+      hub_documents: {
+        Row: {
+          id: string
+          title: string
+          author: string
+          category: string
+          pages: number
+          description: string
+          tags: string[]
+          file_url: string | null
+          cover_hue: number
+          premium: boolean
+          published: boolean
+          downloads: number
+          views: number
+          user_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          author?: string
+          category: string
+          pages?: number
+          description?: string
+          tags?: string[]
+          file_url?: string | null
+          cover_hue?: number
+          premium?: boolean
+          published?: boolean
+          downloads?: number
+          views?: number
+          user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          author?: string
+          category?: string
+          pages?: number
+          description?: string
+          tags?: string[]
+          file_url?: string | null
+          cover_hue?: number
+          premium?: boolean
+          published?: boolean
+          downloads?: number
+          views?: number
+          user_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      hub_generated_letters: {
+        Row: {
+          id: string
+          user_id: string
+          letter_type: string
+          title: string
+          content: string
+          form_data: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          letter_type: string
+          title: string
+          content: string
+          form_data?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          letter_type?: string
+          title?: string
+          content?: string
+          form_data?: Json
+          created_at?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: string
+          title: string
+          body: string | null
+          link: string | null
+          is_read: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: string
+          title: string
+          body?: string | null
+          link?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: string
+          title?: string
+          body?: string | null
+          link?: string | null
+          is_read?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
           email: string | null
           full_name: string
+          hub_credits: number
+          hub_premium: boolean
           id: string
           phone: string | null
           role: string
@@ -279,6 +608,8 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name: string
+          hub_credits?: number
+          hub_premium?: boolean
           id: string
           phone?: string | null
           role?: string
@@ -288,10 +619,318 @@ export type Database = {
           created_at?: string
           email?: string | null
           full_name?: string
+          hub_credits?: number
+          hub_premium?: boolean
           id?: string
           phone?: string | null
           role?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_posts: {
+        Row: {
+          id: string
+          slug: string
+          title: string
+          date: string
+          category: string
+          image_url: string | null
+          excerpt: string | null
+          meta_title: string | null
+          meta_description: string | null
+          keywords: string | null
+          content: Json
+          published: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          slug: string
+          title: string
+          date?: string
+          category?: string
+          image_url?: string | null
+          excerpt?: string | null
+          meta_title?: string | null
+          meta_description?: string | null
+          keywords?: string | null
+          content?: Json
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          slug?: string
+          title?: string
+          date?: string
+          category?: string
+          image_url?: string | null
+          excerpt?: string | null
+          meta_title?: string | null
+          meta_description?: string | null
+          keywords?: string | null
+          content?: Json
+          published?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          id: string
+          product_id: string
+          user_id: string
+          order_id: string | null
+          rating: number
+          comment: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          user_id: string
+          order_id?: string | null
+          rating: number
+          comment?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          user_id?: string
+          order_id?: string | null
+          rating?: number
+          comment?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      unified_comments: {
+        Row: {
+          id: string
+          content_type: string
+          content_id: string
+          user_id: string
+          parent_id: string | null
+          content: string
+          author_name: string
+          is_admin: boolean
+          helpful_count: number
+          approved: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          content_type: string
+          content_id: string
+          user_id: string
+          parent_id?: string | null
+          content: string
+          author_name?: string
+          is_admin?: boolean
+          helpful_count?: number
+          approved?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          content_type?: string
+          content_id?: string
+          user_id?: string
+          parent_id?: string | null
+          content?: string
+          author_name?: string
+          is_admin?: boolean
+          helpful_count?: number
+          approved?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      help_requests: {
+        Row: {
+          id: string
+          content_type: string
+          content_id: string
+          user_id: string | null
+          name: string
+          email: string
+          whatsapp: string
+          help_needed: string[]
+          notes: string | null
+          status: string
+          admin_notes: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          content_type: string
+          content_id: string
+          user_id?: string | null
+          name: string
+          email: string
+          whatsapp: string
+          help_needed?: string[]
+          notes?: string | null
+          status?: string
+          admin_notes?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          content_type?: string
+          content_id?: string
+          user_id?: string | null
+          name?: string
+          email?: string
+          whatsapp?: string
+          help_needed?: string[]
+          notes?: string | null
+          status?: string
+          admin_notes?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      hub_exams: {
+        Row: {
+          id: string
+          title: string
+          institution: string
+          course: string
+          year: number
+          subjects: string[]
+          difficulty: string
+          description: string | null
+          content_rich: string | null
+          guides: Json
+          materials: Json
+          tips: string[]
+          image_url: string | null
+          file_url: string | null
+          solution_url: string | null
+          active: boolean
+          featured: boolean
+          comments_enabled: boolean
+          allow_registrations: boolean
+          registration_url: string | null
+          registration_deadline: string | null
+          registration_fee: string | null
+          views: number
+          downloads: number
+          created_at: string
+        }
+        Insert: {
+          id: string
+          title: string
+          institution: string
+          course: string
+          year?: number
+          subjects?: string[]
+          difficulty?: string
+          description?: string | null
+          content_rich?: string | null
+          guides?: Json
+          materials?: Json
+          tips?: string[]
+          image_url?: string | null
+          file_url?: string | null
+          solution_url?: string | null
+          active?: boolean
+          featured?: boolean
+          comments_enabled?: boolean
+          allow_registrations?: boolean
+          registration_url?: string | null
+          registration_deadline?: string | null
+          registration_fee?: string | null
+          views?: number
+          downloads?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          institution?: string
+          course?: string
+          year?: number
+          subjects?: string[]
+          difficulty?: string
+          description?: string | null
+          content_rich?: string | null
+          guides?: Json
+          materials?: Json
+          tips?: string[]
+          image_url?: string | null
+          file_url?: string | null
+          solution_url?: string | null
+          active?: boolean
+          featured?: boolean
+          comments_enabled?: boolean
+          allow_registrations?: boolean
+          registration_url?: string | null
+          registration_deadline?: string | null
+          registration_fee?: string | null
+          views?: number
+          downloads?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      hub_news: {
+        Row: {
+          id: string
+          title: string
+          excerpt: string | null
+          category: string
+          author: string
+          date: string
+          image_url: string | null
+          content_rich: string | null
+          content: string[] | null
+          related_scholarship_id: string | null
+          tags: string[]
+          published: boolean
+          comments_enabled: boolean
+          views: number
+          created_at: string
+        }
+        Insert: {
+          id: string
+          title: string
+          excerpt?: string | null
+          category?: string
+          author?: string
+          date?: string
+          image_url?: string | null
+          content_rich?: string | null
+          content?: string[] | null
+          related_scholarship_id?: string | null
+          tags?: string[]
+          published?: boolean
+          comments_enabled?: boolean
+          views?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          excerpt?: string | null
+          category?: string
+          author?: string
+          date?: string
+          image_url?: string | null
+          content_rich?: string | null
+          content?: string[] | null
+          related_scholarship_id?: string | null
+          tags?: string[]
+          published?: boolean
+          comments_enabled?: boolean
+          views?: number
+          created_at?: string
         }
         Relationships: []
       }
@@ -333,7 +972,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_type: string
+          p_title: string
+          p_body?: string | null
+          p_link?: string | null
+        }
+        Returns: string
+      }
+      mark_notifications_read: {
+        Args: { p_ids: string[] }
+        Returns: undefined
+      }
     }
     Enums: {
       request_status: "pending" | "in_progress" | "completed" | "cancelled"

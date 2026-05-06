@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import {
   LayoutDashboard, ShoppingBag, Package, Truck,
   LogOut, Menu, X, ChevronRight, BoxesIcon, BookOpen,
-  Wrench, Images, Megaphone,
+  Wrench, Images, Megaphone, GraduationCap, Award,
+  FileText, Newspaper,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -26,6 +27,10 @@ const navItems = [
   { to: "/balcao/galeria", label: "Galeria", icon: Images },
   { to: "/balcao/campanhas", label: "Campanhas", icon: Megaphone },
   { to: "/balcao/blog", label: "Blog + IA", icon: BookOpen },
+  { to: "/balcao/hub", label: "Hub Documentos", icon: GraduationCap },
+  { to: "/balcao/bolsas", label: "Bolsas Hub", icon: Award },
+  { to: "/balcao/exames", label: "Exames Hub", icon: FileText },
+  { to: "/balcao/noticias", label: "Notícias Hub", icon: Newspaper },
 ] as const;
 
 function BalcaoLayout() {

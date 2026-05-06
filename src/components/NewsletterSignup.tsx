@@ -21,7 +21,7 @@ export function NewsletterSignup({ variant = "footer" }: Props) {
     setStatus("loading");
     setErrorMsg("");
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("newsletter_subscribers")
         .insert({ email: trimmed });
       if (error) {

@@ -9,6 +9,14 @@ Disallow: /balcao/
 Disallow: /loja/carrinho
 Disallow: /loja/checkout
 Disallow: /loja/pedido/
+Disallow: /hub/upload
+
+# Crawl delay para bots menos prioritários
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
 
 # Sitemap
 Sitemap: https://giseveral.com/sitemap.xml

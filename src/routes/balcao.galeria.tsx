@@ -75,9 +75,9 @@ function BalcaoGaleria() {
     setUploading(true);
     const ext = selectedFile.name.split(".").pop() ?? "jpg";
     const path = `gallery/${crypto.randomUUID()}.${ext}`;
-    const { error: uploadErr } = await supabase.storage.from("service-uploads").upload(path, selectedFile, { upsert: false });
+    const { error: uploadErr } = await supabase.storage.from("images").upload(path, selectedFile, { upsert: false });
     if (uploadErr) { toast.error("Erro ao carregar: " + uploadErr.message); setUploading(false); return; }
-    const { data: urlData } = supabase.storage.from("service-uploads").getPublicUrl(path);
+    const { data: urlData } = supabase.storage.from("images").getPublicUrl(path);
 
     const { data: inserted, error: dbErr } = await (supabase as any)
       .from("gallery_items")

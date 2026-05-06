@@ -1,12 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   BookOpen, Sparkles, CheckCircle2, AlertTriangle, XCircle,
   RefreshCw, Loader2, Eye, Save, ChevronDown, ChevronUp,
-  FileText, LayoutTemplate, Wand2, Upload, Globe, Trash2,
+  FileText, LayoutTemplate, Wand2, Globe, Trash2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export const Route = createFileRoute("/balcao/blog")({
   component: BalcaoBlog,
@@ -297,11 +299,6 @@ function saveDraftsLocal(drafts: Draft[]) {
 }
 
 async function publishToSupabase(draft: Draft, slug: string): Promise<void> {
-  const contentJson = draft.content
-    .split(/\n{2,}/)
-    .filter(Boolean)
-    .map((block) => ({ paragraphs: [block.trim()] }));
-
   const row = {
     slug,
     title: draft.title,
@@ -312,18 +309,18 @@ async function publishToSupabase(draft: Draft, slug: string): Promise<void> {
     meta_title: draft.title,
     meta_description: draft.excerpt,
     keywords: draft.keyword,
-    content: contentJson,
+    content: draft.content,
     published: true,
   };
 
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from("blog_posts")
     .upsert(row, { onConflict: "slug" });
   if (error) throw error;
 }
 
 async function deleteFromSupabase(slug: string): Promise<void> {
-  await (supabase as any).from("blog_posts").delete().eq("slug", slug);
+  await supabase.from("blog_posts").delete().eq("slug", slug);
 }
 
 const emptyDraft = (): Draft => ({
@@ -334,35 +331,39 @@ const emptyDraft = (): Draft => ({
 
 function BalcaoBlog() {
   const [drafts, setDrafts] = useState<Draft[]>(loadDrafts);
+  const [dbItems, setDbItems] = useState<Draft[]>([]);
   const [publishedSlugs, setPublishedSlugs] = useState<Set<string>>(new Set());
   const [editing, setEditing] = useState<Draft>(emptyDraft());
   const [showList, setShowList] = useState(true);
   const [previewMode, setPreviewMode] = useState(false);
-  const [imgUploading, setImgUploading] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const imgInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    (supabase as any)
+    supabase
       .from("blog_posts")
-      .select("slug")
-      .then(({ data }: { data: { slug: string }[] | null }) => {
-        if (data) setPublishedSlugs(new Set(data.map((r) => r.slug)));
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (!data) return;
+        setPublishedSlugs(new Set(data.map((r) => r.slug)));
+        const localSlugs = new Set(loadDrafts().map((d) => slugify(d.title)));
+        setDbItems(
+          data
+            .filter((p) => !localSlugs.has(p.slug))
+            .map((p) => ({
+              id: p.id,
+              title: p.title,
+              content: typeof p.content === "string" ? p.content : "",
+              category: (p.category ?? "Informática") as Category,
+              keyword: p.keywords ?? "",
+              excerpt: p.excerpt ?? "",
+              imageUrl: p.image_url ?? "",
+              slug: p.slug,
+              createdAt: p.created_at,
+            }))
+        );
       });
   }, []);
-
-  async function handleCoverUpload(file: File) {
-    if (file.size > 5 * 1024 * 1024) { toast.error("Imagem demasiado grande (máx 5 MB)"); return; }
-    setImgUploading(true);
-    const ext = file.name.split(".").pop();
-    const path = `blog/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("service-uploads").upload(path, file, { upsert: true });
-    if (error) { toast.error("Erro no upload"); setImgUploading(false); return; }
-    const { data: { publicUrl } } = supabase.storage.from("service-uploads").getPublicUrl(path);
-    setEditing((p) => ({ ...p, imageUrl: publicUrl }));
-    setImgUploading(false);
-    toast.success("Imagem carregada!");
-  }
 
   const slug = useMemo(() => slugify(editing.title), [editing.title]);
   const { score, checks } = useMemo(
@@ -430,7 +431,11 @@ function BalcaoBlog() {
     }));
   }
 
-  const wordCount = editing.content.trim().split(/\s+/).filter(Boolean).length;
+  function stripHtml(html: string) {
+    return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  const wordCount = stripHtml(editing.content).split(/\s+/).filter(Boolean).length;
 
   /* structured sections */
   const [sections, setSections] = useState({ intro: "", development: "", conclusion: "", cta: "" });
@@ -475,18 +480,20 @@ function BalcaoBlog() {
           </p>
         </div>
 
-        {drafts.length === 0 ? (
+        {drafts.length === 0 && dbItems.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center rounded-2xl border-2 border-dashed border-border">
             <FileText className="h-12 w-12 text-muted-foreground/20 mb-3" />
-            <p className="font-semibold text-muted-foreground">Sem rascunhos ainda</p>
+            <p className="font-semibold text-muted-foreground">Sem artigos ainda</p>
             <p className="text-sm text-muted-foreground/60 mt-1">Cria o teu primeiro artigo com ajuda da IA.</p>
             <button onClick={startNew} className="mt-4 text-sm font-semibold text-brand hover:underline">+ Criar artigo</button>
           </div>
         ) : (
           <div className="space-y-3">
-            {drafts.map((d) => {
+            {[...drafts, ...dbItems].map((d) => {
               const { score: s } = computeSeo(d.title, d.content, d.keyword, d.excerpt);
               const ok = s >= 70;
+              const isPublished = publishedSlugs.has(d.slug || slugify(d.title));
+              const isDraft = drafts.some((x) => x.id === d.id);
               return (
                 <div key={d.id} className="flex items-center gap-4 rounded-xl border border-border bg-card px-5 py-4 shadow-card hover:shadow-elegant transition-smooth">
                   <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${ok ? "bg-green-100 text-green-600" : s >= 45 ? "bg-amber-100 text-amber-600" : "bg-red-100 text-red-500"}`}>
@@ -494,20 +501,27 @@ function BalcaoBlog() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-foreground truncate">{d.title || "(sem título)"}</p>
-                    <p className="text-xs text-muted-foreground">{d.category} · {d.content.trim().split(/\s+/).filter(Boolean).length} palavras · {new Date(d.createdAt).toLocaleDateString("pt-MZ")}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {d.category} · {(d.content ?? "").trim().split(/\s+/).filter(Boolean).length} palavras · {new Date(d.createdAt).toLocaleDateString("pt-MZ")}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {publishedSlugs.has(slugify(d.title)) && (
+                    {isPublished && (
                       <span className="text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 flex items-center gap-1">
                         <Globe className="h-2.5 w-2.5" /> Online
                       </span>
                     )}
-                    {ok && !publishedSlugs.has(slugify(d.title)) && <span className="text-[10px] font-bold rounded-full bg-green-100 text-green-600 px-2 py-0.5">Pronto</span>}
-                    <button onClick={() => editDraft(d)} className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors">Editar</button>
-                    {publishedSlugs.has(slugify(d.title)) && (
-                      <button onClick={() => unpublish(slugify(d.title))} className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition-colors">Despublicar</button>
+                    {!isDraft && (
+                      <span className="text-[10px] font-bold rounded-full bg-brand/10 text-brand px-2 py-0.5">Supabase</span>
                     )}
-                    <button onClick={() => deleteDraft(d.id)} className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors">Eliminar</button>
+                    {ok && !isPublished && <span className="text-[10px] font-bold rounded-full bg-green-100 text-green-600 px-2 py-0.5">Pronto</span>}
+                    <button onClick={() => editDraft(d)} className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium hover:bg-accent transition-colors">Editar</button>
+                    {isPublished && (
+                      <button onClick={() => unpublish(d.slug || slugify(d.title))} className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-50 transition-colors">Despublicar</button>
+                    )}
+                    {isDraft && (
+                      <button onClick={() => deleteDraft(d.id)} className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition-colors">Eliminar</button>
+                    )}
                   </div>
                 </div>
               );
@@ -604,12 +618,14 @@ function BalcaoBlog() {
                     {wordCount} palavras {wordCount >= 500 ? "✓" : `(mín. 500)`}
                   </span>
                 </div>
-                <textarea
+                <RichTextEditor
                   value={editing.content}
-                  onChange={(e) => setEditing((p) => ({ ...p, content: e.target.value }))}
-                  rows={18}
-                  placeholder={"Escreva o conteúdo do artigo aqui...\n\nSepare os parágrafos com uma linha em branco.\n\nDica: mencione 'Beira' e use a palavra-chave pelo menos 2 vezes."}
-                  className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand/30 font-mono leading-relaxed"
+                  onChange={(html) => setEditing((p) => ({ ...p, content: html }))}
+                  label="Conteúdo do artigo"
+                  hint="Formate o texto, adicione vídeos, imagens e tabelas." 
+                  placeholder="Escreva o conteúdo do artigo aqui..."
+                  bucket="images"
+                  folder="blog"
                 />
               </div>
 
@@ -676,24 +692,13 @@ function BalcaoBlog() {
                     className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand/30"
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Imagem de capa</label>
-                  <div className="mt-1.5 flex gap-2">
-                    <input
-                      value={editing.imageUrl}
-                      onChange={(e) => setEditing((p) => ({ ...p, imageUrl: e.target.value }))}
-                      placeholder="https://... ou carrega um ficheiro →"
-                      className="flex-1 rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
-                    />
-                    <input ref={imgInputRef} type="file" accept="image/*" className="hidden"
-                      onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }} />
-                    <button type="button" disabled={imgUploading} onClick={() => imgInputRef.current?.click()}
-                      className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-muted px-3 text-xs font-medium hover:bg-muted/70 disabled:opacity-60 shrink-0">
-                      {imgUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
-                      Upload
-                    </button>
-                  </div>
-                </div>
+                <ImageUpload
+                  label="Imagem de capa"
+                  value={editing.imageUrl}
+                  onChange={(url) => setEditing((p) => ({ ...p, imageUrl: url }))}
+                  bucket="images"
+                  folder="blog"
+                />
               </div>
             </>
           ) : (

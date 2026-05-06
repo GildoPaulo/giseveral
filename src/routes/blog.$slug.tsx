@@ -82,25 +82,29 @@ function BlogPostPage() {
 
   useEffect(() => {
     if (staticPost) return;
-    (supabase as any)
+    supabase
       .from("blog_posts")
       .select("*")
       .eq("slug", slug)
       .eq("published", true)
       .single()
-      .then(({ data }: { data: any }) => {
+      .then(({ data }) => {
         if (!data) { setNotFoundState(true); return; }
         setPost({
           slug: data.slug,
           title: data.title,
           date: data.date,
-          category: data.category,
+          category: data.category as "Informática" | "Impressão" | "Redes" | "Dicas",
           image: data.image_url ?? "",
           excerpt: data.excerpt ?? "",
-          metaTitle: data.meta_title,
-          metaDescription: data.meta_description,
-          keywords: data.keywords,
-          content: Array.isArray(data.content) ? data.content : [],
+          metaTitle: data.meta_title ?? undefined,
+          metaDescription: data.meta_description ?? undefined,
+          keywords: data.keywords ?? undefined,
+          content: Array.isArray(data.content)
+            ? data.content as { heading?: string; paragraphs: string[] }[]
+            : typeof data.content === "string"
+            ? data.content
+            : [],
         });
       });
   }, [slug, staticPost]);
@@ -165,19 +169,29 @@ function BlogPostPage() {
 
       {/* Content */}
       <article className="container mx-auto px-4 py-12 max-w-3xl">
-        <div className="space-y-6">
-          {post.content.map((block: { heading?: string; paragraphs: string[] }, i: number) => (
-            <div key={i}>
-              {block.heading && (
-                <h2 className="text-xl md:text-2xl font-bold text-brand mb-3">{block.heading}</h2>
-              )}
-              {block.paragraphs.map((p: string, j: number) => (
-                <p key={j} className="text-foreground/85 leading-relaxed mb-3">
-                  {p}
-                </p>
-              ))}
-            </div>
-          ))}
+        <div className="space-y-6 prose prose-sm prose-headings:mt-0 prose-headings:text-brand prose-a:text-gold text-foreground/85">
+          {typeof post.content === "string" ? (
+            /<[^>]+>/.test(post.content) ? (
+              <div dangerouslySetInnerHTML={{ __html: post.content }} />
+            ) : (
+              post.content.split(/\n{2,}/).filter(Boolean).map((paragraph, i) => (
+                <p key={i} className="leading-relaxed mb-3">{paragraph}</p>
+              ))
+            )
+          ) : (
+            post.content.map((block: { heading?: string; paragraphs: string[] }, i: number) => (
+              <div key={i}>
+                {block.heading && (
+                  <h2 className="text-xl md:text-2xl font-bold text-brand mb-3">{block.heading}</h2>
+                )}
+                {block.paragraphs.map((p: string, j: number) => (
+                  <p key={j} className="text-foreground/85 leading-relaxed mb-3">
+                    {p}
+                  </p>
+                ))}
+              </div>
+            ))
+          )}
         </div>
 
         {/* CTA */}

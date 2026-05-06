@@ -107,9 +107,35 @@ function ProdutoPage() {
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState<"descricao" | "avaliacoes">("descricao");
   const [activeImg, setActiveImg] = useState(0);
+  const [localReviews, setLocalReviews] = useState(reviews);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+  async function handleSubmitReview() {
+    if (!user || reviewRating === 0) return;
+    setReviewSubmitting(true);
+    const { error } = await supabase
+      .from("reviews")
+      .insert({ product_id: product.id, user_id: user.id, rating: reviewRating, comment: reviewComment.trim() || null });
+    if (error) {
+      if (error.code === "23505") toast.error("Já avaliaste este produto.");
+      else toast.error("Só podes avaliar após receber uma encomenda entregue.");
+    } else {
+      toast.success("Avaliação submetida! Obrigado.");
+      setLocalReviews((prev) => [...prev, {
+        id: crypto.randomUUID(), product_id: product.id, user_id: user.id,
+        order_id: null, rating: reviewRating, comment: reviewComment.trim() || null,
+        created_at: new Date().toISOString(),
+      }]);
+      setReviewRating(0);
+      setReviewComment("");
+    }
+    setReviewSubmitting(false);
+  }
 
   const specs = product.specs as Record<string, string | number>;
-  const avg = avgRating(reviews);
+  const avg = avgRating(localReviews);
   const { label: stockLabel, cls: stockCls, dot: stockDot } = stockInfo(product.stock);
   const discount = product.compare_price && product.compare_price > product.price
     ? Math.round(((product.compare_price - product.price) / product.compare_price) * 100)
@@ -246,11 +272,11 @@ function ProdutoPage() {
             )}
 
             {/* Rating */}
-            {reviews.length > 0 ? (
+            {localReviews.length > 0 ? (
               <div className="flex items-center gap-2">
                 <StarDisplay rating={avg} />
                 <span className="text-sm font-semibold text-foreground">{avg.toFixed(1)}</span>
-                <span className="text-sm text-muted-foreground">({reviews.length} avaliações)</span>
+                <span className="text-sm text-muted-foreground">({localReviews.length} avaliações)</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -388,7 +414,7 @@ function ProdutoPage() {
           <div className="flex border-b border-border">
             {[
               { id: "descricao" as const, label: "Descrição" },
-              { id: "avaliacoes" as const, label: `Avaliações (${reviews.length})` },
+              { id: "avaliacoes" as const, label: `Avaliações (${localReviews.length})` },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -404,10 +430,14 @@ function ProdutoPage() {
           {activeTab === "descricao" && (
             <div className="py-8 max-w-3xl">
               {product.description ? (
-                <p className="text-foreground/85 leading-relaxed text-base">{product.description}</p>
-              ) : (
-                <p className="text-muted-foreground">Sem descrição detalhada disponível.</p>
-              )}
+            /<[^>]+>/.test(product.description) ? (
+              <div className="prose prose-sm text-foreground/85" dangerouslySetInnerHTML={{ __html: product.description }} />
+            ) : (
+              <p className="text-foreground/85 leading-relaxed text-base">{product.description}</p>
+            )
+          ) : (
+            <p className="text-muted-foreground">Sem descrição detalhada disponível.</p>
+          )}
 
               {Object.keys(specs).length > 0 && (
                 <div className="mt-8">
@@ -443,20 +473,20 @@ function ProdutoPage() {
 
           {/* Reviews tab */}
           {activeTab === "avaliacoes" && (
-            <div className="py-8 max-w-3xl">
-              {reviews.length > 0 ? (
+            <div className="py-8 max-w-3xl space-y-6">
+              {localReviews.length > 0 && (
                 <>
                   {/* Summary */}
-                  <div className="flex items-center gap-6 p-5 rounded-xl border border-border bg-muted/30 mb-6">
+                  <div className="flex items-center gap-6 p-5 rounded-xl border border-border bg-muted/30">
                     <div className="text-center">
                       <p className="text-5xl font-bold text-brand">{avg.toFixed(1)}</p>
                       <StarDisplay rating={avg} size="lg" />
-                      <p className="text-xs text-muted-foreground mt-1">{reviews.length} avaliações</p>
+                      <p className="text-xs text-muted-foreground mt-1">{localReviews.length} avaliações</p>
                     </div>
                     <div className="flex-1 space-y-1.5">
                       {[5, 4, 3, 2, 1].map((star) => {
-                        const count = reviews.filter((r) => r.rating === star).length;
-                        const pct = reviews.length ? (count / reviews.length) * 100 : 0;
+                        const count = localReviews.filter((r) => r.rating === star).length;
+                        const pct = localReviews.length ? (count / localReviews.length) * 100 : 0;
                         return (
                           <div key={star} className="flex items-center gap-2 text-xs">
                             <span className="w-3 text-muted-foreground">{star}</span>
@@ -473,7 +503,7 @@ function ProdutoPage() {
 
                   {/* Review list */}
                   <div className="space-y-4">
-                    {reviews.map((r) => (
+                    {localReviews.map((r) => (
                       <div key={r.id} className="rounded-xl border border-border bg-card p-4">
                         <div className="flex items-start justify-between gap-2">
                           <StarDisplay rating={r.rating} />
@@ -488,18 +518,60 @@ function ProdutoPage() {
                     ))}
                   </div>
                 </>
-              ) : (
-                <div className="text-center py-12">
+              )}
+
+              {localReviews.length === 0 && (
+                <div className="text-center py-10">
                   <Star className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
                   <p className="font-medium text-foreground">Sem avaliações ainda</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Compra este produto e deixa a tua avaliação!
-                  </p>
-                  {!user && (
-                    <Link to="/login" className="mt-4 inline-flex items-center gap-2 rounded-md bg-gradient-brand px-4 py-2 text-sm font-semibold text-brand-foreground">
-                      Iniciar sessão para avaliar
-                    </Link>
-                  )}
+                  <p className="text-sm text-muted-foreground mt-1">Sê o primeiro a avaliar este produto!</p>
+                </div>
+              )}
+
+              {/* Review form */}
+              {user ? (
+                <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                  <h3 className="font-semibold text-foreground">Deixa a tua avaliação</h3>
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-2">Classificação *</p>
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => setReviewRating(star)}
+                          className="transition-transform hover:scale-110"
+                          aria-label={`${star} estrelas`}
+                        >
+                          <Star className={`h-7 w-7 ${star <= reviewRating ? "text-gold fill-gold" : "text-muted-foreground/30"}`} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">Comentário (opcional)</label>
+                    <textarea
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      rows={3}
+                      placeholder="Partilha a tua experiência com este produto..."
+                      className="w-full rounded-xl border border-border bg-background px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand/30"
+                    />
+                  </div>
+                  <button
+                    onClick={handleSubmitReview}
+                    disabled={reviewRating === 0 || reviewSubmitting}
+                    className="flex items-center gap-2 rounded-xl bg-gradient-brand px-5 py-2.5 text-sm font-semibold text-brand-foreground disabled:opacity-50"
+                  >
+                    {reviewSubmitting ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-foreground border-t-transparent" /> A submeter...</> : <><Star className="h-4 w-4" /> Submeter avaliação</>}
+                  </button>
+                  <p className="text-xs text-muted-foreground">Só é possível avaliar após receber uma encomenda deste produto.</p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-border bg-muted/30 p-5 text-center">
+                  <p className="text-sm text-muted-foreground mb-3">Inicia sessão para deixar uma avaliação</p>
+                  <Link to="/login" className="inline-flex items-center gap-2 rounded-md bg-gradient-brand px-4 py-2 text-sm font-semibold text-brand-foreground">
+                    Iniciar sessão
+                  </Link>
                 </div>
               )}
             </div>

@@ -1,22 +1,38 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
-import { HeroCarousel } from "@/components/HeroCarousel";
 import { TypewriterText } from "@/components/TypewriterText";
 import { PromoBanner } from "@/components/promos/PromoBanner";
 import { PromoSlider } from "@/components/promos/PromoSlider";
 import { MiniBanner } from "@/components/promos/MiniBanner";
 import { PromoPopup } from "@/components/promos/PromoPopup";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
+import { motion } from "framer-motion";
 import {
   Printer, Laptop, Network, BookOpen, ArrowRight, CheckCircle2, Phone,
-  Clock, Map, Zap, ShieldCheck, Award,
+  Clock, Zap, ShieldCheck, Award, Star, Users, TrendingUp,
 } from "lucide-react";
 import printing from "@/assets/printing.jpg";
 import repair from "@/assets/computer-repair.jpg";
 import network from "@/assets/network.jpg";
-import heroBg from "@/assets/hero-bg.jpg";
+import technician from "@/assets/technician.jpg";
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.55, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] } }),
+};
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: (i = 0) => ({ opacity: 1, transition: { duration: 0.5, delay: i * 0.1 } }),
+};
+const slideRight = {
+  hidden: { opacity: 0, x: 60 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+};
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.85 },
+  visible: (i = 0) => ({ opacity: 1, scale: 1, transition: { duration: 0.5, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] } }),
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,24 +56,24 @@ const typewriterPhrases = [
 ];
 
 const stats = [
-  { icon: CheckCircle2, value: "Qualidade",    label: "Garantida em todos os serviços" },
-  { icon: Clock,        value: "Seg–Sáb",      label: "8h00 às 17h00" },
-  { icon: Map,          value: "Beira",         label: "Esturro · Rua Alfredo Lawley" },
-  { icon: Phone,        value: "874 383 621",   label: "WhatsApp e chamadas" },
+  { icon: Users,       value: "5 000+",     label: "Clientes satisfeitos" },
+  { icon: Clock,       value: "10+ anos",   label: "De experiência" },
+  { icon: CheckCircle2,value: "99%",        label: "Taxa de satisfação" },
+  { icon: TrendingUp,  value: "24h",        label: "Entrega rápida" },
 ];
 
 const highlights = [
-  { icon: Printer,  title: "Reprografia",       desc: "Impressão, fotocópias, encadernação e plastificação a preços acessíveis.",    slug: "reprografia" as const },
-  { icon: Laptop,   title: "Informática",        desc: "Formatação, Windows, remoção de vírus e instalação de programas.",            slug: "informatica" as const },
-  { icon: Network,  title: "Redes & Wi-Fi",      desc: "Instalação de routers, LAN, cabeamento e extensão de sinal Wi-Fi.",           slug: "redes" as const },
-  { icon: BookOpen, title: "Papelaria",           desc: "Material escolar e de escritório — cadernos, canetas, pastas e mais.",        slug: "papelaria" as const },
+  { icon: Printer,  title: "Reprografia",  desc: "Impressão, fotocópias, encadernação e plastificação a preços acessíveis.", slug: "reprografia" as const, color: "bg-blue-50 text-brand dark:bg-brand/10" },
+  { icon: Laptop,   title: "Informática",  desc: "Formatação, Windows, remoção de vírus e instalação de programas.",         slug: "informatica" as const, color: "bg-purple-50 text-purple-600 dark:bg-purple-500/10" },
+  { icon: Network,  title: "Redes & Wi-Fi",desc: "Instalação de routers, LAN, cabeamento e extensão de sinal Wi-Fi.",         slug: "redes" as const,       color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10" },
+  { icon: BookOpen, title: "Papelaria",    desc: "Material escolar e de escritório — cadernos, canetas, pastas e mais.",      slug: "papelaria" as const,   color: "bg-amber-50 text-amber-600 dark:bg-amber-500/10" },
 ];
 
 const whyUs = [
-  { icon: Zap,         title: "Resposta rápida",    desc: "Atendimento em menos de 1 hora e entrega no mesmo dia para a maioria dos serviços." },
-  { icon: ShieldCheck, title: "Garantia de qualidade", desc: "Trabalhamos com equipamentos modernos e materiais de qualidade comprovada." },
-  { icon: Award,       title: "Equipa experiente",  desc: "Mais de 10 anos a servir estudantes, empresas e famílias na Beira." },
-  { icon: CheckCircle2,title: "Preços transparentes", desc: "Sem cobranças ocultas. O preço que vê é o que paga." },
+  { icon: Zap,         title: "Resposta rápida",     desc: "Atendimento em menos de 1 hora e entrega no mesmo dia para a maioria dos serviços." },
+  { icon: ShieldCheck, title: "Garantia de qualidade",desc: "Trabalhamos com equipamentos modernos e materiais de qualidade comprovada." },
+  { icon: Award,       title: "Equipa experiente",   desc: "Mais de 10 anos a servir estudantes, empresas e famílias na Beira." },
+  { icon: Star,        title: "Preços transparentes", desc: "Sem cobranças ocultas. O preço que vê é o que paga." },
 ];
 
 function Index() {
@@ -65,224 +81,335 @@ function Index() {
     <Layout>
 
       {/* ── HERO ─────────────────────────────────────────── */}
-      <section
-        className="relative text-white overflow-hidden"
-        style={{ backgroundImage: `url(${heroBg})`, backgroundSize: "cover", backgroundPosition: "center" }}
-      >
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-brand/85 via-brand/55 to-brand/20" />
-        {/* Bottom fade into stats */}
-        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-brand/60 to-transparent" />
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand/5 via-background to-blue-50/60 dark:from-brand/10 dark:via-background dark:to-background">
 
-        <div className="container mx-auto px-4 pt-14 pb-10 md:pt-20 md:pb-14 relative">
+        {/* Decorative rings */}
+        <div className="pointer-events-none absolute -left-24 top-1/4 h-80 w-80 rounded-full border border-brand/10" />
+        <div className="pointer-events-none absolute -left-16 top-1/4 h-56 w-56 rounded-full border border-brand/8" />
+        <div className="pointer-events-none absolute -bottom-20 right-1/3 h-64 w-64 rounded-full border border-gold/10" />
+        <div className="pointer-events-none absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-brand/5 blur-[80px]" />
+
+        {/* Dot grid — right side */}
+        <div
+          className="pointer-events-none absolute right-0 top-0 h-full w-1/3 opacity-[0.06] dark:opacity-[0.04]"
+          style={{ backgroundImage: "radial-gradient(circle, var(--brand) 1.5px, transparent 1.5px)", backgroundSize: "28px 28px" }}
+        />
+
+        <div className="container mx-auto max-w-6xl px-4 py-16 md:py-24 relative">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
-            {/* Left: text */}
-            <div className="[text-shadow:_0_2px_12px_rgb(0_0_0_/_50%)]">
-              <span className="inline-flex items-center gap-2 rounded-full border border-gold/60 bg-gold/25 px-3 py-1 text-xs font-bold tracking-widest text-gold uppercase backdrop-blur-sm">
-                ✦ Giseveral e Services · Soluções profissionais na Beira
-              </span>
-              <h1 className="mt-5 font-extrabold leading-[1.15] text-white">
-                <span className="text-white/90 text-3xl md:text-4xl font-semibold">Bem-vindo à</span><br />
-                <span className="text-gold">Giseveral e Services</span>
-              </h1>
-              <p className="mt-5 text-base md:text-lg text-white/90 min-h-[2.5rem]">
-                <TypewriterText phrases={typewriterPhrases} className="text-gold font-semibold" />
-              </p>
-              <p className="mt-3 text-sm md:text-base text-white/80 max-w-md">
-                Transformamos ideias em soluções reais com qualidade, rapidez e confiança.
-              </p>
 
-              <div className="mt-7 flex flex-wrap gap-3">
+            {/* ── Left: Text ── */}
+            <motion.div className="order-2 lg:order-1" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
+              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1 text-[11px] font-bold tracking-widest text-brand uppercase">
+                ✦ Soluções Profissionais · Beira, Moçambique
+              </motion.div>
+
+              <motion.h1 variants={fadeUp} className="mt-5 text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-6xl">
+                A Empresa Líder<br />em Impressão e<br />
+                <span className="text-brand">Tecnologia</span>
+              </motion.h1>
+
+              <motion.p variants={fadeUp} className="mt-5 text-base text-muted-foreground min-h-[1.6rem]">
+                <TypewriterText phrases={typewriterPhrases} className="font-semibold text-brand" />
+              </motion.p>
+
+              <motion.p variants={fadeUp} className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+                Mais de 10 anos a servir estudantes, empresas e famílias na Beira com qualidade, rapidez e preços honestos.
+              </motion.p>
+
+              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center gap-4">
                 <Link
                   to="/servicos"
-                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-gold px-6 py-3 text-sm font-bold text-gold-foreground shadow-card transition-smooth hover:shadow-glow"
+                  className="inline-flex items-center gap-2 rounded-lg bg-gradient-brand px-7 py-3.5 text-sm font-bold text-brand-foreground shadow-card hover:shadow-elegant hover:-translate-y-0.5 transition-smooth"
                 >
                   Ver Serviços <ArrowRight className="h-4 w-4" />
                 </Link>
-                <Link
-                  to="/loja/papelaria"
-                  className="inline-flex items-center gap-2 rounded-lg bg-white/15 border border-white/30 px-6 py-3 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/25 transition-smooth"
-                >
-                  <BookOpen className="h-4 w-4" /> Ir à Loja
-                </Link>
-                <a
-                  href="tel:+258874383621"
-                  className="inline-flex items-center gap-2 rounded-lg border border-white/30 px-5 py-3 text-sm font-semibold text-white/90 hover:bg-white/10 transition-smooth"
-                >
-                  <Phone className="h-4 w-4" /> Ligar agora
-                </a>
-              </div>
-            </div>
 
-            {/* Right: carousel */}
-            <div className="w-full">
-              <HeroCarousel />
-            </div>
+                <a href="tel:+258874383621" className="inline-flex items-center gap-3 group">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border border-gold/30 bg-gold/10 group-hover:bg-gold/20 transition-smooth">
+                    <Phone className="h-5 w-5 text-gold" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Precisa de ajuda?</p>
+                    <p className="text-sm font-bold text-foreground">(258) 874 383 621</p>
+                  </div>
+                </a>
+              </motion.div>
+
+              {/* Trust badges */}
+              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center gap-5 text-xs text-muted-foreground">
+                {["✓ Atendimento personalizado", "✓ Entrega no mesmo dia", "✓ Orçamento grátis"].map((b) => (
+                  <span key={b} className="text-foreground/70 font-medium">{b}</span>
+                ))}
+              </motion.div>
+            </motion.div>
+
+            {/* ── Right: Image ── */}
+            <motion.div
+              className="order-1 lg:order-2 relative flex items-center justify-center py-6"
+              initial="hidden" animate="visible" variants={slideRight}
+            >
+              {/* Outer decorative ring */}
+              <div className="absolute h-[420px] w-[420px] rounded-full border-2 border-dashed border-brand/10 animate-[spin_40s_linear_infinite]" />
+              {/* Middle ring */}
+              <div className="absolute h-[360px] w-[360px] rounded-full border border-brand/15" />
+
+              {/* Main image circle */}
+              <motion.div
+                className="relative z-10 h-[300px] w-[300px] overflow-hidden rounded-full border-4 border-white shadow-elegant sm:h-[360px] sm:w-[360px] md:h-[400px] md:w-[400px]"
+                initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <img
+                  src={technician}
+                  alt="Técnico Giseveral"
+                  className="h-full w-full object-cover object-center"
+                />
+              </motion.div>
+
+              {/* Floating badge — experience */}
+              <motion.div
+                className="absolute bottom-4 left-0 md:bottom-10 md:-left-6 z-20 flex items-center gap-2.5 rounded-2xl border border-border bg-card/95 backdrop-blur-sm px-4 py-3 shadow-elegant"
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-gold">
+                  <Award className="h-4 w-4 text-gold-foreground" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground">+10 anos</p>
+                  <p className="text-[10px] text-muted-foreground">de experiência</p>
+                </div>
+              </motion.div>
+
+              {/* Floating badge — clients */}
+              <motion.div
+                className="absolute top-4 right-0 md:top-12 md:-right-6 z-20 flex items-center gap-2.5 rounded-2xl border border-border bg-card/95 backdrop-blur-sm px-4 py-3 shadow-elegant"
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10">
+                  <Users className="h-4 w-4 text-brand" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-foreground">5 000+</p>
+                  <p className="text-[10px] text-muted-foreground">clientes</p>
+                </div>
+              </motion.div>
+
+              {/* Accent dots */}
+              <div className="absolute top-10 left-8 h-4 w-4 rounded-full bg-gold" />
+              <div className="absolute top-16 left-6 h-2.5 w-2.5 rounded-full bg-brand/40" />
+              <div className="absolute bottom-16 right-6 h-3 w-3 rounded-full bg-brand" />
+              <div className="absolute bottom-8 right-10 h-2 w-2 rounded-full bg-gold/60" />
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* ── PROMO SLIDER (desktop only, auto) ───────────── */}
+      {/* ── PROMO SLIDER ─────────────────────────────────── */}
       <PromoSlider />
 
       {/* ── STATS STRIP ──────────────────────────────────── */}
-      <section className="bg-brand text-brand-foreground">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4">
-            {stats.map((s) => (
-              <div key={s.label} className="flex flex-col sm:flex-row items-center justify-center gap-3 py-6 px-4 text-center sm:text-left">
-                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-brand-foreground/10">
-                  <s.icon className="h-5 w-5 text-gold" />
+      <section className="border-y border-border bg-card">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-border">
+            {stats.map((s, i) => (
+              <motion.div
+                key={s.label}
+                className="flex flex-col sm:flex-row items-center justify-center gap-3 py-7 px-4 text-center sm:text-left"
+                initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
+              >
+                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-brand/8 dark:bg-brand/15">
+                  <s.icon className="h-5 w-5 text-brand" />
                 </div>
                 <div>
-                  <p className="text-2xl font-extrabold text-gold leading-none">{s.value}</p>
-                  <p className="text-xs text-brand-foreground/65 mt-0.5">{s.label}</p>
+                  <p className="text-2xl font-extrabold text-brand leading-none">{s.value}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── MINI BANNER (dismissable strip) ─────────────── */}
+      {/* ── MINI BANNER ──────────────────────────────────── */}
       <MiniBanner />
 
-      {/* ── HIGHLIGHTS ───────────────────────────────────── */}
-      <section className="container mx-auto px-4 py-16 md:py-20">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="inline-block rounded-full bg-gold/10 px-3 py-1 text-xs font-bold tracking-wider text-gold uppercase">O que fazemos</span>
-          <h2 className="mt-4 font-bold text-brand">Os nossos serviços</h2>
+      {/* ── SERVICES GRID ────────────────────────────────── */}
+      <section className="container mx-auto max-w-6xl px-4 py-16 md:py-24">
+        <div className="text-center max-w-2xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-3 mb-3">
+            <div className="h-px w-10 bg-gold" />
+            <span className="text-xs font-bold tracking-widest text-gold uppercase">O que fazemos</span>
+            <div className="h-px w-10 bg-gold" />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground">Explore os Nossos Melhores<br />Serviços de Qualidade</h2>
           <p className="mt-3 text-muted-foreground">Tudo o que a sua empresa, escola ou casa precisa — num só endereço.</p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {highlights.map((h) => (
-            <Link
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {highlights.map((h, i) => (
+            <motion.div
               key={h.title}
+              initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
+            >
+            <Link
               to="/servicos/$slug"
               params={{ slug: h.slug }}
-              className="group rounded-2xl border border-border bg-card p-6 shadow-card transition-smooth hover:-translate-y-1.5 hover:shadow-elegant hover:border-gold/40"
+              className="group relative rounded-2xl border border-border bg-card p-6 shadow-card transition-smooth hover:-translate-y-2 hover:shadow-elegant hover:border-brand/30 overflow-hidden block h-full"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-brand text-brand-foreground transition-smooth group-hover:bg-gradient-gold group-hover:text-gold-foreground group-hover:scale-110">
+              {/* Number badge */}
+              <span className="absolute top-4 right-4 text-4xl font-black text-border/40 group-hover:text-brand/10 transition-colors select-none">
+                0{i + 1}
+              </span>
+              <div className={`flex h-13 w-13 items-center justify-center rounded-2xl p-3 ${h.color} transition-smooth group-hover:scale-110 mb-5`}>
                 <h.icon className="h-6 w-6" />
               </div>
-              <h3 className="mt-4 font-bold text-brand">{h.title}</h3>
+              <h3 className="font-bold text-foreground text-base">{h.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{h.desc}</p>
-              <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-gold opacity-0 group-hover:opacity-100 transition-smooth">
+              <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand opacity-0 group-hover:opacity-100 transition-smooth">
                 Saber mais <ArrowRight className="h-3 w-3" />
               </span>
             </Link>
+            </motion.div>
           ))}
         </div>
       </section>
 
-      {/* ── SERVICES PREVIEW ─────────────────────────────── */}
-      <section className="bg-muted/40 py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="inline-block rounded-full bg-gold/10 px-3 py-1 text-xs font-bold tracking-wider text-gold uppercase">Trabalhos reais</span>
-            <h2 className="mt-4 font-bold text-brand">Veja o nosso trabalho</h2>
+      {/* ── WORK PREVIEW ─────────────────────────────────── */}
+      <section className="bg-muted/40 py-16 md:py-24">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="grid lg:grid-cols-2 gap-12 items-center mb-14">
+            <div>
+              <div className="inline-flex items-center gap-3 mb-3">
+                <div className="h-px w-10 bg-gold" />
+                <span className="text-xs font-bold tracking-widest text-gold uppercase">Trabalhos reais</span>
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground">Veja o nosso trabalho<br />de perto</h2>
+            </div>
+            <p className="text-muted-foreground leading-relaxed">
+              Mais de uma década a transformar pedidos em resultados. Cada projecto é tratado com o mesmo rigor, qualidade e atenção ao detalhe.
+            </p>
           </div>
+
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { img: printing, title: "Reprografia",  text: "Impressão a cores e P&B, fotocópias, encadernação e plastificação com materiais de qualidade.", slug: "reprografia" },
-              { img: repair,   title: "Informática",  text: "Formatação, instalação de Windows, remoção de vírus e diagnóstico rápido de hardware.", slug: "informatica" },
-              { img: network,  title: "Redes",        text: "Instalação Wi-Fi, redes LAN, routers e cabeamento estruturado para residências e empresas.", slug: "redes" },
-            ].map((s) => (
+              { img: printing, title: "Reprografia",  text: "Impressão a cores e P&B, fotocópias, encadernação e plastificação com materiais de qualidade.", slug: "reprografia", badge: "Mais popular" },
+              { img: repair,   title: "Informática",  text: "Formatação, instalação de Windows, remoção de vírus e diagnóstico rápido de hardware.", slug: "informatica", badge: null },
+              { img: network,  title: "Redes",        text: "Instalação Wi-Fi, redes LAN, routers e cabeamento estruturado para residências e empresas.", slug: "redes", badge: null },
+            ].map((s, i) => (
+              <motion.div key={s.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}>
               <Link
-                key={s.title}
                 to="/servicos/$slug"
                 params={{ slug: s.slug }}
-                className="group overflow-hidden rounded-2xl bg-card shadow-card transition-smooth hover:shadow-elegant"
+                className="group overflow-hidden rounded-2xl bg-card shadow-card transition-smooth hover:shadow-elegant block"
               >
-                <div className="aspect-video overflow-hidden">
+                <div className="relative aspect-video overflow-hidden">
                   <img src={s.img} alt={s.title} loading="lazy" className="h-full w-full object-cover transition-smooth duration-500 group-hover:scale-105" />
+                  {s.badge && (
+                    <span className="absolute top-3 left-3 rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-bold text-gold-foreground">
+                      {s.badge}
+                    </span>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-smooth" />
                 </div>
                 <div className="p-6">
-                  <h3 className="font-bold text-brand group-hover:text-gold transition-colors">{s.title}</h3>
+                  <h3 className="font-bold text-foreground group-hover:text-brand transition-colors text-lg">{s.title}</h3>
                   <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{s.text}</p>
-                  <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand group-hover:text-gold transition-colors">
-                    Ver mais <ArrowRight className="h-3 w-3" />
+                  <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand">
+                    Ver mais <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </div>
               </Link>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── PORQUÊ ESCOLHER-NOS ───────────────────────────── */}
-      <section className="container mx-auto px-4 py-16 md:py-20">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="inline-block rounded-full bg-gold/10 px-3 py-1 text-xs font-bold tracking-wider text-gold uppercase">Porquê nós</span>
-          <h2 className="mt-4 font-bold text-brand">O que nos torna diferentes</h2>
+      {/* ── WHY US ───────────────────────────────────────── */}
+      <section className="container mx-auto max-w-6xl px-4 py-16 md:py-24">
+        <div className="text-center max-w-2xl mx-auto mb-14">
+          <div className="inline-flex items-center gap-3 mb-3">
+            <div className="h-px w-10 bg-gold" />
+            <span className="text-xs font-bold tracking-widest text-gold uppercase">Porquê nós</span>
+            <div className="h-px w-10 bg-gold" />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground">O que nos torna diferentes</h2>
           <p className="mt-3 text-muted-foreground">Mais de uma década a servir a Beira com compromisso e qualidade.</p>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {whyUs.map((w) => (
-            <div key={w.title} className="rounded-2xl border border-border bg-card p-6 shadow-card hover:border-gold/30 hover:shadow-elegant transition-smooth">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-gold text-gold-foreground mb-4">
-                <w.icon className="h-5 w-5" />
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {whyUs.map((w, i) => (
+            <motion.div key={w.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}
+              className="group rounded-2xl border border-border bg-card p-6 shadow-card hover:border-brand/30 hover:shadow-elegant hover:-translate-y-1 transition-smooth">
+              <div className="relative mb-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand/8 group-hover:bg-gradient-brand group-hover:text-brand-foreground transition-smooth">
+                  <w.icon className="h-5 w-5 text-brand group-hover:text-brand-foreground transition-colors" />
+                </div>
+                <span className="absolute -top-1 -right-1 text-5xl font-black text-border/20 select-none">0{i + 1}</span>
               </div>
-              <h4 className="font-bold text-brand">{w.title}</h4>
+              <h4 className="font-bold text-foreground">{w.title}</h4>
               <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{w.desc}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </section>
 
       {/* ── CTA FINAL ────────────────────────────────────── */}
-      <section className="container mx-auto px-4 pb-16">
-        <div className="rounded-2xl bg-gradient-hero p-8 md:p-12 text-brand-foreground shadow-elegant overflow-hidden relative">
-          {/* Decorative circles */}
-          <div className="absolute -top-10 -right-10 h-40 w-40 rounded-full bg-gold/10 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-brand-glow/20 blur-2xl pointer-events-none" />
+      <section className="container mx-auto max-w-6xl px-4 pb-16">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
+          className="relative overflow-hidden rounded-3xl bg-gradient-hero p-8 md:p-14 text-brand-foreground shadow-elegant">
+          {/* Decorative */}
+          <div className="pointer-events-none absolute -top-16 -right-16 h-64 w-64 rounded-full bg-gold/15 blur-2xl" />
+          <div className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-brand-foreground/5 blur-2xl" />
+          <div className="pointer-events-none absolute top-0 right-0 w-1/3 h-full opacity-[0.07]"
+            style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
 
-          <div className="relative grid md:grid-cols-3 gap-8 items-center">
-            <div className="md:col-span-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-gold mb-2">Pronto para começar?</p>
-              <h2 className="font-extrabold">"Da impressão à tecnologia,<br className="hidden sm:block" /> resolvemos tudo por si."</h2>
-              <p className="mt-3 text-brand-foreground/75 max-w-lg">Qualidade, rapidez e confiança num só lugar. Venha visitar-nos ou faça o seu pedido online agora.</p>
-              <ul className="mt-5 grid sm:grid-cols-2 gap-2 text-sm">
-                {["Atendimento personalizado", "Preços acessíveis", "Equipa qualificada", "Pedido online 24h"].map((i) => (
-                  <li key={i} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-gold flex-shrink-0" /> {i}
-                  </li>
+          <div className="relative grid md:grid-cols-[1fr_auto] gap-10 items-center">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-gold mb-3">Pronto para começar?</p>
+              <h2 className="text-2xl md:text-4xl font-extrabold leading-tight">
+                "Da impressão à tecnologia,<br className="hidden sm:block" /> resolvemos tudo por si."
+              </h2>
+              <p className="mt-4 text-brand-foreground/75 max-w-lg">Qualidade, rapidez e confiança num só lugar. Venha visitar-nos ou faça o seu pedido online agora.</p>
+              <div className="mt-6 grid sm:grid-cols-2 gap-2 text-sm max-w-lg">
+                {["Atendimento personalizado", "Preços acessíveis", "Equipa qualificada", "Pedido online 24h"].map((item) => (
+                  <div key={item} className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-gold flex-shrink-0" />
+                    <span>{item}</span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
-            <div className="flex flex-col gap-3">
-              <Link
-                to="/loja/checkout"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-gold px-6 py-3 text-sm font-bold text-gold-foreground shadow-card transition-smooth hover:shadow-glow"
-              >
+
+            <div className="flex flex-col gap-3 min-w-[200px]">
+              <Link to="/loja/checkout"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth">
                 Fazer Pedido Online
               </Link>
-              <Link
-                to="/orcamento"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand-foreground/30 bg-white/10 px-6 py-3 text-sm font-semibold text-brand-foreground hover:bg-white/20 transition-smooth"
-              >
+              <Link to="/orcamento"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-foreground/30 bg-white/10 backdrop-blur-sm px-6 py-3.5 text-sm font-semibold hover:bg-white/20 transition-smooth">
                 Pedir Orçamento
               </Link>
-              <a
-                href="tel:+258874383621"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-brand-foreground/20 px-6 py-3 text-sm font-medium text-brand-foreground/80 hover:text-brand-foreground hover:bg-white/10 transition-smooth"
-              >
+              <a href="tel:+258874383621"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-brand-foreground/20 px-6 py-3.5 text-sm font-medium text-brand-foreground/80 hover:bg-white/10 transition-smooth">
                 <Phone className="h-4 w-4" /> 874 383 621
               </a>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ── NEWSLETTER ───────────────────────────────────── */}
-      <section className="container mx-auto px-4 pb-16">
+      <section className="container mx-auto max-w-6xl px-4 pb-16">
         <NewsletterSignup variant="inline" />
       </section>
 
-      {/* ── PROMO BANNER (full campaign section) ────────── */}
+      {/* ── PROMO BANNER ─────────────────────────────────── */}
       <PromoBanner />
 
-      {/* ── POPUP (desktop, once per session) ───────────── */}
+      {/* ── POPUP ────────────────────────────────────────── */}
       <PromoPopup />
 
       <WhatsAppFab />

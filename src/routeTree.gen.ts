@@ -11,36 +11,50 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as ServicosRouteImport } from './routes/servicos'
-import { Route as ServicosIndexRouteImport } from './routes/servicos.index'
-import { Route as ServicosSlugRouteImport } from './routes/servicos.$slug'
 import { Route as RegistoRouteImport } from './routes/registo'
 import { Route as RedesRouteImport } from './routes/redes'
 import { Route as PrecosRouteImport } from './routes/precos'
+import { Route as OrcamentoRouteImport } from './routes/orcamento'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InformaticaRouteImport } from './routes/informatica'
 import { Route as GaleriaRouteImport } from './routes/galeria'
 import { Route as ContactosRouteImport } from './routes/contactos'
 import { Route as ContaRouteImport } from './routes/conta'
-import { Route as OrcamentoRouteImport } from './routes/orcamento'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as BalcaoRouteImport } from './routes/balcao'
-import { Route as BlogIndexRouteImport } from './routes/blog.index'
-import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
-import { Route as BalcaoIndexRouteImport } from './routes/balcao.index'
-import { Route as BalcaoPedidosRouteImport } from './routes/balcao.pedidos'
-import { Route as BalcaoProdutosRouteImport } from './routes/balcao.produtos'
-import { Route as BalcaoStockRouteImport } from './routes/balcao.stock'
-import { Route as BalcaoEntregasRouteImport } from './routes/balcao.entregas'
-import { Route as BalcaoBlogRouteImport } from './routes/balcao.blog'
-import { Route as BalcaoServicosRouteImport } from './routes/balcao.servicos'
-import { Route as BalcaoGaleriaRouteImport } from './routes/balcao.galeria'
-import { Route as BalcaoCampanhasRouteImport } from './routes/balcao.campanhas'
+import { Route as IndexRouteImport } from './routes/index'
+import { Route as ServicosIndexRouteImport } from './routes/servicos.index'
 import { Route as LojaIndexRouteImport } from './routes/loja.index'
+import { Route as HubIndexRouteImport } from './routes/hub.index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as BalcaoIndexRouteImport } from './routes/balcao.index'
+import { Route as ServicosSlugRouteImport } from './routes/servicos.$slug'
 import { Route as LojaPapelariaRouteImport } from './routes/loja.papelaria'
-import { Route as LojaCarrinhoRouteImport } from './routes/loja.carrinho'
 import { Route as LojaCheckoutRouteImport } from './routes/loja.checkout'
-import { Route as LojaPedidoIdRouteImport } from './routes/loja.pedido.$id'
+import { Route as LojaCarrinhoRouteImport } from './routes/loja.carrinho'
+import { Route as HubUploadRouteImport } from './routes/hub.upload'
+import { Route as HubExplorarRouteImport } from './routes/hub.explorar'
+import { Route as HubExamesRouteImport } from './routes/hub.exames'
+import { Route as HubCartasRouteImport } from './routes/hub.cartas'
+import { Route as HubBolsasRouteImport } from './routes/hub.bolsas'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as BalcaoStockRouteImport } from './routes/balcao.stock'
+import { Route as BalcaoServicosRouteImport } from './routes/balcao.servicos'
+import { Route as BalcaoProdutosRouteImport } from './routes/balcao.produtos'
+import { Route as BalcaoPedidosRouteImport } from './routes/balcao.pedidos'
+import { Route as BalcaoNoticiasRouteImport } from './routes/balcao.noticias'
+import { Route as BalcaoHubRouteImport } from './routes/balcao.hub'
+import { Route as BalcaoGaleriaRouteImport } from './routes/balcao.galeria'
+import { Route as BalcaoExamesRouteImport } from './routes/balcao.exames'
+import { Route as BalcaoEntregasRouteImport } from './routes/balcao.entregas'
+import { Route as BalcaoCampanhasRouteImport } from './routes/balcao.campanhas'
+import { Route as BalcaoBolsasRouteImport } from './routes/balcao.bolsas'
+import { Route as BalcaoBlogRouteImport } from './routes/balcao.blog'
 import { Route as LojaProdutoIdRouteImport } from './routes/loja.produto.$id'
+import { Route as LojaPedidoIdRouteImport } from './routes/loja.pedido.$id'
+import { Route as HubNoticiasIdRouteImport } from './routes/hub.noticias.$id'
+import { Route as HubExamesIdRouteImport } from './routes/hub.exames.$id'
+import { Route as HubDocumentoIdRouteImport } from './routes/hub.documento.$id'
+import { Route as HubBolsasIdRouteImport } from './routes/hub.bolsas.$id'
 
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
@@ -51,16 +65,6 @@ const ServicosRoute = ServicosRouteImport.update({
   id: '/servicos',
   path: '/servicos',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ServicosIndexRoute = ServicosIndexRouteImport.update({
-  id: '/servicos/',
-  path: '/',
-  getParentRoute: () => ServicosRoute,
-} as any)
-const ServicosSlugRoute = ServicosSlugRouteImport.update({
-  id: '/servicos/$slug',
-  path: '$slug',
-  getParentRoute: () => ServicosRoute,
 } as any)
 const RegistoRoute = RegistoRouteImport.update({
   id: '/registo',
@@ -75,6 +79,11 @@ const RedesRoute = RedesRouteImport.update({
 const PrecosRoute = PrecosRouteImport.update({
   id: '/precos',
   path: '/precos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrcamentoRoute = OrcamentoRouteImport.update({
+  id: '/orcamento',
+  path: '/orcamento',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -102,9 +111,9 @@ const ContaRoute = ContaRouteImport.update({
   path: '/conta',
   getParentRoute: () => rootRouteImport,
 } as any)
-const OrcamentoRoute = OrcamentoRouteImport.update({
-  id: '/orcamento',
-  path: '/orcamento',
+const BalcaoRoute = BalcaoRouteImport.update({
+  id: '/balcao',
+  path: '/balcao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -112,9 +121,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BalcaoRoute = BalcaoRouteImport.update({
-  id: '/balcao',
-  path: '/balcao',
+const ServicosIndexRoute = ServicosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ServicosRoute,
+} as any)
+const LojaIndexRoute = LojaIndexRouteImport.update({
+  id: '/loja/',
+  path: '/loja/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubIndexRoute = HubIndexRouteImport.update({
+  id: '/hub/',
+  path: '/hub/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -122,69 +141,19 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const BalcaoIndexRoute = BalcaoIndexRouteImport.update({
-  id: '/balcao/',
+  id: '/',
   path: '/',
   getParentRoute: () => BalcaoRoute,
 } as any)
-const BalcaoPedidosRoute = BalcaoPedidosRouteImport.update({
-  id: '/balcao/pedidos',
-  path: '/pedidos',
-  getParentRoute: () => BalcaoRoute,
-} as any)
-const BalcaoProdutosRoute = BalcaoProdutosRouteImport.update({
-  id: '/balcao/produtos',
-  path: '/produtos',
-  getParentRoute: () => BalcaoRoute,
-} as any)
-const BalcaoStockRoute = BalcaoStockRouteImport.update({
-  id: '/balcao/stock',
-  path: '/stock',
-  getParentRoute: () => BalcaoRoute,
-} as any)
-const BalcaoEntregasRoute = BalcaoEntregasRouteImport.update({
-  id: '/balcao/entregas',
-  path: '/entregas',
-  getParentRoute: () => BalcaoRoute,
-} as any)
-const BalcaoBlogRoute = BalcaoBlogRouteImport.update({
-  id: '/balcao/blog',
-  path: '/blog',
-  getParentRoute: () => BalcaoRoute,
-} as any)
-const BalcaoServicosRoute = BalcaoServicosRouteImport.update({
-  id: '/balcao/servicos',
-  path: '/servicos',
-  getParentRoute: () => BalcaoRoute,
-} as any)
-const BalcaoCampanhasRoute = BalcaoCampanhasRouteImport.update({
-  id: '/balcao/campanhas',
-  path: '/campanhas',
-  getParentRoute: () => BalcaoRoute,
-} as any)
-const BalcaoGaleriaRoute = BalcaoGaleriaRouteImport.update({
-  id: '/balcao/galeria',
-  path: '/galeria',
-  getParentRoute: () => BalcaoRoute,
-} as any)
-const LojaIndexRoute = LojaIndexRouteImport.update({
-  id: '/loja/',
-  path: '/loja/',
-  getParentRoute: () => rootRouteImport,
+const ServicosSlugRoute = ServicosSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ServicosRoute,
 } as any)
 const LojaPapelariaRoute = LojaPapelariaRouteImport.update({
   id: '/loja/papelaria',
   path: '/loja/papelaria',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LojaCarrinhoRoute = LojaCarrinhoRouteImport.update({
-  id: '/loja/carrinho',
-  path: '/loja/carrinho',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LojaCheckoutRoute = LojaCheckoutRouteImport.update({
@@ -192,19 +161,135 @@ const LojaCheckoutRoute = LojaCheckoutRouteImport.update({
   path: '/loja/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LojaPedidoIdRoute = LojaPedidoIdRouteImport.update({
-  id: '/loja/pedido/$id',
-  path: '/loja/pedido/$id',
+const LojaCarrinhoRoute = LojaCarrinhoRouteImport.update({
+  id: '/loja/carrinho',
+  path: '/loja/carrinho',
   getParentRoute: () => rootRouteImport,
+} as any)
+const HubUploadRoute = HubUploadRouteImport.update({
+  id: '/hub/upload',
+  path: '/hub/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubExplorarRoute = HubExplorarRouteImport.update({
+  id: '/hub/explorar',
+  path: '/hub/explorar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubExamesRoute = HubExamesRouteImport.update({
+  id: '/hub/exames',
+  path: '/hub/exames',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubCartasRoute = HubCartasRouteImport.update({
+  id: '/hub/cartas',
+  path: '/hub/cartas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubBolsasRoute = HubBolsasRouteImport.update({
+  id: '/hub/bolsas',
+  path: '/hub/bolsas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BalcaoStockRoute = BalcaoStockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoServicosRoute = BalcaoServicosRouteImport.update({
+  id: '/servicos',
+  path: '/servicos',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoProdutosRoute = BalcaoProdutosRouteImport.update({
+  id: '/produtos',
+  path: '/produtos',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoPedidosRoute = BalcaoPedidosRouteImport.update({
+  id: '/pedidos',
+  path: '/pedidos',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoNoticiasRoute = BalcaoNoticiasRouteImport.update({
+  id: '/noticias',
+  path: '/noticias',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoHubRoute = BalcaoHubRouteImport.update({
+  id: '/hub',
+  path: '/hub',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoGaleriaRoute = BalcaoGaleriaRouteImport.update({
+  id: '/galeria',
+  path: '/galeria',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoExamesRoute = BalcaoExamesRouteImport.update({
+  id: '/exames',
+  path: '/exames',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoEntregasRoute = BalcaoEntregasRouteImport.update({
+  id: '/entregas',
+  path: '/entregas',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoCampanhasRoute = BalcaoCampanhasRouteImport.update({
+  id: '/campanhas',
+  path: '/campanhas',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoBolsasRoute = BalcaoBolsasRouteImport.update({
+  id: '/bolsas',
+  path: '/bolsas',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoBlogRoute = BalcaoBlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => BalcaoRoute,
 } as any)
 const LojaProdutoIdRoute = LojaProdutoIdRouteImport.update({
   id: '/loja/produto/$id',
   path: '/loja/produto/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LojaPedidoIdRoute = LojaPedidoIdRouteImport.update({
+  id: '/loja/pedido/$id',
+  path: '/loja/pedido/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubNoticiasIdRoute = HubNoticiasIdRouteImport.update({
+  id: '/hub/noticias/$id',
+  path: '/hub/noticias/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubExamesIdRoute = HubExamesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => HubExamesRoute,
+} as any)
+const HubDocumentoIdRoute = HubDocumentoIdRouteImport.update({
+  id: '/hub/documento/$id',
+  path: '/hub/documento/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubBolsasIdRoute = HubBolsasIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => HubBolsasRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/balcao': typeof BalcaoRouteWithChildren
   '/conta': typeof ContaRoute
   '/contactos': typeof ContactosRoute
   '/galeria': typeof GaleriaRoute
@@ -214,26 +299,39 @@ export interface FileRoutesByFullPath {
   '/precos': typeof PrecosRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
-  '/servicos': typeof ServicosRoute
-  '/servicos/': typeof ServicosIndexRoute
-  '/servicos/$slug': typeof ServicosSlugRoute
+  '/servicos': typeof ServicosRouteWithChildren
   '/sobre': typeof SobreRoute
-  '/balcao': typeof BalcaoRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/blog/': typeof BlogIndexRoute
-  '/balcao/': typeof BalcaoIndexRoute
+  '/balcao/blog': typeof BalcaoBlogRoute
+  '/balcao/bolsas': typeof BalcaoBolsasRoute
+  '/balcao/campanhas': typeof BalcaoCampanhasRoute
+  '/balcao/entregas': typeof BalcaoEntregasRoute
+  '/balcao/exames': typeof BalcaoExamesRoute
+  '/balcao/galeria': typeof BalcaoGaleriaRoute
+  '/balcao/hub': typeof BalcaoHubRoute
+  '/balcao/noticias': typeof BalcaoNoticiasRoute
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
-  '/balcao/stock': typeof BalcaoStockRoute
-  '/balcao/entregas': typeof BalcaoEntregasRoute
-  '/balcao/blog': typeof BalcaoBlogRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
-  '/balcao/galeria': typeof BalcaoGaleriaRoute
-  '/balcao/campanhas': typeof BalcaoCampanhasRoute
-  '/loja/': typeof LojaIndexRoute
-  '/loja/papelaria': typeof LojaPapelariaRoute
+  '/balcao/stock': typeof BalcaoStockRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/hub/bolsas': typeof HubBolsasRouteWithChildren
+  '/hub/cartas': typeof HubCartasRoute
+  '/hub/exames': typeof HubExamesRouteWithChildren
+  '/hub/explorar': typeof HubExplorarRoute
+  '/hub/upload': typeof HubUploadRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
+  '/loja/papelaria': typeof LojaPapelariaRoute
+  '/servicos/$slug': typeof ServicosSlugRoute
+  '/balcao/': typeof BalcaoIndexRoute
+  '/blog/': typeof BlogIndexRoute
+  '/hub/': typeof HubIndexRoute
+  '/loja/': typeof LojaIndexRoute
+  '/servicos/': typeof ServicosIndexRoute
+  '/hub/bolsas/$id': typeof HubBolsasIdRoute
+  '/hub/documento/$id': typeof HubDocumentoIdRoute
+  '/hub/exames/$id': typeof HubExamesIdRoute
+  '/hub/noticias/$id': typeof HubNoticiasIdRoute
   '/loja/pedido/$id': typeof LojaPedidoIdRoute
   '/loja/produto/$id': typeof LojaProdutoIdRoute
 }
@@ -248,31 +346,45 @@ export interface FileRoutesByTo {
   '/precos': typeof PrecosRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
-  '/servicos': typeof ServicosIndexRoute
-  '/servicos/$slug': typeof ServicosSlugRoute
   '/sobre': typeof SobreRoute
-  '/balcao': typeof BalcaoRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/blog': typeof BlogIndexRoute
-  '/balcao/': typeof BalcaoIndexRoute
+  '/balcao/blog': typeof BalcaoBlogRoute
+  '/balcao/bolsas': typeof BalcaoBolsasRoute
+  '/balcao/campanhas': typeof BalcaoCampanhasRoute
+  '/balcao/entregas': typeof BalcaoEntregasRoute
+  '/balcao/exames': typeof BalcaoExamesRoute
+  '/balcao/galeria': typeof BalcaoGaleriaRoute
+  '/balcao/hub': typeof BalcaoHubRoute
+  '/balcao/noticias': typeof BalcaoNoticiasRoute
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
-  '/balcao/stock': typeof BalcaoStockRoute
-  '/balcao/entregas': typeof BalcaoEntregasRoute
-  '/balcao/blog': typeof BalcaoBlogRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
-  '/balcao/galeria': typeof BalcaoGaleriaRoute
-  '/balcao/campanhas': typeof BalcaoCampanhasRoute
-  '/loja': typeof LojaIndexRoute
-  '/loja/papelaria': typeof LojaPapelariaRoute
+  '/balcao/stock': typeof BalcaoStockRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/hub/bolsas': typeof HubBolsasRouteWithChildren
+  '/hub/cartas': typeof HubCartasRoute
+  '/hub/exames': typeof HubExamesRouteWithChildren
+  '/hub/explorar': typeof HubExplorarRoute
+  '/hub/upload': typeof HubUploadRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
+  '/loja/papelaria': typeof LojaPapelariaRoute
+  '/servicos/$slug': typeof ServicosSlugRoute
+  '/balcao': typeof BalcaoIndexRoute
+  '/blog': typeof BlogIndexRoute
+  '/hub': typeof HubIndexRoute
+  '/loja': typeof LojaIndexRoute
+  '/servicos': typeof ServicosIndexRoute
+  '/hub/bolsas/$id': typeof HubBolsasIdRoute
+  '/hub/documento/$id': typeof HubDocumentoIdRoute
+  '/hub/exames/$id': typeof HubExamesIdRoute
+  '/hub/noticias/$id': typeof HubNoticiasIdRoute
   '/loja/pedido/$id': typeof LojaPedidoIdRoute
   '/loja/produto/$id': typeof LojaProdutoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/balcao': typeof BalcaoRouteWithChildren
   '/conta': typeof ContaRoute
   '/contactos': typeof ContactosRoute
   '/galeria': typeof GaleriaRoute
@@ -282,26 +394,39 @@ export interface FileRoutesById {
   '/precos': typeof PrecosRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
-  '/servicos': typeof ServicosRoute
-  '/servicos/': typeof ServicosIndexRoute
-  '/servicos/$slug': typeof ServicosSlugRoute
+  '/servicos': typeof ServicosRouteWithChildren
   '/sobre': typeof SobreRoute
-  '/balcao': typeof BalcaoRoute
-  '/blog/$slug': typeof BlogSlugRoute
-  '/blog/': typeof BlogIndexRoute
-  '/balcao/': typeof BalcaoIndexRoute
+  '/balcao/blog': typeof BalcaoBlogRoute
+  '/balcao/bolsas': typeof BalcaoBolsasRoute
+  '/balcao/campanhas': typeof BalcaoCampanhasRoute
+  '/balcao/entregas': typeof BalcaoEntregasRoute
+  '/balcao/exames': typeof BalcaoExamesRoute
+  '/balcao/galeria': typeof BalcaoGaleriaRoute
+  '/balcao/hub': typeof BalcaoHubRoute
+  '/balcao/noticias': typeof BalcaoNoticiasRoute
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
-  '/balcao/stock': typeof BalcaoStockRoute
-  '/balcao/entregas': typeof BalcaoEntregasRoute
-  '/balcao/blog': typeof BalcaoBlogRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
-  '/balcao/galeria': typeof BalcaoGaleriaRoute
-  '/balcao/campanhas': typeof BalcaoCampanhasRoute
-  '/loja/': typeof LojaIndexRoute
-  '/loja/papelaria': typeof LojaPapelariaRoute
+  '/balcao/stock': typeof BalcaoStockRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/hub/bolsas': typeof HubBolsasRouteWithChildren
+  '/hub/cartas': typeof HubCartasRoute
+  '/hub/exames': typeof HubExamesRouteWithChildren
+  '/hub/explorar': typeof HubExplorarRoute
+  '/hub/upload': typeof HubUploadRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
+  '/loja/papelaria': typeof LojaPapelariaRoute
+  '/servicos/$slug': typeof ServicosSlugRoute
+  '/balcao/': typeof BalcaoIndexRoute
+  '/blog/': typeof BlogIndexRoute
+  '/hub/': typeof HubIndexRoute
+  '/loja/': typeof LojaIndexRoute
+  '/servicos/': typeof ServicosIndexRoute
+  '/hub/bolsas/$id': typeof HubBolsasIdRoute
+  '/hub/documento/$id': typeof HubDocumentoIdRoute
+  '/hub/exames/$id': typeof HubExamesIdRoute
+  '/hub/noticias/$id': typeof HubNoticiasIdRoute
   '/loja/pedido/$id': typeof LojaPedidoIdRoute
   '/loja/produto/$id': typeof LojaProdutoIdRoute
 }
@@ -309,6 +434,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/balcao'
     | '/conta'
     | '/contactos'
     | '/galeria'
@@ -319,25 +445,38 @@ export interface FileRouteTypes {
     | '/redes'
     | '/registo'
     | '/servicos'
-    | '/servicos/'
-    | '/servicos/$slug'
     | '/sobre'
-    | '/balcao'
-    | '/blog/$slug'
-    | '/blog/'
-    | '/balcao/'
+    | '/balcao/blog'
+    | '/balcao/bolsas'
+    | '/balcao/campanhas'
+    | '/balcao/entregas'
+    | '/balcao/exames'
+    | '/balcao/galeria'
+    | '/balcao/hub'
+    | '/balcao/noticias'
     | '/balcao/pedidos'
     | '/balcao/produtos'
-    | '/balcao/stock'
-    | '/balcao/entregas'
-    | '/balcao/blog'
     | '/balcao/servicos'
-    | '/balcao/galeria'
-    | '/balcao/campanhas'
-    | '/loja/'
-    | '/loja/papelaria'
+    | '/balcao/stock'
+    | '/blog/$slug'
+    | '/hub/bolsas'
+    | '/hub/cartas'
+    | '/hub/exames'
+    | '/hub/explorar'
+    | '/hub/upload'
     | '/loja/carrinho'
     | '/loja/checkout'
+    | '/loja/papelaria'
+    | '/servicos/$slug'
+    | '/balcao/'
+    | '/blog/'
+    | '/hub/'
+    | '/loja/'
+    | '/servicos/'
+    | '/hub/bolsas/$id'
+    | '/hub/documento/$id'
+    | '/hub/exames/$id'
+    | '/hub/noticias/$id'
     | '/loja/pedido/$id'
     | '/loja/produto/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -352,30 +491,44 @@ export interface FileRouteTypes {
     | '/precos'
     | '/redes'
     | '/registo'
-    | '/servicos'
-    | '/servicos/$slug'
     | '/sobre'
-    | '/balcao'
-    | '/blog/$slug'
-    | '/blog'
-    | '/balcao/'
+    | '/balcao/blog'
+    | '/balcao/bolsas'
+    | '/balcao/campanhas'
+    | '/balcao/entregas'
+    | '/balcao/exames'
+    | '/balcao/galeria'
+    | '/balcao/hub'
+    | '/balcao/noticias'
     | '/balcao/pedidos'
     | '/balcao/produtos'
-    | '/balcao/stock'
-    | '/balcao/entregas'
-    | '/balcao/blog'
     | '/balcao/servicos'
-    | '/balcao/galeria'
-    | '/balcao/campanhas'
-    | '/loja'
-    | '/loja/papelaria'
+    | '/balcao/stock'
+    | '/blog/$slug'
+    | '/hub/bolsas'
+    | '/hub/cartas'
+    | '/hub/exames'
+    | '/hub/explorar'
+    | '/hub/upload'
     | '/loja/carrinho'
     | '/loja/checkout'
+    | '/loja/papelaria'
+    | '/servicos/$slug'
+    | '/balcao'
+    | '/blog'
+    | '/hub'
+    | '/loja'
+    | '/servicos'
+    | '/hub/bolsas/$id'
+    | '/hub/documento/$id'
+    | '/hub/exames/$id'
+    | '/hub/noticias/$id'
     | '/loja/pedido/$id'
     | '/loja/produto/$id'
   id:
     | '__root__'
     | '/'
+    | '/balcao'
     | '/conta'
     | '/contactos'
     | '/galeria'
@@ -386,31 +539,45 @@ export interface FileRouteTypes {
     | '/redes'
     | '/registo'
     | '/servicos'
-    | '/servicos/'
-    | '/servicos/$slug'
     | '/sobre'
-    | '/balcao'
-    | '/blog/$slug'
-    | '/blog/'
-    | '/balcao/'
+    | '/balcao/blog'
+    | '/balcao/bolsas'
+    | '/balcao/campanhas'
+    | '/balcao/entregas'
+    | '/balcao/exames'
+    | '/balcao/galeria'
+    | '/balcao/hub'
+    | '/balcao/noticias'
     | '/balcao/pedidos'
     | '/balcao/produtos'
-    | '/balcao/stock'
-    | '/balcao/entregas'
-    | '/balcao/blog'
     | '/balcao/servicos'
-    | '/balcao/galeria'
-    | '/balcao/campanhas'
-    | '/loja/'
-    | '/loja/papelaria'
+    | '/balcao/stock'
+    | '/blog/$slug'
+    | '/hub/bolsas'
+    | '/hub/cartas'
+    | '/hub/exames'
+    | '/hub/explorar'
+    | '/hub/upload'
     | '/loja/carrinho'
     | '/loja/checkout'
+    | '/loja/papelaria'
+    | '/servicos/$slug'
+    | '/balcao/'
+    | '/blog/'
+    | '/hub/'
+    | '/loja/'
+    | '/servicos/'
+    | '/hub/bolsas/$id'
+    | '/hub/documento/$id'
+    | '/hub/exames/$id'
+    | '/hub/noticias/$id'
     | '/loja/pedido/$id'
     | '/loja/produto/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BalcaoRoute: typeof BalcaoRouteWithChildren
   ContaRoute: typeof ContaRoute
   ContactosRoute: typeof ContactosRoute
   GaleriaRoute: typeof GaleriaRoute
@@ -420,34 +587,24 @@ export interface RootRouteChildren {
   PrecosRoute: typeof PrecosRoute
   RedesRoute: typeof RedesRoute
   RegistoRoute: typeof RegistoRoute
-  ServicosRoute: typeof ServicosRoute
+  ServicosRoute: typeof ServicosRouteWithChildren
   SobreRoute: typeof SobreRoute
-  BalcaoRoute: typeof BalcaoRoute
   BlogSlugRoute: typeof BlogSlugRoute
-  BlogIndexRoute: typeof BlogIndexRoute
-  LojaIndexRoute: typeof LojaIndexRoute
-  LojaPapelariaRoute: typeof LojaPapelariaRoute
+  HubBolsasRoute: typeof HubBolsasRouteWithChildren
+  HubCartasRoute: typeof HubCartasRoute
+  HubExamesRoute: typeof HubExamesRouteWithChildren
+  HubExplorarRoute: typeof HubExplorarRoute
+  HubUploadRoute: typeof HubUploadRoute
   LojaCarrinhoRoute: typeof LojaCarrinhoRoute
   LojaCheckoutRoute: typeof LojaCheckoutRoute
+  LojaPapelariaRoute: typeof LojaPapelariaRoute
+  BlogIndexRoute: typeof BlogIndexRoute
+  HubIndexRoute: typeof HubIndexRoute
+  LojaIndexRoute: typeof LojaIndexRoute
+  HubDocumentoIdRoute: typeof HubDocumentoIdRoute
+  HubNoticiasIdRoute: typeof HubNoticiasIdRoute
   LojaPedidoIdRoute: typeof LojaPedidoIdRoute
   LojaProdutoIdRoute: typeof LojaProdutoIdRoute
-}
-
-export interface ServicosRouteChildren {
-  ServicosIndexRoute: typeof ServicosIndexRoute
-  ServicosSlugRoute: typeof ServicosSlugRoute
-}
-
-export interface BalcaoRouteChildren {
-  BalcaoIndexRoute: typeof BalcaoIndexRoute
-  BalcaoPedidosRoute: typeof BalcaoPedidosRoute
-  BalcaoProdutosRoute: typeof BalcaoProdutosRoute
-  BalcaoStockRoute: typeof BalcaoStockRoute
-  BalcaoEntregasRoute: typeof BalcaoEntregasRoute
-  BalcaoBlogRoute: typeof BalcaoBlogRoute
-  BalcaoServicosRoute: typeof BalcaoServicosRoute
-  BalcaoGaleriaRoute: typeof BalcaoGaleriaRoute
-  BalcaoCampanhasRoute: typeof BalcaoCampanhasRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -465,20 +622,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/servicos'
       preLoaderRoute: typeof ServicosRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/servicos/': {
-      id: '/servicos/'
-      path: '/'
-      fullPath: '/servicos/'
-      preLoaderRoute: typeof ServicosIndexRouteImport
-      parentRoute: typeof ServicosRoute
-    }
-    '/servicos/$slug': {
-      id: '/servicos/$slug'
-      path: '$slug'
-      fullPath: '/servicos/$slug'
-      preLoaderRoute: typeof ServicosSlugRouteImport
-      parentRoute: typeof ServicosRoute
     }
     '/registo': {
       id: '/registo'
@@ -501,18 +644,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrecosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/orcamento': {
       id: '/orcamento'
       path: '/orcamento'
       fullPath: '/orcamento'
       preLoaderRoute: typeof OrcamentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/informatica': {
@@ -543,6 +686,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/balcao': {
+      id: '/balcao'
+      path: '/balcao'
+      fullPath: '/balcao'
+      preLoaderRoute: typeof BalcaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -550,11 +700,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/balcao': {
-      id: '/balcao'
-      path: '/balcao'
-      fullPath: '/balcao'
-      preLoaderRoute: typeof BalcaoRouteImport
+    '/servicos/': {
+      id: '/servicos/'
+      path: '/'
+      fullPath: '/servicos/'
+      preLoaderRoute: typeof ServicosIndexRouteImport
+      parentRoute: typeof ServicosRoute
+    }
+    '/loja/': {
+      id: '/loja/'
+      path: '/loja'
+      fullPath: '/loja/'
+      preLoaderRoute: typeof LojaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/': {
+      id: '/hub/'
+      path: '/hub'
+      fullPath: '/hub/'
+      preLoaderRoute: typeof HubIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/balcao/': {
@@ -564,95 +735,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoIndexRouteImport
       parentRoute: typeof BalcaoRoute
     }
-    '/balcao/pedidos': {
-      id: '/balcao/pedidos'
-      path: '/pedidos'
-      fullPath: '/balcao/pedidos'
-      preLoaderRoute: typeof BalcaoPedidosRouteImport
-      parentRoute: typeof BalcaoRoute
-    }
-    '/balcao/produtos': {
-      id: '/balcao/produtos'
-      path: '/produtos'
-      fullPath: '/balcao/produtos'
-      preLoaderRoute: typeof BalcaoProdutosRouteImport
-      parentRoute: typeof BalcaoRoute
-    }
-    '/balcao/stock': {
-      id: '/balcao/stock'
-      path: '/stock'
-      fullPath: '/balcao/stock'
-      preLoaderRoute: typeof BalcaoStockRouteImport
-      parentRoute: typeof BalcaoRoute
-    }
-    '/balcao/entregas': {
-      id: '/balcao/entregas'
-      path: '/entregas'
-      fullPath: '/balcao/entregas'
-      preLoaderRoute: typeof BalcaoEntregasRouteImport
-      parentRoute: typeof BalcaoRoute
-    }
-    '/balcao/blog': {
-      id: '/balcao/blog'
-      path: '/blog'
-      fullPath: '/balcao/blog'
-      preLoaderRoute: typeof BalcaoBlogRouteImport
-      parentRoute: typeof BalcaoRoute
-    }
-    '/balcao/servicos': {
-      id: '/balcao/servicos'
-      path: '/servicos'
-      fullPath: '/balcao/servicos'
-      preLoaderRoute: typeof BalcaoServicosRouteImport
-      parentRoute: typeof BalcaoRoute
-    }
-    '/balcao/galeria': {
-      id: '/balcao/galeria'
-      path: '/galeria'
-      fullPath: '/balcao/galeria'
-      preLoaderRoute: typeof BalcaoGaleriaRouteImport
-      parentRoute: typeof BalcaoRoute
-    }
-    '/balcao/campanhas': {
-      id: '/balcao/campanhas'
-      path: '/campanhas'
-      fullPath: '/balcao/campanhas'
-      preLoaderRoute: typeof BalcaoCampanhasRouteImport
-      parentRoute: typeof BalcaoRoute
-    }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/loja/': {
-      id: '/loja/'
-      path: '/loja/'
-      fullPath: '/loja/'
-      preLoaderRoute: typeof LojaIndexRouteImport
-      parentRoute: typeof rootRouteImport
+    '/servicos/$slug': {
+      id: '/servicos/$slug'
+      path: '/$slug'
+      fullPath: '/servicos/$slug'
+      preLoaderRoute: typeof ServicosSlugRouteImport
+      parentRoute: typeof ServicosRoute
     }
     '/loja/papelaria': {
       id: '/loja/papelaria'
       path: '/loja/papelaria'
       fullPath: '/loja/papelaria'
       preLoaderRoute: typeof LojaPapelariaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/loja/carrinho': {
-      id: '/loja/carrinho'
-      path: '/loja/carrinho'
-      fullPath: '/loja/carrinho'
-      preLoaderRoute: typeof LojaCarrinhoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loja/checkout': {
@@ -662,12 +756,138 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LojaCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/loja/pedido/$id': {
-      id: '/loja/pedido/$id'
-      path: '/loja/pedido/$id'
-      fullPath: '/loja/pedido/$id'
-      preLoaderRoute: typeof LojaPedidoIdRouteImport
+    '/loja/carrinho': {
+      id: '/loja/carrinho'
+      path: '/loja/carrinho'
+      fullPath: '/loja/carrinho'
+      preLoaderRoute: typeof LojaCarrinhoRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/hub/upload': {
+      id: '/hub/upload'
+      path: '/hub/upload'
+      fullPath: '/hub/upload'
+      preLoaderRoute: typeof HubUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/explorar': {
+      id: '/hub/explorar'
+      path: '/hub/explorar'
+      fullPath: '/hub/explorar'
+      preLoaderRoute: typeof HubExplorarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/exames': {
+      id: '/hub/exames'
+      path: '/hub/exames'
+      fullPath: '/hub/exames'
+      preLoaderRoute: typeof HubExamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/cartas': {
+      id: '/hub/cartas'
+      path: '/hub/cartas'
+      fullPath: '/hub/cartas'
+      preLoaderRoute: typeof HubCartasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/bolsas': {
+      id: '/hub/bolsas'
+      path: '/hub/bolsas'
+      fullPath: '/hub/bolsas'
+      preLoaderRoute: typeof HubBolsasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/balcao/stock': {
+      id: '/balcao/stock'
+      path: '/stock'
+      fullPath: '/balcao/stock'
+      preLoaderRoute: typeof BalcaoStockRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/servicos': {
+      id: '/balcao/servicos'
+      path: '/servicos'
+      fullPath: '/balcao/servicos'
+      preLoaderRoute: typeof BalcaoServicosRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/produtos': {
+      id: '/balcao/produtos'
+      path: '/produtos'
+      fullPath: '/balcao/produtos'
+      preLoaderRoute: typeof BalcaoProdutosRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/pedidos': {
+      id: '/balcao/pedidos'
+      path: '/pedidos'
+      fullPath: '/balcao/pedidos'
+      preLoaderRoute: typeof BalcaoPedidosRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/noticias': {
+      id: '/balcao/noticias'
+      path: '/noticias'
+      fullPath: '/balcao/noticias'
+      preLoaderRoute: typeof BalcaoNoticiasRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/hub': {
+      id: '/balcao/hub'
+      path: '/hub'
+      fullPath: '/balcao/hub'
+      preLoaderRoute: typeof BalcaoHubRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/galeria': {
+      id: '/balcao/galeria'
+      path: '/galeria'
+      fullPath: '/balcao/galeria'
+      preLoaderRoute: typeof BalcaoGaleriaRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/exames': {
+      id: '/balcao/exames'
+      path: '/exames'
+      fullPath: '/balcao/exames'
+      preLoaderRoute: typeof BalcaoExamesRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/entregas': {
+      id: '/balcao/entregas'
+      path: '/entregas'
+      fullPath: '/balcao/entregas'
+      preLoaderRoute: typeof BalcaoEntregasRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/campanhas': {
+      id: '/balcao/campanhas'
+      path: '/campanhas'
+      fullPath: '/balcao/campanhas'
+      preLoaderRoute: typeof BalcaoCampanhasRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/bolsas': {
+      id: '/balcao/bolsas'
+      path: '/bolsas'
+      fullPath: '/balcao/bolsas'
+      preLoaderRoute: typeof BalcaoBolsasRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/blog': {
+      id: '/balcao/blog'
+      path: '/blog'
+      fullPath: '/balcao/blog'
+      preLoaderRoute: typeof BalcaoBlogRouteImport
+      parentRoute: typeof BalcaoRoute
     }
     '/loja/produto/$id': {
       id: '/loja/produto/$id'
@@ -676,32 +896,120 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LojaProdutoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/loja/pedido/$id': {
+      id: '/loja/pedido/$id'
+      path: '/loja/pedido/$id'
+      fullPath: '/loja/pedido/$id'
+      preLoaderRoute: typeof LojaPedidoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/noticias/$id': {
+      id: '/hub/noticias/$id'
+      path: '/hub/noticias/$id'
+      fullPath: '/hub/noticias/$id'
+      preLoaderRoute: typeof HubNoticiasIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/exames/$id': {
+      id: '/hub/exames/$id'
+      path: '/$id'
+      fullPath: '/hub/exames/$id'
+      preLoaderRoute: typeof HubExamesIdRouteImport
+      parentRoute: typeof HubExamesRoute
+    }
+    '/hub/documento/$id': {
+      id: '/hub/documento/$id'
+      path: '/hub/documento/$id'
+      fullPath: '/hub/documento/$id'
+      preLoaderRoute: typeof HubDocumentoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/bolsas/$id': {
+      id: '/hub/bolsas/$id'
+      path: '/$id'
+      fullPath: '/hub/bolsas/$id'
+      preLoaderRoute: typeof HubBolsasIdRouteImport
+      parentRoute: typeof HubBolsasRoute
+    }
   }
 }
 
-const servicosRouteChildren: ServicosRouteChildren = {
-  ServicosIndexRoute: ServicosIndexRoute,
-  ServicosSlugRoute: ServicosSlugRoute,
+interface BalcaoRouteChildren {
+  BalcaoBlogRoute: typeof BalcaoBlogRoute
+  BalcaoBolsasRoute: typeof BalcaoBolsasRoute
+  BalcaoCampanhasRoute: typeof BalcaoCampanhasRoute
+  BalcaoEntregasRoute: typeof BalcaoEntregasRoute
+  BalcaoExamesRoute: typeof BalcaoExamesRoute
+  BalcaoGaleriaRoute: typeof BalcaoGaleriaRoute
+  BalcaoHubRoute: typeof BalcaoHubRoute
+  BalcaoNoticiasRoute: typeof BalcaoNoticiasRoute
+  BalcaoPedidosRoute: typeof BalcaoPedidosRoute
+  BalcaoProdutosRoute: typeof BalcaoProdutosRoute
+  BalcaoServicosRoute: typeof BalcaoServicosRoute
+  BalcaoStockRoute: typeof BalcaoStockRoute
+  BalcaoIndexRoute: typeof BalcaoIndexRoute
 }
 
-const ServicosRouteWithChildren = ServicosRoute._addFileChildren(servicosRouteChildren)
-
-const balcaoRouteChildren: BalcaoRouteChildren = {
-  BalcaoIndexRoute: BalcaoIndexRoute,
+const BalcaoRouteChildren: BalcaoRouteChildren = {
+  BalcaoBlogRoute: BalcaoBlogRoute,
+  BalcaoBolsasRoute: BalcaoBolsasRoute,
+  BalcaoCampanhasRoute: BalcaoCampanhasRoute,
+  BalcaoEntregasRoute: BalcaoEntregasRoute,
+  BalcaoExamesRoute: BalcaoExamesRoute,
+  BalcaoGaleriaRoute: BalcaoGaleriaRoute,
+  BalcaoHubRoute: BalcaoHubRoute,
+  BalcaoNoticiasRoute: BalcaoNoticiasRoute,
   BalcaoPedidosRoute: BalcaoPedidosRoute,
   BalcaoProdutosRoute: BalcaoProdutosRoute,
-  BalcaoStockRoute: BalcaoStockRoute,
-  BalcaoEntregasRoute: BalcaoEntregasRoute,
-  BalcaoBlogRoute: BalcaoBlogRoute,
   BalcaoServicosRoute: BalcaoServicosRoute,
-  BalcaoGaleriaRoute: BalcaoGaleriaRoute,
-  BalcaoCampanhasRoute: BalcaoCampanhasRoute,
+  BalcaoStockRoute: BalcaoStockRoute,
+  BalcaoIndexRoute: BalcaoIndexRoute,
 }
 
-const BalcaoRouteWithChildren = BalcaoRoute._addFileChildren(balcaoRouteChildren)
+const BalcaoRouteWithChildren =
+  BalcaoRoute._addFileChildren(BalcaoRouteChildren)
+
+interface ServicosRouteChildren {
+  ServicosSlugRoute: typeof ServicosSlugRoute
+  ServicosIndexRoute: typeof ServicosIndexRoute
+}
+
+const ServicosRouteChildren: ServicosRouteChildren = {
+  ServicosSlugRoute: ServicosSlugRoute,
+  ServicosIndexRoute: ServicosIndexRoute,
+}
+
+const ServicosRouteWithChildren = ServicosRoute._addFileChildren(
+  ServicosRouteChildren,
+)
+
+interface HubBolsasRouteChildren {
+  HubBolsasIdRoute: typeof HubBolsasIdRoute
+}
+
+const HubBolsasRouteChildren: HubBolsasRouteChildren = {
+  HubBolsasIdRoute: HubBolsasIdRoute,
+}
+
+const HubBolsasRouteWithChildren = HubBolsasRoute._addFileChildren(
+  HubBolsasRouteChildren,
+)
+
+interface HubExamesRouteChildren {
+  HubExamesIdRoute: typeof HubExamesIdRoute
+}
+
+const HubExamesRouteChildren: HubExamesRouteChildren = {
+  HubExamesIdRoute: HubExamesIdRoute,
+}
+
+const HubExamesRouteWithChildren = HubExamesRoute._addFileChildren(
+  HubExamesRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BalcaoRoute: BalcaoRouteWithChildren,
   ContaRoute: ContaRoute,
   ContactosRoute: ContactosRoute,
   GaleriaRoute: GaleriaRoute,
@@ -713,16 +1021,32 @@ const rootRouteChildren: RootRouteChildren = {
   RegistoRoute: RegistoRoute,
   ServicosRoute: ServicosRouteWithChildren,
   SobreRoute: SobreRoute,
-  BalcaoRoute: BalcaoRouteWithChildren,
   BlogSlugRoute: BlogSlugRoute,
-  BlogIndexRoute: BlogIndexRoute,
-  LojaIndexRoute: LojaIndexRoute,
-  LojaPapelariaRoute: LojaPapelariaRoute,
+  HubBolsasRoute: HubBolsasRouteWithChildren,
+  HubCartasRoute: HubCartasRoute,
+  HubExamesRoute: HubExamesRouteWithChildren,
+  HubExplorarRoute: HubExplorarRoute,
+  HubUploadRoute: HubUploadRoute,
   LojaCarrinhoRoute: LojaCarrinhoRoute,
   LojaCheckoutRoute: LojaCheckoutRoute,
+  LojaPapelariaRoute: LojaPapelariaRoute,
+  BlogIndexRoute: BlogIndexRoute,
+  HubIndexRoute: HubIndexRoute,
+  LojaIndexRoute: LojaIndexRoute,
+  HubDocumentoIdRoute: HubDocumentoIdRoute,
+  HubNoticiasIdRoute: HubNoticiasIdRoute,
   LojaPedidoIdRoute: LojaPedidoIdRoute,
   LojaProdutoIdRoute: LojaProdutoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
