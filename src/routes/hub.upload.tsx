@@ -10,12 +10,6 @@ import {
   Upload, FileText, X, CheckCircle2, AlertCircle, LogIn,
   ChevronLeft, Sparkles, Lock, Tag, BookOpen,
 } from "lucide-react";
-import * as pdfjsLib from "pdfjs-dist";
-
-pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.mjs",
-  import.meta.url,
-).toString();
 
 export const Route = createFileRoute("/hub/upload")({
   head: () => ({
@@ -73,10 +67,15 @@ function HubUploadPage() {
     if (!form.title) {
       updates.title = f.name.replace(/\.pdf$/i, "").replace(/[-_]/g, " ").trim();
     }
-    // Auto-detect page count
+    // Auto-detect page count (dynamic import keeps pdfjs out of SSR)
     try {
       const arrayBuffer = await f.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const pdfjs = await import("pdfjs-dist");
+      pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+        "pdfjs-dist/build/pdf.worker.mjs",
+        import.meta.url,
+      ).toString();
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
       updates.pages = pdf.numPages;
       setPagesAuto(true);
     } catch {
