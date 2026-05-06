@@ -1,37 +1,31 @@
-import { writeFileSync, copyFileSync, cpSync, readdirSync } from 'node:fs'
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// 1. Merge server-side assets into dist/client/assets/
-cpSync('dist/server/assets', 'dist/client/assets', { recursive: true })
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const distDir = path.resolve(__dirname, "../dist/client");
 
-// 2. Place _worker.js in the Pages output dir
-copyFileSync('dist/server/server.js', 'dist/client/_worker.js')
-
-// 3. Copy the hashed CSS file to a fixed name so the SSR fallback href
-//    (/assets/styles.css) always resolves — the ?url import in server.js
-//    may resolve to undefined in the Cloudflare Worker context.
-const cssFiles = readdirSync('dist/client/assets').filter(
-  (f) => f.endsWith('.css') && f !== 'styles.css'
-)
-if (cssFiles.length > 0) {
-  copyFileSync(`dist/client/assets/${cssFiles[0]}`, 'dist/client/assets/styles.css')
-  console.log(`✓ CSS aliased: ${cssFiles[0]} → styles.css`)
+if (!fs.existsSync(distDir)) {
+  console.error("❌ dist/client folder not found");
+  process.exit(1);
 }
 
-// 4. Create _routes.json so Pages CDN serves static assets directly (bypasses the worker).
-//    The worker should handle all app routes for SSR.
-writeFileSync('dist/client/_routes.json', JSON.stringify({
+// _routes.json
+const routesJson = {
   version: 1,
-  include: ['/*'],
-  exclude: ['/assets/*', '/robots.txt', '/sitemap.xml', '/favicon.ico', '/logo.jpeg', '/og-image.jpg'],
-}, null, 2) + '\n')
+  include: ["/*"],
+  exclude: ["/assets/*", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.svg", "*.ico", "/favicon.ico", "/robots.txt", "/sitemap.xml"],
+};
+fs.writeFileSync(path.join(distDir, "_routes.json"), JSON.stringify(routesJson, null, 2));
+console.log("✅ _routes.json");
 
-// 5. Replace the Worker-specific wrangler.json with a valid Pages config
-writeFileSync('dist/client/wrangler.json', JSON.stringify({
-  name: 'giseveral',
-  compatibility_date: '2025-09-24',
-  compatibility_flags: ['nodejs_compat'],
-  pages_build_output_dir: '.',
-  main: '_worker.js'
-}, null, 2) + '\n')
+// wrangler.json (APENAS Pages, sem "main")
+const wranglerJson = {
+  pages_build_output_dir: "client",
+  compatibility_date: "2025-03-21",
+  compatibility_flags: ["nodejs_compat"],
+};
+fs.writeFileSync(path.join(distDir, "wrangler.json"), JSON.stringify(wranglerJson, null, 2));
+console.log("✅ wrangler.json (Pages only)");
 
-console.log('✓ Pages build ready: assets merged, _worker.js placed, CSS aliased, _routes.json written, wrangler.json patched')
+console.log("✅ Build pronto para Pages!");
