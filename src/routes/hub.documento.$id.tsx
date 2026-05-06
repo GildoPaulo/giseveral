@@ -374,7 +374,7 @@ function DownloadButton({
 
           {!canDownload && (
             <p className="text-[11px] text-center opacity-70 mb-2">
-              Sem créditos — <Link to="/orcamento" className="underline">torne-se Premium</Link>
+              Sem créditos — <Link to="/hub/creditos" className="underline font-semibold">obter créditos</Link>
             </p>
           )}
         </>

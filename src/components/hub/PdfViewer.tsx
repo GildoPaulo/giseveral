@@ -122,13 +122,21 @@ export function PdfViewer({ pages = 1, title, previewPages = 3, url }: Props) {
       {/* Content */}
       {url && !embedError ? (
         /* Real PDF embed */
-        <div className="bg-muted/30 w-full" style={{ height: "640px" }}>
+        <div className="relative bg-muted/30 w-full" style={{ height: "640px" }}>
           <iframe
             src={`${url}#toolbar=0&navpanes=0&scrollbar=1`}
             title={title}
             className="w-full h-full border-0"
             onError={() => setEmbedError(true)}
           />
+          <div className="absolute inset-0 grid place-items-center pointer-events-none select-none">
+            <span
+              className="font-extrabold tracking-widest text-brand/8"
+              style={{ fontSize: "clamp(18px,5vw,42px)", transform: "rotate(-30deg)", whiteSpace: "nowrap" }}
+            >
+              GISEVERAL HUB
+            </span>
+          </div>
         </div>
       ) : (
         /* Mock skeleton preview */

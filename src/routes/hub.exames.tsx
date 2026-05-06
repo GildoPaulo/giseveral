@@ -99,7 +99,7 @@ function HubExamesPage() {
           setAllExams(data.map((d) => ({
             id: d.id, title: d.title, institution: d.institution, course: d.course,
             year: d.year, subjects: d.subjects, difficulty: d.difficulty as Exam["difficulty"],
-            description: d.description ?? undefined, featured: d.featured,
+            description: d.description ?? "", featured: d.featured,
             fileUrl: d.file_url ?? undefined, solutionUrl: d.solution_url ?? undefined,
             allowRegistrations: d.allow_registrations,
             registrationUrl: d.registration_url ?? undefined,
