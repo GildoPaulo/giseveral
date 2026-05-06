@@ -10,22 +10,20 @@ if (!fs.existsSync(distDir)) {
   process.exit(1);
 }
 
-// _routes.json
+// Apenas _routes.json (wrangler.json não é necessário para Pages)
 const routesJson = {
   version: 1,
   include: ["/*"],
   exclude: ["/assets/*", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.svg", "*.ico", "/favicon.ico", "/robots.txt", "/sitemap.xml"],
 };
 fs.writeFileSync(path.join(distDir, "_routes.json"), JSON.stringify(routesJson, null, 2));
-console.log("✅ _routes.json");
+console.log("✅ _routes.json created");
 
-// wrangler.json (APENAS Pages, sem "main")
-const wranglerJson = {
-  pages_build_output_dir: "client",
-  compatibility_date: "2025-03-21",
-  compatibility_flags: ["nodejs_compat"],
-};
-fs.writeFileSync(path.join(distDir, "wrangler.json"), JSON.stringify(wranglerJson, null, 2));
-console.log("✅ wrangler.json (Pages only)");
+// Apagar wrangler.json se existir (Cloudflare Pages não precisa dele)
+const wranglerPath = path.join(distDir, "wrangler.json");
+if (fs.existsSync(wranglerPath)) {
+  fs.unlinkSync(wranglerPath);
+  console.log("✅ wrangler.json removed (not needed for Pages)");
+}
 
-console.log("✅ Build pronto para Pages!");
+console.log("✅ Build ready for Cloudflare Pages!");
