@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, Truck,
   LogOut, Menu, X, ChevronRight, BoxesIcon, BookOpen,
   Wrench, Images, Megaphone, GraduationCap, Award,
-  FileText, Newspaper,
+  FileText, Newspaper, Mail,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,6 +31,7 @@ const navItems = [
   { to: "/balcao/bolsas", label: "Bolsas Hub", icon: Award },
   { to: "/balcao/exames", label: "Exames Hub", icon: FileText },
   { to: "/balcao/noticias", label: "Notícias Hub", icon: Newspaper },
+  { to: "/balcao/cartas", label: "Cartas Templates", icon: Mail },
 ] as const;
 
 function BalcaoLayout() {

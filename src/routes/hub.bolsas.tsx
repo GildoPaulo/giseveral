@@ -562,7 +562,12 @@ function ScholarshipCard({
   const urgent   = !expired && daysLeft <= 30;
 
   return (
-    <article className="group flex flex-col rounded-2xl bg-card border border-border overflow-hidden shadow-card h-full">
+    <article
+      className="group flex flex-col rounded-2xl bg-card border border-border overflow-hidden shadow-card h-full cursor-pointer hover:shadow-elegant hover:-translate-y-1 transition-smooth"
+      onClick={(e) => {
+        if (!(e.target as HTMLElement).closest("a, button")) onNavigate(s.id);
+      }}
+    >
       {/* Header */}
       <div className={`relative p-5 text-brand-foreground ${expired ? "bg-muted" : "bg-gradient-hero"}`}>
         <div className="absolute top-4 right-4 text-3xl select-none">{s.flag}</div>

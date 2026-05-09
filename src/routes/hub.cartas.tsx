@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +10,7 @@ import {
 import {
   Sparkles, ChevronRight, ChevronLeft, Printer, RotateCcw,
   Copy, Check, Wand2, FileText, Star, Upload, X, Download,
-  AlertCircle, CheckCircle2,
+  AlertCircle, CheckCircle2, MessageCircle, FileDown,
 } from "lucide-react";
 
 export const Route = createFileRoute("/hub/cartas")({
@@ -34,9 +34,21 @@ type CustomTemplate = {
   fields: LetterField[];
 };
 
+// DB template row shape
+type DbTemplate = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: string;
+  fields: LetterField[];
+  template: string;
+};
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 function HubCartasPage() {
+  const [allTypes, setAllTypes] = useState<LetterType[]>(LETTER_TYPES);
   const [step, setStep] = useState<Step>("select");
   const [selectedType, setSelectedType] = useState<LetterType | null>(null);
   const [method, setMethod] = useState<Method>("giseveral");
@@ -50,6 +62,28 @@ function HubCartasPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
 
+  // ── Load DB templates ─────────────────────────────────────────────────────
+  useEffect(() => {
+    (supabase as any).from("letter_templates").select("*").eq("active", true).order("sort_order")
+      .then(({ data }: { data: DbTemplate[] | null }) => {
+        if (data && data.length > 0) {
+          const dbTypes: LetterType[] = (data as DbTemplate[]).map((d) => ({
+            id: d.id,
+            title: d.title,
+            description: d.description,
+            icon: d.icon,
+            category: d.category,
+            fields: Array.isArray(d.fields) ? d.fields : [],
+            template: d.template,
+          }));
+          // Merge: DB templates first, then static ones not already present
+          const dbIds = new Set(dbTypes.map((t) => t.id));
+          const merged = [...dbTypes, ...LETTER_TYPES.filter((t) => !dbIds.has(t.id))];
+          setAllTypes(merged);
+        }
+      });
+  }, []);
+
   // ── Derived state ─────────────────────────────────────────────────────────
 
   const activeFields: LetterField[] =
@@ -62,7 +96,6 @@ function HubCartasPage() {
       ? customTemplate.content
       : selectedType?.template ?? "";
 
-  // Use AI-improved version if available, otherwise fill template normally
   const generated = formValues["__improved__"] ?? fillTemplate(activeTemplate, formValues);
 
   // ── Step 1: Select type ───────────────────────────────────────────────────
@@ -182,17 +215,93 @@ function HubCartasPage() {
     window.print();
   }
 
-  function handleDownloadTxt() {
-    const title = method === "upload" && customTemplate
+  function getTitle() {
+    return method === "upload" && customTemplate
       ? customTemplate.name.replace(/\.txt$/i, "")
       : (selectedType?.title ?? "carta");
+  }
+
+  function handleDownloadTxt() {
     const blob = new Blob([generated], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${title.toLowerCase().replace(/\s+/g, "-")}.txt`;
+    a.download = `${getTitle().toLowerCase().replace(/\s+/g, "-")}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function handleDownloadRtf() {
+    // RTF format — compatible with Word, LibreOffice, Google Docs
+    const lines = generated.split("\n");
+    const rtfLines = lines.map((line) => {
+      const escaped = line
+        .replace(/\\/g, "\\\\")
+        .replace(/\{/g, "\\{")
+        .replace(/\}/g, "\\}")
+        // Convert non-ASCII to unicode escapes
+        .replace(/[^\x00-\x7F]/g, (ch) => `\\u${ch.charCodeAt(0)}?`);
+      return `${escaped}\\par`;
+    }).join("\n");
+
+    const rtf = `{\\rtf1\\ansi\\ansicpg1252\\deff0
+{\\fonttbl{\\f0\\froman\\fcharset0 Times New Roman;}}
+{\\*\\generator Giseveral Hub;}
+\\f0\\fs24\\sl480\\slmult1
+${rtfLines}
+}`;
+    const blob = new Blob([rtf], { type: "application/rtf" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${getTitle().toLowerCase().replace(/\s+/g, "-")}.rtf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Ficheiro .RTF descarregado!", { description: "Abre com Word, LibreOffice ou Google Docs." });
+  }
+
+  function handleDownloadHtml() {
+    // Styled HTML letter — can be opened in browser and printed as PDF
+    const escaped = generated
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n/g, "<br>");
+
+    const html = `<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<title>${getTitle()}</title>
+<style>
+  body { font-family: "Times New Roman", serif; font-size: 12pt; line-height: 1.8;
+         color: #000; background: #fff; margin: 0; padding: 0; }
+  .page { max-width: 21cm; margin: 0 auto; padding: 2.5cm 2.5cm 3cm; }
+  p { margin: 0 0 0.5em; }
+  @media print {
+    body { margin: 0; }
+    .page { padding: 2cm 2.5cm 2.5cm; }
+  }
+</style>
+</head>
+<body>
+<div class="page"><p>${escaped}</p></div>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${getTitle().toLowerCase().replace(/\s+/g, "-")}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Carta HTML descarregada!", { description: "Abra no browser e use Ctrl+P para guardar como PDF." });
+  }
+
+  function handleWhatsApp() {
+    const text = encodeURIComponent(`${getTitle()}\n\n${generated}`);
+    window.open(`https://wa.me/?text=${text}`, "_blank");
   }
 
   async function handleImprove() {
@@ -210,18 +319,8 @@ function HubCartasPage() {
 
       if (error) throw error;
       if (data?.improved) {
-        // Merge improved text back into form values by re-parsing placeholders
-        // Since we can't easily reverse-fill form values, we store as an override
-        setFormValues((prev) => {
-          const improved: string = data.improved;
-          // Extract any {{KEY}} still present and keep existing values
-          const keys = [...improved.matchAll(/\{\{(\w+)\}\}/g)].map((m) => m[1]);
-          const updates: Record<string, string> = { ...prev };
-          // Replace the full template content with improved text stored in a special key
-          updates["__improved__"] = improved;
-          return updates;
-        });
-        toast.success("Carta melhorada com IA!", { description: "Texto revisto e polido pelo Gemini." });
+        setFormValues((prev) => ({ ...prev, "__improved__": data.improved as string }));
+        toast.success("Carta melhorada com IA!", { description: "Texto revisto e polido automaticamente." });
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro desconhecido";
@@ -246,6 +345,9 @@ function HubCartasPage() {
   const STEP_LABELS = ["Tipo de carta", "Método", "Preencher dados", "Rever e exportar"];
   const STEPS: Step[] = ["select", "method", "form", "preview"];
   const stepIdx = STEPS.indexOf(step);
+
+  // Group types by category for the select screen
+  const categories = [...new Set(allTypes.map((t) => t.category))];
 
   return (
     <Layout>
@@ -282,7 +384,7 @@ function HubCartasPage() {
           </div>
           <h1 className="text-4xl font-bold text-brand mb-3">Gere a sua carta em segundos</h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Escolha um modelo, preencha os dados e descarregue ou imprima em PDF.
+            Escolha um modelo, preencha os dados e exporte como PDF, Word ou partilhe no WhatsApp.
           </p>
         </div>
 
@@ -309,24 +411,33 @@ function HubCartasPage() {
 
         {/* ── STEP 1: Select type ──────────────────────────────────────────── */}
         {step === "select" && (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {LETTER_TYPES.map((type) => (
-              <button
-                key={type.id}
-                onClick={() => handleSelectType(type)}
-                className="group text-left rounded-2xl border border-border bg-card p-5 hover:border-brand/40 hover:shadow-elegant transition-smooth"
-              >
-                <div className="text-3xl mb-3">{type.icon}</div>
-                <div className="flex items-start justify-between gap-2 mb-1.5">
-                  <h3 className="font-bold text-foreground text-sm leading-tight">{type.title}</h3>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-brand transition-colors flex-shrink-0 mt-0.5" />
+          <div className="space-y-8">
+            {categories.map((cat) => {
+              const typesInCat = allTypes.filter((t) => t.category === cat);
+              return (
+                <div key={cat}>
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 px-1">
+                    {cat}
+                  </h2>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {typesInCat.map((type) => (
+                      <button
+                        key={type.id}
+                        onClick={() => handleSelectType(type)}
+                        className="group text-left rounded-2xl border border-border bg-card p-5 hover:border-brand/40 hover:shadow-elegant transition-smooth"
+                      >
+                        <div className="text-3xl mb-3">{type.icon}</div>
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <h3 className="font-bold text-foreground text-sm leading-tight">{type.title}</h3>
+                          <ChevronRight className="h-4 w-4 text-muted-foreground/40 group-hover:text-brand transition-colors flex-shrink-0 mt-0.5" />
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{type.description}</p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground leading-relaxed">{type.description}</p>
-                <span className="mt-3 inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                  {type.category}
-                </span>
-              </button>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -385,7 +496,7 @@ function HubCartasPage() {
               </button>
             </div>
 
-            {/* Upload area (shown when "upload" method is selected) */}
+            {/* Upload area */}
             {method === "upload" && (
               <div className="mb-6">
                 {!customTemplate ? (
@@ -417,7 +528,7 @@ function HubCartasPage() {
                       <div>
                         <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">{customTemplate.name}</p>
                         <p className="text-xs text-emerald-600/70 dark:text-emerald-500">
-                          {customTemplate.fields.length} campos detectados: {customTemplate.fields.map(f => `{{${f.key}}}`).join(", ")}
+                          {customTemplate.fields.length} campos detectados
                         </p>
                       </div>
                     </div>
@@ -437,7 +548,6 @@ function HubCartasPage() {
                   </div>
                 )}
 
-                {/* Template format guide */}
                 <div className="mt-4 rounded-lg bg-muted/50 border border-border p-4">
                   <p className="text-xs font-semibold text-foreground mb-2">Formato do template:</p>
                   <pre className="text-[11px] text-muted-foreground leading-relaxed overflow-x-auto">{`Maputo, {{DATA}}
@@ -585,25 +695,50 @@ Atentamente,
                   {copied ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
                   {copied ? "Copiado!" : "Copiar"}
                 </button>
-                <button
-                  onClick={handleDownloadTxt}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-smooth"
-                >
-                  <Download className="h-3.5 w-3.5" /> .TXT
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-gold px-3 py-2 text-sm font-semibold text-gold-foreground shadow-card hover:shadow-glow transition-smooth"
-                >
-                  <Printer className="h-3.5 w-3.5" /> Imprimir / PDF
-                </button>
-                <button
-                  onClick={handleReset}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" /> Nova carta
-                </button>
               </div>
+            </div>
+
+            {/* Export buttons */}
+            <div className="flex flex-wrap gap-2 rounded-xl border border-border bg-card px-5 py-3">
+              <span className="text-xs font-semibold text-muted-foreground self-center mr-1">Exportar:</span>
+              <button
+                onClick={handleDownloadRtf}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-card hover:shadow-glow transition-smooth"
+                title="Abre com Word, LibreOffice ou Google Docs"
+              >
+                <FileDown className="h-3.5 w-3.5" /> Word / .RTF
+              </button>
+              <button
+                onClick={handleDownloadHtml}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-card hover:shadow-glow transition-smooth"
+                title="Abra no browser e imprima como PDF"
+              >
+                <Download className="h-3.5 w-3.5" /> PDF (HTML)
+              </button>
+              <button
+                onClick={handleDownloadTxt}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-smooth"
+              >
+                <Download className="h-3.5 w-3.5" /> .TXT
+              </button>
+              <button
+                onClick={handlePrint}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-gold px-3 py-2 text-sm font-semibold text-gold-foreground shadow-card hover:shadow-glow transition-smooth"
+              >
+                <Printer className="h-3.5 w-3.5" /> Imprimir
+              </button>
+              <button
+                onClick={handleWhatsApp}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-2 text-sm font-semibold text-white shadow-card hover:shadow-glow transition-smooth"
+              >
+                <MessageCircle className="h-3.5 w-3.5" /> WhatsApp
+              </button>
+              <button
+                onClick={handleReset}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-muted px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-smooth"
+              >
+                <RotateCcw className="h-3.5 w-3.5" /> Nova carta
+              </button>
             </div>
 
             {/* Letter preview */}
@@ -616,25 +751,25 @@ Atentamente,
               </pre>
             </div>
 
-            {/* PDF tip */}
-            <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/30 px-5 py-4 flex items-start gap-3">
-              <Printer className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <span className="font-semibold text-amber-800 dark:text-amber-400">Guardar como PDF: </span>
-                <span className="text-amber-700 dark:text-amber-500">
-                  Clique em "Imprimir / PDF" e seleccione "Guardar como PDF" no diálogo de impressão do browser.
-                </span>
+            {/* Tips */}
+            <div className="grid sm:grid-cols-3 gap-3">
+              <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/30 px-4 py-3 flex items-start gap-2">
+                <FileDown className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-700 dark:text-blue-400">
+                  <strong>Word / RTF:</strong> Abre directamente no Microsoft Word ou LibreOffice para editar.
+                </p>
               </div>
-            </div>
-
-            {/* AI tip */}
-            <div className="rounded-xl border border-brand/20 bg-brand/5 px-5 py-4 flex items-start gap-3">
-              <Sparkles className="h-5 w-5 text-gold flex-shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <span className="font-semibold text-brand">Melhorar com IA: </span>
-                <span className="text-muted-foreground">
-                  A integração com Gemini AI estará disponível em breve para polir a linguagem automaticamente.
-                </span>
+              <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3 flex items-start gap-2">
+                <Printer className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-red-700 dark:text-red-400">
+                  <strong>PDF:</strong> Descarregue o HTML, abra no browser e use Ctrl+P → "Guardar como PDF".
+                </p>
+              </div>
+              <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 px-4 py-3 flex items-start gap-2">
+                <MessageCircle className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-green-700 dark:text-green-400">
+                  <strong>WhatsApp:</strong> Envie o texto directamente para a Giseveral ou para a empresa.
+                </p>
               </div>
             </div>
 
