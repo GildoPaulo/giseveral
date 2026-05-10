@@ -95,6 +95,10 @@ function NoticiaDetailPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    setDbData(null);
+    setNotFoundState(false);
+    setComments([]);
+
     supabase.from("hub_news").select("*").eq("id", id).single()
       .then(({ data }) => {
         if (data) {
@@ -112,7 +116,7 @@ function NoticiaDetailPage() {
       .eq("approved", true)
       .order("created_at", { ascending: true })
       .then(({ data }) => { if (data) setComments(data as CommentRow[]); });
-  }, [id, staticData]);
+  }, [id]);
 
   if (notFoundState) {
     return (
