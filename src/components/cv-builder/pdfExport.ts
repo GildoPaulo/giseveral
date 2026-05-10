@@ -1,7 +1,9 @@
 import type { CvData, CvTemplate } from "./types";
 
 /**
- * Generate a real PDF Blob using @react-pdf/renderer.
+ * Generate a PDF Blob using @react-pdf/renderer.
+ * Falls back to ModernCVDocument for all new templates (HTML-only templates
+ * don't have a @react-pdf equivalent yet — PDF support can be added per template).
  * Lazy-imports to stay client-only (no SSR issues).
  */
 export async function exportCvToPdf(data: CvData, template: CvTemplate): Promise<Blob> {
@@ -11,20 +13,36 @@ export async function exportCvToPdf(data: CvData, template: CvTemplate): Promise
     import("./templates"),
   ]);
 
-  const map = {
-    modern:   templates.ModernCVDocument,
-    creative: templates.CreativeCVDocument,
-    ats:      templates.ATSCVDocument,
-  } as const;
+  // Map templates that have a full @react-pdf Document component.
+  // New HTML-based templates fall back to ModernCVDocument.
+  const docMap = {
+    modern: templates.ModernCVDocument,
+    azurill: templates.ModernCVDocument,
+    bronzor: templates.CreativeCVDocument,
+    onyx: templates.ModernCVDocument,
+    ditto: templates.ATSCVDocument,
+    pikachu: templates.CreativeCVDocument,
+  } satisfies Record<CvTemplate, React.ComponentType<{ data: CvData }>>;
 
-  const Component = map[template] ?? map.modern;
+  // Convert new CvData shape to legacy shape expected by old Document components
+  const legacyData = toLegacyCvData(data);
+
+  const Component = docMap[template] ?? docMap.modern;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return pdf(createElement(Component, { data }) as any).toBlob();
+  return pdf(createElement(Component, { data: legacyData }) as any).toBlob();
 }
 
 /**
- * Trigger browser download of a Blob as a file.
+ * Convert extended CvData (new) to the minimal shape the old @react-pdf
+ * Document components expect. They only use a subset of fields.
  */
+function toLegacyCvData(data: CvData): CvData {
+  return {
+    ...data,
+    personal: { ...data.personal, objetivo: data.objetivo },
+  };
+}
+
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

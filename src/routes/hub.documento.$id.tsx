@@ -94,7 +94,17 @@ function HubDocumentoPage() {
       });
       return;
     }
-    if (!premium && !doc.premium && credits <= 0) {
+
+    if (!doc.fileUrl) {
+      toast.error("Ficheiro não disponível", {
+        description: "Este documento ainda não tem ficheiro associado.",
+      });
+      return;
+    }
+
+    const isFree = premium || doc.premium;
+
+    if (!isFree && credits <= 0) {
       toast.error("Sem créditos suficientes.", {
         description: "Compre créditos ou torne-se Premium para downloads ilimitados.",
         action: { label: "Obter créditos", onClick: () => navigate({ to: "/hub/creditos" }) },
@@ -104,7 +114,7 @@ function HubDocumentoPage() {
 
     setDownloading(true);
 
-    if (!doc.premium && !premium) {
+    if (!isFree) {
       const result = await spendCredit(user.id, doc.id, credits);
       if (!result.success) {
         toast.error(result.message);
@@ -114,15 +124,18 @@ function HubDocumentoPage() {
       setCredits(result.remaining);
     }
 
-    if (doc.fileUrl) {
-      window.open(doc.fileUrl, "_blank");
-    }
+    // Use anchor download — avoids popup blocker on async context
+    const a = document.createElement("a");
+    a.href = doc.fileUrl;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.click();
 
     setDownloaded(true);
     setDownloading(false);
     toast.success("Download iniciado!", {
-      description: doc.premium || premium
-        ? "Documento Premium — crédito não descontado."
+      description: isFree
+        ? "Download gratuito — crédito não descontado."
         : `1 crédito descontado. Restam ${credits - 1} crédito${credits - 1 !== 1 ? "s" : ""}.`,
     });
   }

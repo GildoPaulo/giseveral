@@ -121,7 +121,7 @@ function BalcaoLayout() {
   }
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
+    <div className="flex h-screen overflow-hidden bg-muted/30">
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-background border-r border-border shadow-elegant transition-transform duration-200 flex flex-col lg:translate-x-0 lg:static lg:flex ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
         <div className="flex h-16 items-center gap-3 px-5 border-b border-border">
@@ -135,7 +135,7 @@ function BalcaoLayout() {
           </button>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
           {navItems.map(({ to, label, icon: Icon, exact }) => {
             const active = exact ? pathname === to : pathname.startsWith(to) && to !== "/balcao/";
             const isActive = to === "/balcao/" ? pathname === "/balcao" || pathname === "/balcao/" : active;
@@ -192,7 +192,7 @@ function BalcaoLayout() {
           </Link>
         </header>
 
-        <main className="flex-1 p-5 md:p-8">
+        <main className="flex-1 overflow-y-auto p-5 md:p-8">
           <Outlet />
         </main>
       </div>
