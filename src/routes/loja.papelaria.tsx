@@ -13,6 +13,7 @@ import { Layout } from "@/components/Layout";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import stationeryBg from "@/assets/stationery.jpg";
 
 const searchSchema = z.object({
   categoria: z.string().optional(),
@@ -161,6 +162,11 @@ function Papelaria() {
     <Layout>
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-gradient-to-br from-background via-muted/30 to-background pt-20 pb-14">
+        {/* Background photo */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-[0.07]"
+          style={{ backgroundImage: `url(${stationeryBg})` }}
+        />
         {/* Decorative blobs */}
         <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-brand/8 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-gold/10 blur-3xl" />
@@ -181,7 +187,7 @@ function Papelaria() {
             className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground mb-4"
           >
             Papelaria &{" "}
-            <span className="bg-gradient-brand bg-clip-text text-transparent">Serviços</span>
+            <span className="text-brand">Serviços</span>
           </motion.h1>
 
           <motion.p

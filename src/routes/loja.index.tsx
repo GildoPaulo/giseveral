@@ -12,6 +12,7 @@ import { useCart } from "@/contexts/CartContext";
 import { SkeletonCard } from "@/components/Skeleton";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import stationeryBg from "@/assets/stationery.jpg";
 
 export const Route = createFileRoute("/loja/")({
   head: () => ({
@@ -119,6 +120,11 @@ function LojaIndex() {
 
       {/* ── HERO ─────────────────────────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-gradient-hero text-brand-foreground">
+        {/* Background photo */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-25"
+          style={{ backgroundImage: `url(${stationeryBg})` }}
+        />
         <div className="absolute -top-20 -right-20 h-80 w-80 rounded-full bg-gold/20 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
 

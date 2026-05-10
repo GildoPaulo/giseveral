@@ -124,14 +124,13 @@ export function SiteHeader() {
 
         {/* Desktop actions */}
         <div className="hidden lg:flex items-center gap-2">
-          {/* Search */}
+          {/* Search — icon only; Ctrl+K keyboard shortcut still works */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-smooth flex items-center gap-1.5"
+            className="rounded-md p-2 text-foreground/60 hover:text-brand hover:bg-accent transition-smooth"
             aria-label="Pesquisar (Ctrl+K)"
           >
             <Search className="h-4 w-4" />
-            <span className="hidden xl:inline text-xs text-muted-foreground">Ctrl+K</span>
           </button>
 
           {/* Cart */}
