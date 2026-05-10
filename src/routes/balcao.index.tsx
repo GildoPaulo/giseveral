@@ -73,7 +73,7 @@ type UmamiStats = {
 
 type UmamiMetric = { x: string; y: number };
 
-type UmamiPageview = { t: string; v: number };
+type UmamiPageview = { x: string; y: number };
 
 type AnalyticsData = {
   stats: UmamiStats | null;
@@ -112,10 +112,13 @@ async function fetchUmamiAnalytics(days = 30): Promise<AnalyticsData | null> {
       topPages: (Array.isArray(pages) ? pages : []) as UmamiMetric[],
       referrers: (Array.isArray(refs) ? refs : []) as UmamiMetric[],
       devices: (Array.isArray(devs) ? devs : []) as UmamiMetric[],
-      pageviewsChart: ((pvData?.pageviews ?? []) as UmamiPageview[]).map((p) => ({
-        day: new Date(p.t).toLocaleDateString("pt-PT", { day: "numeric", month: "short" }),
-        views: p.v,
-      })),
+      pageviewsChart: ((pvData?.pageviews ?? []) as UmamiPageview[]).map((p) => {
+        const d = p.x ? new Date(p.x) : null;
+        return {
+          day: d && !isNaN(d.getTime()) ? d.toLocaleDateString("pt-PT", { day: "numeric", month: "short" }) : p.x ?? "?",
+          views: p.y ?? 0,
+        };
+      }),
     };
   } catch {
     return null;

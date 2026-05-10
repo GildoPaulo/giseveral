@@ -88,15 +88,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   // ── 5. Send via Resend (batch up to 100 at a time) ────────────────────────
+  // Use custom from address if set, fall back to Resend's verified default
   const from = RESEND_FROM_EMAIL || "Giseveral <onboarding@resend.dev>";
   const BATCH = 50;
   let sent = 0;
   let failed = 0;
+  let lastResendError: string | null = null;
 
   for (let i = 0; i < recipients.length; i += BATCH) {
     const chunk = recipients.slice(i, i + BATCH);
 
-    // Use Resend batch endpoint
+    // Try batch endpoint first
     const batchPayload = chunk.map((email) => ({
       from,
       to: [email],
@@ -104,7 +106,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       html: body_html,
     }));
 
-    const res = await fetch("https://api.resend.com/emails/batch", {
+    const batchRes = await fetch("https://api.resend.com/emails/batch", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${RESEND_API_KEY}`,
@@ -113,10 +115,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       body: JSON.stringify(batchPayload),
     });
 
-    if (res.ok) {
+    if (batchRes.ok) {
       sent += chunk.length;
     } else {
-      // Fall back to individual sends if batch fails
+      // Capture batch error
+      const batchErr = await batchRes.json().catch(() => ({})) as Record<string, string>;
+      const batchErrMsg = batchErr.message ?? batchErr.name ?? `HTTP ${batchRes.status}`;
+      if (!lastResendError) lastResendError = batchErrMsg;
+
+      // Fall back to individual sends
       for (const email of chunk) {
         const singleRes = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -126,10 +133,36 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           },
           body: JSON.stringify({ from, to: [email], subject, html: body_html }),
         });
-        if (singleRes.ok) sent++;
-        else failed++;
+        if (singleRes.ok) {
+          sent++;
+        } else {
+          failed++;
+          if (!lastResendError) {
+            const errBody = await singleRes.json().catch(() => ({})) as Record<string, string>;
+            lastResendError = errBody.message ?? errBody.name ?? `HTTP ${singleRes.status}`;
+          }
+        }
       }
     }
+  }
+
+  // If all failed due to domain error, return actionable message
+  if (sent === 0 && failed > 0 && lastResendError) {
+    const isDomainError = lastResendError.toLowerCase().includes("domain") ||
+      lastResendError.toLowerCase().includes("verified") ||
+      lastResendError.toLowerCase().includes("from");
+    if (isDomainError) {
+      return new Response(JSON.stringify({
+        error: `Domínio remetente não verificado no Resend: "${from}". ` +
+          "Verifique o domínio em resend.com/domains, ou altere RESEND_FROM_EMAIL para onboarding@resend.dev nas variáveis do Cloudflare.",
+        resend_error: lastResendError,
+        sent: 0, failed,
+      }), { status: 422, headers: CORS });
+    }
+    return new Response(JSON.stringify({
+      error: `Erro Resend: ${lastResendError}`,
+      sent: 0, failed,
+    }), { status: 422, headers: CORS });
   }
 
   // ── 6. Log campaign (skip for test sends) ─────────────────────────────────
