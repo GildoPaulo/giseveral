@@ -22,9 +22,10 @@ import repair from "@/assets/computer-repair.jpg";
 import network from "@/assets/network.jpg";
 import technician from "@/assets/technician.jpg";
 
+const ease = [0.22, 1, 0.36, 1] as [number, number, number, number];
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease } },
 };
 const fadeIn = {
   hidden: { opacity: 0 },
@@ -32,11 +33,11 @@ const fadeIn = {
 };
 const slideRight = {
   hidden: { opacity: 0, x: 60 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease } },
 };
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.85 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.5, ease } },
 };
 
 export const Route = createFileRoute("/")({
@@ -169,7 +170,7 @@ function Index() {
               <motion.div
                 className="relative z-10 h-[300px] w-[300px] overflow-hidden rounded-full border-4 border-white shadow-elegant sm:h-[360px] sm:w-[360px] md:h-[400px] md:w-[400px]"
                 initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.7, delay: 0.2, ease }}
               >
                 <img
                   src={technician}

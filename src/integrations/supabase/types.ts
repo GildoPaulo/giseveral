@@ -967,6 +967,177 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_items: {
+        Row: {
+          id: string
+          title: string
+          category: string
+          image_url: string
+          before_url: string | null
+          project_url: string | null
+          stars: number | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          category: string
+          image_url: string
+          before_url?: string | null
+          project_url?: string | null
+          stars?: number | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          category?: string
+          image_url?: string
+          before_url?: string | null
+          project_url?: string | null
+          stars?: number | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      newsletter_campaigns: {
+        Row: {
+          id: string
+          subject: string
+          body_html: string
+          sent_to: number
+          failed: number
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          subject: string
+          body_html: string
+          sent_to?: number
+          failed?: number
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          subject?: string
+          body_html?: string
+          sent_to?: number
+          failed?: number
+          status?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          id: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          user_id: string | null
+          role: string
+          device_name: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          endpoint: string
+          p256dh: string
+          auth: string
+          user_id?: string | null
+          role?: string
+          device_name?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          endpoint?: string
+          p256dh?: string
+          auth?: string
+          user_id?: string | null
+          role?: string
+          device_name?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      push_notifications_log: {
+        Row: {
+          id: string
+          title: string
+          body: string
+          url: string
+          target_type: string
+          target_user_id: string | null
+          sent_count: number
+          failed_count: number
+          removed_count: number
+          created_by: string | null
+          sent_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          body: string
+          url?: string
+          target_type?: string
+          target_user_id?: string | null
+          sent_count?: number
+          failed_count?: number
+          removed_count?: number
+          created_by?: string | null
+          sent_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          body?: string
+          url?: string
+          target_type?: string
+          target_user_id?: string | null
+          sent_count?: number
+          failed_count?: number
+          removed_count?: number
+          created_by?: string | null
+          sent_at?: string
+        }
+        Relationships: []
+      }
+      prices: {
+        Row: {
+          id: string
+          service: string
+          description: string | null
+          price: number
+          unit: string | null
+          category: string | null
+          active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          service: string
+          description?: string | null
+          price: number
+          unit?: string | null
+          category?: string | null
+          active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          service?: string
+          description?: string | null
+          price?: number
+          unit?: string | null
+          category?: string | null
+          active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

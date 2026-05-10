@@ -695,7 +695,7 @@ function BalcaoBlog() {
                 <ImageUpload
                   label="Imagem de capa"
                   value={editing.imageUrl}
-                  onChange={(url) => setEditing((p) => ({ ...p, imageUrl: url }))}
+                  onChange={(url) => setEditing((p) => ({ ...p, imageUrl: url ?? "" }))}
                   bucket="images"
                   folder="blog"
                 />

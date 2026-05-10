@@ -14,7 +14,7 @@ export const Route = createFileRoute("/balcao/newsletter")({
 });
 
 type Subscriber = { id: string; email: string; source: string; subscribed_at: string };
-type Campaign = { id: string; subject: string; sent_to: number; failed: number; status: string; created_at: string };
+type Campaign = { id: string; subject: string; body_html: string; sent_to: number; failed: number; status: string; created_at: string };
 
 const STATUS_STYLE: Record<string, string> = {
   sent:    "bg-emerald-100 text-emerald-700",
