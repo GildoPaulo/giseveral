@@ -145,31 +145,35 @@ function HubUploadPage() {
       .map((t) => t.trim())
       .filter(Boolean);
 
-    const { error: insertError } = await supabase.from("hub_documents").insert({
-      title: form.title.trim(),
-      author: form.author.trim() || user.email?.split("@")[0] || "Anónimo",
-      category: form.category as string,
-      description: form.description.trim(),
-      tags,
-      file_url: url,
-      pages: form.pages > 0 ? form.pages : 1,
-      user_id: user.id,
-      published: false,
-      cover_hue: Math.floor(Math.random() * 360),
+    const { data: { session } } = await supabase.auth.getSession();
+    const publishRes = await fetch("/api/doc-publish", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.access_token ?? ""}`,
+      },
+      body: JSON.stringify({
+        title: form.title.trim(),
+        author: form.author.trim() || user.email?.split("@")[0] || "Anónimo",
+        category: form.category as string,
+        description: form.description.trim(),
+        tags,
+        pages: form.pages > 0 ? form.pages : 1,
+        file_url: url,
+        cover_hue: Math.floor(Math.random() * 360),
+      }),
     });
 
-    if (insertError) {
-      toast.error("Erro ao submeter documento.", { description: insertError.message });
+    const result = await publishRes.json() as { id?: string; error?: string };
+
+    if (!publishRes.ok) {
+      toast.error("Documento não publicado", { description: result.error ?? "Erro desconhecido" });
       setSubmitting(false);
       return;
     }
 
     setSubmitting(false);
     setSubmitted(true);
-    toast.success("Documento submetido para revisão!", {
-      description: "A equipa Giseveral irá verificar e publicar em breve. Os 2 créditos serão atribuídos após aprovação.",
-      duration: 6000,
-    });
   }
 
   // ── Not logged in ──────────────────────────────────────────────────────────
@@ -211,12 +215,12 @@ function HubUploadPage() {
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950/40 mx-auto mb-5">
             <CheckCircle2 className="h-10 w-10 text-emerald-600" />
           </div>
-          <h1 className="text-2xl font-bold text-brand mb-3">Documento enviado!</h1>
+          <h1 className="text-2xl font-bold text-brand mb-3">Documento publicado!</h1>
           <p className="text-muted-foreground mb-2">
-            Obrigado por contribuir com a comunidade. O documento será revisto e publicado em até 24 horas.
+            O teu documento já está disponível para a comunidade. Obrigado pela contribuição!
           </p>
           <div className="inline-flex items-center gap-2 rounded-full bg-gold/15 text-gold-foreground px-4 py-2 text-sm font-semibold mb-8">
-            <Sparkles className="h-4 w-4 text-gold" /> +2 créditos após aprovação do documento
+            <Sparkles className="h-4 w-4 text-gold" /> +2 créditos adicionados à tua conta
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
@@ -464,7 +468,7 @@ function HubUploadPage() {
               {submitting ? (
                 <><span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" /> A enviar…</>
               ) : (
-                <><Upload className="h-4 w-4" /> Submeter documento</>
+                <><Upload className="h-4 w-4" /> Publicar documento</>
               )}
             </button>
           </div>

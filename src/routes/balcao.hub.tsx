@@ -7,8 +7,7 @@ import { DOC_CATEGORIES, type DocCategory } from "@/data/hub-documents";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, Upload, X, Crown,
-  FileText, Download, CheckCircle2, AlertTriangle, Search, Filter,
-  ThumbsUp, ThumbsDown, Clock, User,
+  FileText, Download, CheckCircle2, Search, Filter, User,
 } from "lucide-react";
 
 export const Route = createFileRoute("/balcao/hub")({
@@ -53,7 +52,7 @@ const EMPTY: FormData = {
   premium: false, published: true,
 };
 
-type Tab = "todos" | "publicados" | "pendentes";
+type Tab = "todos" | "publicados" | "ocultos";
 
 function BalcaoHub() {
   const [docs, setDocs] = useState<HubDoc[]>([]);
@@ -67,7 +66,6 @@ function BalcaoHub() {
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [approvingId, setApprovingId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
@@ -92,11 +90,11 @@ function BalcaoHub() {
 
   // ── Filtered list ─────────────────────────────────────────────────────────
 
-  const pending = docs.filter((d) => !d.published && !!d.user_id);
+  const hidden = docs.filter((d) => !d.published);
 
   const visible = docs.filter((d) => {
     if (tab === "publicados" && !d.published) return false;
-    if (tab === "pendentes" && !((!d.published) && !!d.user_id)) return false;
+    if (tab === "ocultos" && d.published) return false;
     const matchCat = catFilter === "all" || d.category === catFilter;
     const matchSearch = !search.trim() || d.title.toLowerCase().includes(search.toLowerCase()) || d.author.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
@@ -221,73 +219,12 @@ function BalcaoHub() {
     }
   }
 
-  // ── Approve user-submitted document ──────────────────────────────────────
-
-  async function handleApprove(d: HubDoc) {
-    setApprovingId(d.id);
-    try {
-      const { error: pubErr } = await supabase
-        .from("hub_documents")
-        .update({ published: true })
-        .eq("id", d.id);
-      if (pubErr) throw pubErr;
-
-      // Grant +2 credits to the submitter
-      if (d.user_id) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("hub_credits")
-          .eq("id", d.user_id)
-          .single();
-        const current = (profile as { hub_credits?: number } | null)?.hub_credits ?? 0;
-        await supabase
-          .from("profiles")
-          .update({ hub_credits: current + 2 })
-          .eq("id", d.user_id);
-      }
-
-      setDocs((prev) => prev.map((x) => x.id === d.id ? { ...x, published: true } : x));
-      toast.success("Documento aprovado! +2 créditos atribuídos ao autor.");
-      if (d.user_id) {
-        triggerAutoNotify({
-          event_type: "doc_aprovado",
-          title: "O teu documento foi aprovado! 🎉",
-          body: `"${d.title}" está agora disponível no Hub. +2 créditos adicionados à tua conta.`,
-          url: `/hub/documento/${d.id}`,
-          channels: ["push", "email", "inapp"],
-          target: "user",
-          user_id: d.user_id,
-          notif_type: "done",
-        });
-      }
-    } catch (e: unknown) {
-      toast.error("Erro ao aprovar", { description: (e as Error).message });
-    } finally {
-      setApprovingId(null);
-    }
-  }
-
-  async function handleReject(d: HubDoc) {
-    if (!confirm(`Rejeitar e eliminar "${d.title}"?`)) return;
-    setDeletingId(d.id);
-    try {
-      const { error } = await supabase.from("hub_documents").delete().eq("id", d.id);
-      if (error) throw error;
-      setDocs((prev) => prev.filter((x) => x.id !== d.id));
-      toast.success("Documento rejeitado e eliminado.");
-    } catch (e: unknown) {
-      toast.error("Erro ao rejeitar", { description: (e as Error).message });
-    } finally {
-      setDeletingId(null);
-    }
-  }
-
-  // ── Send notification helper ──────────────────────────────────────────────
+  // ── Stats / render ────────────────────────────────────────────────────────
 
   const stats = {
     total: docs.length,
     published: docs.filter((d) => d.published).length,
-    pendingCount: pending.length,
+    hiddenCount: hidden.length,
     downloads: docs.reduce((s, d) => s + d.downloads, 0),
   };
 
@@ -312,7 +249,7 @@ function BalcaoHub() {
         {[
           { label: "Total", value: stats.total, icon: FileText, cls: "text-brand" },
           { label: "Publicados", value: stats.published, icon: CheckCircle2, cls: "text-emerald-600" },
-          { label: "Pendentes", value: stats.pendingCount, icon: Clock, cls: stats.pendingCount > 0 ? "text-amber-500" : "text-muted-foreground" },
+          { label: "Ocultos", value: stats.hiddenCount, icon: EyeOff, cls: stats.hiddenCount > 0 ? "text-amber-500" : "text-muted-foreground" },
           { label: "Downloads", value: stats.downloads.toLocaleString(), icon: Download, cls: "text-violet-600" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
@@ -330,7 +267,7 @@ function BalcaoHub() {
         {([
           { id: "todos", label: "Todos", count: docs.length },
           { id: "publicados", label: "Publicados", count: stats.published },
-          { id: "pendentes", label: "Pendentes", count: stats.pendingCount, alert: stats.pendingCount > 0 },
+          { id: "ocultos", label: "Ocultos", count: stats.hiddenCount, alert: stats.hiddenCount > 0 },
         ] as const).map((t) => (
           <button
             key={t.id}
@@ -385,10 +322,7 @@ function BalcaoHub() {
             <table className="w-full text-sm">
               <thead className="border-b border-border bg-muted/40">
                 <tr>
-                  {(tab === "pendentes"
-                ? ["Título / Autor", "Categoria", "Submetido por", "Estado", "Acções"]
-                : ["Título / Autor", "Categoria", "Páginas", "Downloads", "Estado", "Acções"]
-              ).map((h) => (
+                  {["Título / Autor", "Categoria", "Páginas", "Downloads", "Estado", "Acções"].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                       {h}
                     </th>
@@ -405,7 +339,7 @@ function BalcaoHub() {
                 ) : visible.map((d) => {
                   const cat = DOC_CATEGORIES.find((c) => c.id === d.category);
                   return (
-                    <tr key={d.id} className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors ${!d.published && d.user_id ? "bg-amber-50/30 dark:bg-amber-950/10" : ""}`}>
+                    <tr key={d.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div
@@ -422,55 +356,19 @@ function BalcaoHub() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-xs">{cat?.icon} {cat?.label}</td>
-                      {tab === "pendentes" ? (
-                        <td className="px-4 py-3 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            {d.user_id ? d.user_id.slice(0, 8) + "…" : "Admin"}
-                          </div>
-                          <div className="text-[10px] mt-0.5">{new Date(d.created_at).toLocaleDateString("pt-PT")}</div>
-                        </td>
-                      ) : (
-                        <>
-                          <td className="px-4 py-3 text-xs text-muted-foreground">{d.pages}</td>
-                          <td className="px-4 py-3 text-xs">{d.downloads.toLocaleString()}</td>
-                        </>
-                      )}
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{d.pages}</td>
+                      <td className="px-4 py-3 text-xs">{d.downloads.toLocaleString()}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium
                           ${d.published
                             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
-                            : d.user_id
-                              ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
-                              : "bg-muted text-muted-foreground"
-                          }`}
+                            : "bg-muted text-muted-foreground"}`}
                         >
-                          {d.published ? "Publicado" : d.user_id ? "Pendente" : "Rascunho"}
+                          {d.published ? "Publicado" : "Oculto"}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
-                          {/* Approve/Reject for pending user submissions */}
-                          {!d.published && d.user_id && (
-                            <>
-                              <button
-                                onClick={() => handleApprove(d)}
-                                disabled={approvingId === d.id}
-                                className="rounded p-1.5 text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40"
-                                title="Aprovar (+2 créditos)"
-                              >
-                                <ThumbsUp className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleReject(d)}
-                                disabled={deletingId === d.id}
-                                className="rounded p-1.5 text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-40"
-                                title="Rejeitar e eliminar"
-                              >
-                                <ThumbsDown className="h-3.5 w-3.5" />
-                              </button>
-                            </>
-                          )}
                           <Link
                             to="/hub/documento/$id"
                             params={{ id: d.id }}
