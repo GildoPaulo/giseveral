@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
@@ -73,6 +74,8 @@ export const Route = createRootRoute({
       { rel: "stylesheet", href: appCss ?? "/assets/styles.css" },
       { rel: "canonical", href: "https://giseveral.com" },
       { rel: "icon", type: "image/jpeg", href: "/logo.jpeg" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/icon.jpeg" },
     ],
   }),
   shellComponent: RootShell,
@@ -95,6 +98,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator && import.meta.env.PROD) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>

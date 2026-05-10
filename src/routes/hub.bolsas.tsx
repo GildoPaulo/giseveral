@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { SkeletonCard } from "@/components/Skeleton";
 import { SCHOLARSHIPS, HUB_NEWS, HUB_GUIDES, type Scholarship, type NewsItem } from "@/data/hub-bolsas";
 import { fetchScholarships, fetchHubNews } from "@/lib/hub";
 import {
@@ -291,25 +292,31 @@ function HubBolsasPage() {
           </p>
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${q}-${country}-${level}-${coverage}`}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-            variants={stagger}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
-          >
-            {filtered.map((s) => (
-              <motion.div key={s.id} variants={cardIn} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-                <ScholarshipCard
-                  s={s}
-                  onNavigate={(id) => navigate({ to: "/hub/bolsas/$id", params: { id } })}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+        {!loaded ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${q}-${country}-${level}-${coverage}`}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              variants={stagger}
+              className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"
+            >
+              {filtered.map((s) => (
+                <motion.div key={s.id} variants={cardIn} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
+                  <ScholarshipCard
+                    s={s}
+                    onNavigate={(id) => navigate({ to: "/hub/bolsas/$id", params: { id } })}
+                  />
+                </motion.div>
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        )}
 
         {filtered.length === 0 && loaded && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-20 text-center">

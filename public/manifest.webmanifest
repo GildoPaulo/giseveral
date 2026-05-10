@@ -1,0 +1,26 @@
+{
+  "name": "Giseveral e Services",
+  "short_name": "Giseveral",
+  "description": "Reprografia, papelaria, tecnologia e Hub académico na Beira, Moçambique",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a3a6b",
+  "orientation": "portrait-primary",
+  "lang": "pt-MZ",
+  "icons": [
+    {
+      "src": "/icon.jpeg",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Hub Académico", "url": "/hub", "description": "Documentos, bolsas e exames" },
+    { "name": "Pedir Orçamento", "url": "/orcamento", "description": "Orçamento gratuito" },
+    { "name": "Loja", "url": "/loja", "description": "Comprar produtos de papelaria" }
+  ],
+  "categories": ["education", "productivity", "business"]
+}

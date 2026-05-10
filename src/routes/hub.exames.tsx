@@ -4,6 +4,7 @@ import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { supabase } from "@/integrations/supabase/client";
 import { EXAMS, type Exam } from "@/data/hub-exams";
+import { SkeletonCard } from "@/components/Skeleton";
 import { BookOpen, Search, GraduationCap, FileText, Calendar, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/hub/exames")({
@@ -89,6 +90,7 @@ function ExamCard({ exam }: { exam: Exam }) {
 
 function HubExamesPage() {
   const [allExams, setAllExams] = useState<Exam[]>(EXAMS);
+  const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [difficulty, setDifficulty] = useState("all");
 
@@ -107,6 +109,7 @@ function HubExamesPage() {
             registrationFee: d.registration_fee ?? undefined,
           })));
         }
+        setLoading(false);
       });
   }, []);
 
@@ -183,7 +186,11 @@ function HubExamesPage() {
         {!q && difficulty === "all" && (
           <h2 className="text-2xl font-bold text-brand mb-6">Todos os exames</h2>
         )}
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-20 text-center text-muted-foreground">
             <FileText className="h-12 w-12 mb-3 opacity-20" />
             <p className="font-medium">Nenhum exame encontrado</p>

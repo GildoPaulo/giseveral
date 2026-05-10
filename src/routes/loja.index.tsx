@@ -9,6 +9,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { useCart } from "@/contexts/CartContext";
+import { SkeletonCard } from "@/components/Skeleton";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -61,6 +62,7 @@ type Product = Tables<"products"> & {
 function LojaIndex() {
   const navigate = useNavigate();
   const [featured, setFeatured] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
 
   useEffect(() => {
@@ -70,7 +72,10 @@ function LojaIndex() {
       .eq("active", true)
       .order("created_at", { ascending: false })
       .limit(4)
-      .then(({ data }) => setFeatured((data as Product[]) ?? []));
+      .then(({ data }) => {
+        setFeatured((data as Product[]) ?? []);
+        setLoading(false);
+      });
   }, []);
 
   const handleAdd = (p: Product) => {
@@ -225,7 +230,7 @@ function LojaIndex() {
       </section>
 
       {/* ── PRODUTOS EM DESTAQUE ──────────────────────────────────────────────── */}
-      {featured.length > 0 && (
+      {(loading || featured.length > 0) && (
         <section className="bg-muted/40 py-14">
           <div className="container mx-auto px-4 max-w-6xl">
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
@@ -243,6 +248,11 @@ function LojaIndex() {
                 </button>
               </motion.div>
 
+              {loading ? (
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+                </div>
+              ) : (
               <motion.div variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 {featured.map((p) => (
                   <motion.div key={p.id} variants={cardIn} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
@@ -305,6 +315,7 @@ function LojaIndex() {
                   </motion.div>
                 ))}
               </motion.div>
+              )}
             </motion.div>
           </div>
         </section>

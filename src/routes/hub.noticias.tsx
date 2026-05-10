@@ -5,6 +5,7 @@ import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { supabase } from "@/integrations/supabase/client";
 import { HUB_NEWS, type NewsItem } from "@/data/hub-bolsas";
+import { SkeletonCard } from "@/components/Skeleton";
 import {
   Newspaper, Search, Calendar, Tag, Eye, ArrowRight, Filter, X,
 } from "lucide-react";
@@ -157,8 +158,8 @@ function HubNoticiasPage() {
 
       <div className="container mx-auto px-4 py-10 max-w-5xl">
         {loading ? (
-          <div className="flex justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-20 text-center">
