@@ -201,22 +201,22 @@ function BolsaDetailPage() {
   // Merge: DB overrides static where available
   const s = {
     id,
-    title: dbData?.title ?? staticData!.title,
-    country: dbData?.country ?? staticData!.country,
-    flag: dbData?.flag ?? staticData!.flag,
-    level: dbData?.level ?? staticData!.level,
-    area: dbData?.area ?? staticData!.area,
-    coverage: dbData?.coverage ?? staticData!.coverage,
-    language: dbData?.language ?? staticData!.language,
-    deadline: dbData?.deadline ?? staticData!.deadline,
-    institution: dbData?.institution ?? staticData!.institution,
-    description: dbData?.description ?? staticData!.description ?? "",
-    apply_url: dbData?.apply_url ?? staticData!.applyUrl,
-    benefits: dbData?.benefits ?? staticData!.benefits,
-    requirements: dbData?.requirements ?? staticData!.requirements,
-    process_steps: dbData?.process_steps ?? staticData!.process ?? [],
-    documents: dbData?.documents ?? staticData!.documents ?? [],
-    tips: dbData?.tips ?? staticData!.tips ?? [],
+    title: dbData?.title ?? staticData?.title ?? "",
+    country: dbData?.country ?? staticData?.country ?? "",
+    flag: dbData?.flag ?? staticData?.flag ?? "🌍",
+    level: dbData?.level ?? staticData?.level ?? "",
+    area: dbData?.area ?? staticData?.area ?? "",
+    coverage: dbData?.coverage ?? staticData?.coverage ?? "",
+    language: dbData?.language ?? staticData?.language ?? "",
+    deadline: dbData?.deadline ?? staticData?.deadline ?? "",
+    institution: dbData?.institution ?? staticData?.institution ?? "",
+    description: dbData?.description ?? staticData?.description ?? "",
+    apply_url: dbData?.apply_url ?? staticData?.applyUrl ?? "#",
+    benefits: dbData?.benefits ?? staticData?.benefits ?? [],
+    requirements: dbData?.requirements ?? staticData?.requirements ?? [],
+    process_steps: dbData?.process_steps ?? staticData?.process ?? [],
+    documents: dbData?.documents ?? staticData?.documents ?? [],
+    tips: dbData?.tips ?? staticData?.tips ?? [],
     content_rich: dbData?.content_rich ?? null,
     guides: parseJsonArray<GuideStep>(dbData?.guides),
     materials: parseJsonArray<Material>(dbData?.materials),
@@ -296,8 +296,11 @@ function BolsaDetailPage() {
   return (
     <Layout>
       {/* ── Hero ─────────────────────────────────────────── */}
-      <section className="bg-gradient-hero text-brand-foreground">
-        <div className="container mx-auto px-4 py-10 md:py-14 max-w-4xl">
+      <section className="relative overflow-hidden bg-gradient-hero text-brand-foreground">
+        {s.image_url && (
+          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${s.image_url})` }} />
+        )}
+        <div className="relative container mx-auto px-4 py-10 md:py-14 max-w-4xl">
           <Link to="/hub/bolsas" className="inline-flex items-center gap-1.5 text-sm text-brand-foreground/70 hover:text-gold transition-smooth">
             <ArrowLeft className="h-4 w-4" /> Todas as bolsas
           </Link>

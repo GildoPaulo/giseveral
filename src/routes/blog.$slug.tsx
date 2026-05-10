@@ -138,8 +138,11 @@ function BlogPostPage() {
   return (
     <Layout>
       {/* Hero */}
-      <section className="bg-gradient-hero text-brand-foreground">
-        <div className="container mx-auto px-4 py-12 md:py-16 max-w-4xl">
+      <section className="relative overflow-hidden bg-gradient-hero text-brand-foreground">
+        {post.image && (
+          <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${typeof post.image === "string" ? post.image : ""})` }} />
+        )}
+        <div className="relative container mx-auto px-4 py-12 md:py-16 max-w-4xl">
           <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-brand-foreground/80 hover:text-gold transition-smooth">
             <ArrowLeft className="h-4 w-4" /> Voltar ao blog
           </Link>

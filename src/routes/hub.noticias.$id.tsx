@@ -143,14 +143,14 @@ function NoticiaDetailPage() {
 
   const n: NewsItem & { views?: number; image_url?: string | null; content_rich?: string | null; comments_enabled?: boolean } = {
     id,
-    title: dbData?.title ?? staticData!.title,
-    excerpt: dbData?.excerpt ?? staticData!.excerpt,
-    category: (dbData?.category ?? staticData!.category) as NewsItem["category"],
-    date: dbData?.date ?? staticData!.date,
-    author: dbData?.author ?? staticData!.author ?? "Equipa Giseveral",
-    content: (dbData?.content ?? staticData!.content) ?? [],
-    relatedScholarship: dbData?.related_scholarship_id ?? staticData!.relatedScholarship,
-    tags: (dbData?.tags ?? staticData!.tags) ?? [],
+    title: dbData?.title ?? staticData?.title ?? "Sem título",
+    excerpt: dbData?.excerpt ?? staticData?.excerpt ?? "",
+    category: ((dbData?.category ?? staticData?.category) ?? "Oportunidades") as NewsItem["category"],
+    date: dbData?.date ?? staticData?.date ?? new Date().toISOString().slice(0, 10),
+    author: dbData?.author ?? staticData?.author ?? "Equipa Giseveral",
+    content: (dbData?.content ?? staticData?.content) ?? [],
+    relatedScholarship: dbData?.related_scholarship_id ?? staticData?.relatedScholarship,
+    tags: (dbData?.tags ?? staticData?.tags) ?? [],
     views: dbData?.views,
     image_url: dbData?.image_url,
     content_rich: dbData?.content_rich,
@@ -186,8 +186,11 @@ function NoticiaDetailPage() {
   return (
     <Layout>
       {/* Hero */}
-      <section className="bg-gradient-hero text-brand-foreground">
-        <div className="container mx-auto px-4 py-10 md:py-14 max-w-4xl">
+      <section className="relative overflow-hidden bg-gradient-hero text-brand-foreground">
+        {n.image_url && (
+          <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${n.image_url})` }} />
+        )}
+        <div className="relative container mx-auto px-4 py-10 md:py-14 max-w-4xl">
           <Link to="/hub/bolsas" className="inline-flex items-center gap-1.5 text-sm text-brand-foreground/70 hover:text-gold transition-smooth">
             <ArrowLeft className="h-4 w-4" /> Hub de Bolsas
           </Link>

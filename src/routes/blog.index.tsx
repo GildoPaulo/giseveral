@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Calendar, ArrowRight, Tag, PenLine, Clock } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import blogHeroBg from "@/assets/printing.jpg";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
@@ -123,6 +124,7 @@ function BlogPage() {
     <Layout>
       {/* ── HERO SECTION ─────────────────────────────────────────────────────── */}
       <section className="relative bg-gradient-hero text-brand-foreground overflow-hidden">
+        <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${blogHeroBg})` }} />
         <div className="absolute -top-20 -right-20 h-80 w-80 rounded-full bg-gold/10 blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 h-56 w-56 rounded-full bg-brand/20 blur-3xl pointer-events-none" />
 
