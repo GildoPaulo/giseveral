@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   DollarSign, Plus, Pencil, Trash2, Star, Loader2, Save, X,
-  Check, ChevronDown, GripVertical, ToggleLeft, ToggleRight,
+  Check, ChevronDown, GripVertical, ToggleLeft, ToggleRight, Download,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -46,6 +46,36 @@ const CATEGORIES = [
   "Outros",
 ];
 
+const DEFAULT_PRICES: Omit<PriceRow, "id">[] = [
+  { category: "Reprografia & Impressão", name: "Impressão Preto & Branco", price: 5, price_label: "5 MZN", unit: "por página", description: null, highlight: false, active: true, sort_order: 0 },
+  { category: "Reprografia & Impressão", name: "Impressão a Cores", price: 15, price_label: "15 MZN", unit: "por página", description: null, highlight: false, active: true, sort_order: 1 },
+  { category: "Reprografia & Impressão", name: "Fotocópias", price: 3, price_label: "3 MZN", unit: "por página", description: null, highlight: false, active: true, sort_order: 2 },
+  { category: "Reprografia & Impressão", name: "Digitalização de documentos", price: 5, price_label: "5 MZN", unit: "por página", description: null, highlight: false, active: true, sort_order: 3 },
+  { category: "Reprografia & Impressão", name: "Encadernação simples", price: 50, price_label: "50 MZN", unit: "por trabalho", description: null, highlight: false, active: true, sort_order: 4 },
+  { category: "Reprografia & Impressão", name: "Encadernação com capa dura", price: 150, price_label: "150 MZN", unit: "por trabalho", description: null, highlight: true, active: true, sort_order: 5 },
+  { category: "Reprografia & Impressão", name: "Plastificação A4", price: 30, price_label: "30 MZN", unit: "por folha", description: null, highlight: false, active: true, sort_order: 6 },
+  { category: "Reprografia & Impressão", name: "Impressão de banners / cartazes", price: null, price_label: "Orçamento", unit: "sob consulta", description: null, highlight: false, active: true, sort_order: 7 },
+  { category: "Assistência Informática", name: "Formatação de PC / Laptop", price: 500, price_label: "500 MZN", unit: "inclui backup", description: null, highlight: true, active: true, sort_order: 0 },
+  { category: "Assistência Informática", name: "Instalação de Windows", price: 700, price_label: "700 MZN", unit: "com drivers", description: null, highlight: false, active: true, sort_order: 1 },
+  { category: "Assistência Informática", name: "Remoção de vírus / malware", price: 400, price_label: "400 MZN", unit: "diagnóstico incl.", description: null, highlight: false, active: true, sort_order: 2 },
+  { category: "Assistência Informática", name: "Instalação de programas", price: 200, price_label: "200 MZN", unit: "pacote básico", description: null, highlight: false, active: true, sort_order: 3 },
+  { category: "Assistência Informática", name: "Recuperação de dados", price: null, price_label: "Orçamento", unit: "sob consulta", description: null, highlight: false, active: true, sort_order: 4 },
+  { category: "Assistência Informática", name: "Reparação de hardware", price: null, price_label: "Orçamento", unit: "avaliação grátis", description: null, highlight: false, active: true, sort_order: 5 },
+  { category: "Redes & Tecnologia", name: "Configuração de router/Wi-Fi", price: 1500, price_label: "1.500 MZN", unit: "residencial", description: null, highlight: false, active: true, sort_order: 0 },
+  { category: "Redes & Tecnologia", name: "Instalação de rede empresarial", price: null, price_label: "Orçamento", unit: "sob consulta", description: null, highlight: false, active: true, sort_order: 1 },
+  { category: "Redes & Tecnologia", name: "Cabeamento estruturado", price: 200, price_label: "200 MZN", unit: "por ponto", description: null, highlight: true, active: true, sort_order: 2 },
+  { category: "Redes & Tecnologia", name: "Extensão de sinal Wi-Fi", price: 800, price_label: "800 MZN", unit: "por repetidor", description: null, highlight: false, active: true, sort_order: 3 },
+  { category: "Redes & Tecnologia", name: "Assistência técnica no local", price: 300, price_label: "300 MZN", unit: "deslocação incl.", description: null, highlight: false, active: true, sort_order: 4 },
+  { category: "Design Gráfico", name: "Logotipo / identidade visual", price: 1500, price_label: "1.500 MZN", unit: "inclui ficheiros", description: null, highlight: true, active: true, sort_order: 0 },
+  { category: "Design Gráfico", name: "Cartão de visita (design)", price: 300, price_label: "300 MZN", unit: "frente e verso", description: null, highlight: false, active: true, sort_order: 1 },
+  { category: "Design Gráfico", name: "Panfleto / flyer A5", price: 400, price_label: "400 MZN", unit: "design + impressão", description: null, highlight: false, active: true, sort_order: 2 },
+  { category: "Design Gráfico", name: "Banner digital para redes", price: 250, price_label: "250 MZN", unit: "por peça", description: null, highlight: false, active: true, sort_order: 3 },
+  { category: "Design Gráfico", name: "Edição de documentos / PDF", price: 200, price_label: "200 MZN", unit: "por trabalho", description: null, highlight: false, active: true, sort_order: 4 },
+  { category: "Hub / Créditos", name: "Pacote Starter (10 créditos)", price: 100, price_label: "100 MZN", unit: "válido 90 dias", description: "10 downloads de documentos académicos", highlight: false, active: true, sort_order: 0 },
+  { category: "Hub / Créditos", name: "Pacote Standard (25 créditos)", price: 200, price_label: "200 MZN", unit: "válido 6 meses", description: "25 downloads + suporte prioritário", highlight: true, active: true, sort_order: 1 },
+  { category: "Hub / Créditos", name: "Premium (ilimitado)", price: 350, price_label: "350 MZN/mês", unit: "por mês", description: "Downloads ilimitados + acesso antecipado", highlight: true, active: true, sort_order: 2 },
+];
+
 function BalcaoPrecos() {
   const [items, setItems] = useState<PriceRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +84,16 @@ function BalcaoPrecos() {
   const [form, setForm] = useState<Omit<PriceRow, "id">>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [filterCat, setFilterCat] = useState("Todas");
+  const [importing, setImporting] = useState(false);
+
+  async function handleImportDefaults() {
+    if (!confirm(`Importar ${DEFAULT_PRICES.length} preços padrão? Serão adicionados à lista actual (sem apagar os existentes).`)) return;
+    setImporting(true);
+    const { data, error } = await (supabase as any).from("prices").insert(DEFAULT_PRICES).select();
+    if (error) { toast.error("Erro ao importar: " + error.message); }
+    else { setItems((prev) => [...prev, ...(data as PriceRow[])]); toast.success(`${DEFAULT_PRICES.length} preços importados com sucesso!`); }
+    setImporting(false);
+  }
 
   async function load() {
     setLoading(true);
@@ -159,12 +199,24 @@ function BalcaoPrecos() {
             {items.filter((p) => p.active).length} activos · {items.length} total
           </p>
         </div>
-        <button
-          onClick={openAdd}
-          className="inline-flex items-center gap-1.5 rounded-md bg-gradient-gold px-4 py-2 text-sm font-semibold text-gold-foreground shadow-card"
-        >
-          <Plus className="h-4 w-4" /> Novo preço
-        </button>
+        <div className="flex gap-2">
+          {items.length === 0 && (
+            <button
+              onClick={handleImportDefaults}
+              disabled={importing}
+              className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted px-4 py-2 text-sm font-semibold text-foreground hover:bg-accent disabled:opacity-50"
+            >
+              {importing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              Importar preços padrão
+            </button>
+          )}
+          <button
+            onClick={openAdd}
+            className="inline-flex items-center gap-1.5 rounded-md bg-gradient-gold px-4 py-2 text-sm font-semibold text-gold-foreground shadow-card"
+          >
+            <Plus className="h-4 w-4" /> Novo preço
+          </button>
+        </div>
       </div>
 
       {/* Category filter */}

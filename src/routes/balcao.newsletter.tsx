@@ -128,21 +128,6 @@ function NewsletterAdmin() {
         </div>
       </div>
 
-      {/* ── Config warning ────────────────────────────────────────────────── */}
-      <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700/40 p-4 flex gap-3">
-        <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-        <div className="text-sm">
-          <p className="font-semibold text-amber-800 dark:text-amber-400">Configuração necessária no Cloudflare Pages</p>
-          <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
-            Para o envio de emails funcionar, defina estas variáveis em{" "}
-            <strong>Settings → Environment variables</strong>:<br />
-            <code className="font-mono bg-amber-100 dark:bg-amber-900/30 px-1 rounded">RESEND_API_KEY</code>{" · "}
-            <code className="font-mono bg-amber-100 dark:bg-amber-900/30 px-1 rounded">RESEND_FROM_EMAIL</code>{" · "}
-            <code className="font-mono bg-amber-100 dark:bg-amber-900/30 px-1 rounded">SUPABASE_SERVICE_ROLE_KEY</code>
-          </p>
-        </div>
-      </div>
-
       {/* ── Stats ─────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[

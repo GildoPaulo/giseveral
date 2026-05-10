@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect, FormEvent } from "react";
 import {
   Bell, Send, Users, User, GraduationCap, ShieldCheck,
-  CheckCircle2, XCircle, Clock, RefreshCw, Trash2, AlertTriangle,
+  CheckCircle2, XCircle, Clock, RefreshCw, Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -102,18 +102,6 @@ function BalcaoNotificacoes() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-amber-300 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-700/40 p-4 flex gap-3">
-        <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-        <div className="text-sm">
-          <p className="font-semibold text-amber-800 dark:text-amber-400">Configuração necessária no Cloudflare Pages</p>
-          <p className="text-amber-700 dark:text-amber-500 text-xs mt-1">
-            Defina em <strong>Settings → Environment variables</strong>:{" "}
-            <code className="font-mono bg-amber-100 dark:bg-amber-900/30 px-1 rounded">VAPID_PRIVATE_KEY_JWK</code>{" · "}
-            <code className="font-mono bg-amber-100 dark:bg-amber-900/30 px-1 rounded">SUPABASE_SERVICE_ROLE_KEY</code>
-          </p>
-        </div>
-      </div>
-
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Push Notifications</h1>
         <button

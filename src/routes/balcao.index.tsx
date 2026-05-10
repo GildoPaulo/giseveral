@@ -362,7 +362,7 @@ function BalcaoDashboard() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand border-t-transparent mr-3" />
             A carregar estatísticas…
           </div>
-        ) : !analytics || !analytics.stats ? (
+        ) : !analytics?.stats?.visitors ? (
           <div className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">
             <Globe className="h-10 w-10 mx-auto mb-3 opacity-20" />
             <p className="text-sm font-medium">Estatísticas não disponíveis</p>
@@ -375,10 +375,10 @@ function BalcaoDashboard() {
             {/* Stat cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { label: "Visitantes únicos", value: analytics.stats.visitors.value.toLocaleString(), icon: Users, color: "text-brand" },
-                { label: "Visualizações", value: analytics.stats.pageviews.value.toLocaleString(), icon: Eye, color: "text-indigo-600" },
-                { label: "Visitas totais", value: analytics.stats.visits.value.toLocaleString(), icon: TrendingUp, color: "text-emerald-600" },
-                { label: "Tempo médio (s)", value: Math.round((analytics.stats.totaltime.value / (analytics.stats.visits.value || 1))).toLocaleString(), icon: Clock, color: "text-amber-600" },
+                { label: "Visitantes únicos", value: (analytics.stats.visitors?.value ?? 0).toLocaleString(), icon: Users, color: "text-brand" },
+                { label: "Visualizações", value: (analytics.stats.pageviews?.value ?? 0).toLocaleString(), icon: Eye, color: "text-indigo-600" },
+                { label: "Visitas totais", value: (analytics.stats.visits?.value ?? 0).toLocaleString(), icon: TrendingUp, color: "text-emerald-600" },
+                { label: "Tempo médio (s)", value: Math.round(((analytics.stats as any).totaltime?.value ?? 0) / ((analytics.stats.visits?.value || 1))).toLocaleString(), icon: Clock, color: "text-amber-600" },
               ].map(({ label, value, icon: Icon, color }) => (
                 <div key={label} className="rounded-xl border border-border bg-card p-4 flex items-center gap-3 shadow-card">
                   <Icon className={`h-8 w-8 ${color} flex-shrink-0`} />
