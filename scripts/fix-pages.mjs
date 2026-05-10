@@ -14,7 +14,7 @@ if (!fs.existsSync(distDir)) {
 const routesJson = {
   version: 1,
   include: ["/*"],
-  exclude: ["/assets/*", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.svg", "*.ico", "/favicon.ico", "/robots.txt", "/sitemap.xml"],
+  exclude: ["/assets/*", "/*.png", "/*.jpg", "/*.jpeg", "/*.gif", "/*.svg", "/*.ico", "/favicon.ico", "/robots.txt", "/sitemap.xml"],
 };
 fs.writeFileSync(path.join(distDir, "_routes.json"), JSON.stringify(routesJson, null, 2));
 console.log("✅ _routes.json created");
