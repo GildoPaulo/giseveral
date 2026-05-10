@@ -1,5 +1,6 @@
-import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   LayoutDashboard, ShoppingBag, Package, Truck,
   LogOut, Menu, X, ChevronRight, BoxesIcon, BookOpen,
@@ -55,6 +56,36 @@ function BalcaoLayout() {
         setChecking(false);
       });
   }, [user]);
+
+  const navigate = useNavigate();
+
+  // Realtime: listen for new orders when admin is authenticated
+  useEffect(() => {
+    if (!isAdmin) return;
+
+    const channel = supabase
+      .channel("balcao-realtime-orders")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        (payload) => {
+          const order = payload.new as { order_number?: string; customer_name?: string };
+          toast.success(
+            `Novo pedido: ${order.order_number ?? ""} — ${order.customer_name ?? ""}`,
+            {
+              duration: 8000,
+              action: {
+                label: "Ver pedidos",
+                onClick: () => navigate({ to: "/balcao/pedidos" }),
+              },
+            }
+          );
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin]);
 
   if (checking) {
     return (

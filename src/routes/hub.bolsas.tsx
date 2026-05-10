@@ -14,8 +14,10 @@ import { Input } from "@/components/ui/input";
 import {
   GraduationCap, Globe, Search, Calendar, ExternalLink, Newspaper,
   BookOpen, Sparkles, ArrowRight, Languages, Wallet, Bell, CheckCircle2,
-  MapPin, Filter, Clock, BookMarked,
+  MapPin, Filter, Clock, BookMarked, Heart,
 } from "lucide-react";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const Route = createFileRoute("/hub/bolsas")({
   head: () => ({
@@ -68,6 +70,8 @@ const LEVEL_COLOR: Record<string, string> = {
 
 function HubBolsasPage() {
   const navigate = useNavigate();
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { user } = useAuth();
   const [allScholarships, setAllScholarships] = useState<Scholarship[]>(SCHOLARSHIPS);
   const [allNews, setAllNews] = useState<NewsItem[]>(HUB_NEWS);
   const [q, setQ] = useState("");
@@ -231,7 +235,7 @@ function HubBolsasPage() {
             <motion.div variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {featured.slice(0, 3).map((s) => (
                 <motion.div key={s.id} variants={cardIn} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-                  <ScholarshipCard s={s} onNavigate={(id) => navigate({ to: "/hub/bolsas/$id", params: { id } })} />
+                  <ScholarshipCard s={s} onNavigate={(id) => navigate({ to: "/hub/bolsas/$id", params: { id } })} user={user} isFavorite={isFavorite} toggleFavorite={toggleFavorite} />
                 </motion.div>
               ))}
             </motion.div>
@@ -311,6 +315,9 @@ function HubBolsasPage() {
                   <ScholarshipCard
                     s={s}
                     onNavigate={(id) => navigate({ to: "/hub/bolsas/$id", params: { id } })}
+                    user={user}
+                    isFavorite={isFavorite}
+                    toggleFavorite={toggleFavorite}
                   />
                 </motion.div>
               ))}
@@ -379,6 +386,9 @@ function HubBolsasPage() {
                         s={s}
                         compact
                         onNavigate={(id) => navigate({ to: "/hub/bolsas/$id", params: { id } })}
+                        user={user}
+                        isFavorite={isFavorite}
+                        toggleFavorite={toggleFavorite}
                       />
                     ))
                     : <p className="text-muted-foreground col-span-2">Nenhuma bolsa correspondente. Tente outra combinação.</p>
@@ -558,10 +568,16 @@ function ScholarshipCard({
   s,
   compact = false,
   onNavigate,
+  user,
+  isFavorite,
+  toggleFavorite,
 }: {
   s: Scholarship;
   compact?: boolean;
   onNavigate: (id: string) => void;
+  user: ReturnType<typeof useAuth>["user"];
+  isFavorite: (type: "bolsa" | "noticia" | "produto" | "exame", id: string) => boolean;
+  toggleFavorite: (type: "bolsa" | "noticia" | "produto" | "exame", id: string, title: string, url: string) => void;
 }) {
   const deadline = new Date(s.deadline);
   const daysLeft = Math.ceil((deadline.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
@@ -570,11 +586,22 @@ function ScholarshipCard({
 
   return (
     <article
-      className="group flex flex-col rounded-2xl bg-card border border-border overflow-hidden shadow-card h-full cursor-pointer hover:shadow-elegant hover:-translate-y-1 transition-smooth"
+      className="relative group flex flex-col rounded-2xl bg-card border border-border overflow-hidden shadow-card h-full cursor-pointer hover:shadow-elegant hover:-translate-y-1 transition-smooth"
       onClick={(e) => {
         if (!(e.target as HTMLElement).closest("a, button")) onNavigate(s.id);
       }}
     >
+      {/* Heart / favorite button */}
+      {user && (
+        <button
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); toggleFavorite("bolsa", s.id, s.title, `/hub/bolsas/${s.id}`); }}
+          className="absolute top-3 right-3 z-10 rounded-full p-1.5 bg-background/80 backdrop-blur-sm hover:bg-background transition-smooth"
+          aria-label={isFavorite("bolsa", s.id) ? "Remover favorito" : "Guardar favorito"}
+        >
+          <Heart className={`h-4 w-4 ${isFavorite("bolsa", s.id) ? "fill-red-500 text-red-500" : "text-muted-foreground"}`} />
+        </button>
+      )}
+
       {/* Header */}
       <div className={`relative p-5 text-brand-foreground ${expired ? "bg-muted" : "bg-gradient-hero"}`}>
         <div className="absolute top-4 right-4 text-3xl select-none">{s.flag}</div>

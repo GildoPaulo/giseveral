@@ -7,8 +7,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { HUB_NEWS, type NewsItem } from "@/data/hub-bolsas";
 import { SkeletonCard } from "@/components/Skeleton";
 import {
-  Newspaper, Search, Calendar, Tag, Eye, ArrowRight, Filter, X,
+  Newspaper, Search, Calendar, Tag, Eye, ArrowRight, Filter, X, Heart,
 } from "lucide-react";
+import { useFavorites } from "@/hooks/useFavorites";
+import { useAuth } from "@/contexts/AuthContext";
 
 export const Route = createFileRoute("/hub/noticias")({
   head: () => ({
@@ -49,6 +51,8 @@ const stagger = {
 };
 
 function HubNoticiasPage() {
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const { user } = useAuth();
   const [allNews, setAllNews] = useState<NewsItem[]>(HUB_NEWS);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
@@ -174,6 +178,16 @@ function HubNoticiasPage() {
             {/* Featured article */}
             {featured && (
               <motion.div variants={fadeUp}>
+                <div className="relative">
+                {user && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); toggleFavorite("noticia", featured.id, featured.title, `/hub/noticias/${featured.id}`); }}
+                    className="absolute top-3 right-3 z-10 rounded-full p-1.5 bg-background/80 backdrop-blur-sm hover:bg-background transition-smooth"
+                    aria-label={isFavorite("noticia", featured.id) ? "Remover favorito" : "Guardar favorito"}
+                  >
+                    <Heart className={`h-4 w-4 ${isFavorite("noticia", featured.id) ? "fill-red-500 text-red-500" : "text-muted-foreground"}`} />
+                  </button>
+                )}
                 <Link
                   to="/hub/noticias/$id"
                   params={{ id: featured.id }}
@@ -205,6 +219,7 @@ function HubNoticiasPage() {
                     </div>
                   </div>
                 </Link>
+                </div>
               </motion.div>
             )}
 
@@ -213,6 +228,16 @@ function HubNoticiasPage() {
               <motion.div variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {rest.map((n) => (
                   <motion.div key={n.id} variants={fadeUp}>
+                    <div className="relative">
+                    {user && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); toggleFavorite("noticia", n.id, n.title, `/hub/noticias/${n.id}`); }}
+                        className="absolute top-3 right-3 z-10 rounded-full p-1.5 bg-background/80 backdrop-blur-sm hover:bg-background transition-smooth"
+                        aria-label={isFavorite("noticia", n.id) ? "Remover favorito" : "Guardar favorito"}
+                      >
+                        <Heart className={`h-4 w-4 ${isFavorite("noticia", n.id) ? "fill-red-500 text-red-500" : "text-muted-foreground"}`} />
+                      </button>
+                    )}
                     <Link
                       to="/hub/noticias/$id"
                       params={{ id: n.id }}
@@ -244,6 +269,7 @@ function HubNoticiasPage() {
                         </div>
                       </div>
                     </Link>
+                    </div>
                   </motion.div>
                 ))}
               </motion.div>

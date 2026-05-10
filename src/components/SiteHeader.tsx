@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Menu, X, User, LogIn, ShoppingCart, Bell, Sun, Moon,
   Package, Wrench, Truck, CheckCircle2, Tag, AlertTriangle,
-  BellOff, Trash2, Info,
+  BellOff, Trash2, Info, Search,
 } from "lucide-react";
+import { GlobalSearch } from "@/components/GlobalSearch";
 import logo from "@/assets/logo.jpeg";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
@@ -52,6 +53,19 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [filter, setFilter] = useState<NotifType | "all">("all");
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Cmd+K / Ctrl+K opens the search modal
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const { user } = useAuth();
   const { totalItems } = useCart();
@@ -107,6 +121,16 @@ export function SiteHeader() {
 
         {/* Desktop actions */}
         <div className="hidden lg:flex items-center gap-2">
+          {/* Search */}
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-smooth flex items-center gap-1.5"
+            aria-label="Pesquisar (Ctrl+K)"
+          >
+            <Search className="h-4 w-4" />
+            <span className="hidden xl:inline text-xs text-muted-foreground">Ctrl+K</span>
+          </button>
+
           {/* Cart */}
           <Link
             to="/loja/carrinho"
@@ -284,6 +308,13 @@ export function SiteHeader() {
 
         {/* Mobile icons */}
         <div className="flex lg:hidden items-center gap-2">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className="rounded-md p-2 text-foreground hover:bg-accent"
+            aria-label="Pesquisar"
+          >
+            <Search className="h-5 w-5" />
+          </button>
           <Link to="/loja/carrinho" className="relative rounded-md p-2 text-foreground hover:bg-accent">
             <ShoppingCart className="h-5 w-5" />
             {totalItems > 0 && (
@@ -302,10 +333,20 @@ export function SiteHeader() {
         </div>
       </div>
 
+      <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+
       {/* Mobile menu */}
       {open && (
         <nav className="lg:hidden border-t border-border bg-background">
           <div className="container mx-auto flex flex-col px-4 py-3">
+            {/* Mobile search button */}
+            <button
+              onClick={() => { setOpen(false); setSearchOpen(true); }}
+              className="mb-2 flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-smooth"
+            >
+              <Search className="h-4 w-4" />
+              Pesquisar…
+            </button>
             {navItems.map((item) => (
               <Link
                 key={item.to}
