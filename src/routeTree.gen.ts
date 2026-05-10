@@ -63,6 +63,8 @@ import { Route as HubBolsasIdRouteImport } from './routes/hub.bolsas.$id'
 import { Route as HubBolsasIndexRouteImport } from './routes/hub.bolsas.index'
 import { Route as HubNoticiasIndexRouteImport } from './routes/hub.noticias.index'
 import { Route as HubCvRouteImport } from './routes/hub.cv'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as BalcaoNotificacoesRouteImport } from './routes/balcao.notificacoes'
 
 const SobreRoute = SobreRouteImport.update({
@@ -335,6 +337,16 @@ const HubCvRoute = HubCvRouteImport.update({
   path: '/hub/cv',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BalcaoNotificacoesRoute = BalcaoNotificacoesRouteImport.update({
   id: '/notificacoes',
   path: '/notificacoes',
@@ -379,6 +391,8 @@ export interface FileRoutesByFullPath {
   '/hub/noticias': typeof HubNoticiasRouteWithChildren
   '/hub/upload': typeof HubUploadRoute
   '/hub/cv': typeof HubCvRoute
+  '/terms': typeof TermsRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
@@ -431,6 +445,8 @@ export interface FileRoutesByTo {
   '/hub/noticias': typeof HubNoticiasRouteWithChildren
   '/hub/upload': typeof HubUploadRoute
   '/hub/cv': typeof HubCvRoute
+  '/terms': typeof TermsRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
@@ -486,6 +502,8 @@ export interface FileRoutesById {
   '/hub/noticias': typeof HubNoticiasRouteWithChildren
   '/hub/upload': typeof HubUploadRoute
   '/hub/cv': typeof HubCvRoute
+  '/terms': typeof TermsRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
@@ -542,6 +560,8 @@ export interface FileRouteTypes {
     | '/hub/noticias'
     | '/hub/upload'
     | '/hub/cv'
+    | '/terms'
+    | '/privacy-policy'
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/papelaria'
@@ -594,6 +614,8 @@ export interface FileRouteTypes {
     | '/hub/noticias'
     | '/hub/upload'
     | '/hub/cv'
+    | '/terms'
+    | '/privacy-policy'
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/papelaria'
@@ -648,6 +670,8 @@ export interface FileRouteTypes {
     | '/hub/noticias'
     | '/hub/upload'
     | '/hub/cv'
+    | '/terms'
+    | '/privacy-policy'
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/papelaria'
@@ -689,6 +713,8 @@ export interface RootRouteChildren {
   HubNoticiasRoute: typeof HubNoticiasRouteWithChildren
   HubUploadRoute: typeof HubUploadRoute
   HubCvRoute: typeof HubCvRoute
+  TermsRoute: typeof TermsRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   LojaCarrinhoRoute: typeof LojaCarrinhoRoute
   LojaCheckoutRoute: typeof LojaCheckoutRoute
   LojaPapelariaRoute: typeof LojaPapelariaRoute
@@ -868,6 +894,20 @@ declare module '@tanstack/react-router' {
       path: '/hub/cv'
       fullPath: '/hub/cv'
       preLoaderRoute: typeof HubCvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub/noticias': {
@@ -1188,6 +1228,8 @@ const rootRouteChildren: RootRouteChildren = {
   HubNoticiasRoute: HubNoticiasRouteWithChildren,
   HubUploadRoute: HubUploadRoute,
   HubCvRoute: HubCvRoute,
+  TermsRoute: TermsRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   LojaCarrinhoRoute: LojaCarrinhoRoute,
   LojaCheckoutRoute: LojaCheckoutRoute,
   LojaPapelariaRoute: LojaPapelariaRoute,

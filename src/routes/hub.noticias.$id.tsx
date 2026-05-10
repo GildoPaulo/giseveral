@@ -14,7 +14,7 @@ import {
 
 function sanitizeHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, "text/html");
-  doc.querySelectorAll("script, iframe, object, embed, form, input, button, link[rel!=stylesheet], meta, base").forEach((el) => el.remove());
+  doc.querySelectorAll("script, iframe, object, embed, form, input, button, link:not([rel='stylesheet']), meta, base").forEach((el) => el.remove());
   doc.querySelectorAll("*").forEach((el) => {
     Array.from(el.attributes).forEach((attr) => {
       if (attr.name.startsWith("on") || (attr.name === "href" && /^(javascript|vbscript):/i.test(attr.value))) {

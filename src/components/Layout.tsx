@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
 import { Chatbot } from "./Chatbot";
+import { CookiesBanner } from "./CookiesBanner";
 import defaultHeroBg from "@/assets/hero-bg.jpg";
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -11,6 +12,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <main className="flex-1">{children}</main>
       <SiteFooter />
       <Chatbot />
+      <CookiesBanner />
     </div>
   );
 }
