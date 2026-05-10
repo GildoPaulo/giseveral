@@ -26,5 +26,6 @@ CREATE POLICY "newsletter_subscribers_staff_read" ON public.newsletter_subscribe
   );
 
 -- Allow anyone to delete their own subscription (unsubscribe)
-CREATE POLICY IF NOT EXISTS "newsletter_subscribers_self_delete" ON public.newsletter_subscribers
+DROP POLICY IF EXISTS "newsletter_subscribers_self_delete" ON public.newsletter_subscribers;
+CREATE POLICY "newsletter_subscribers_self_delete" ON public.newsletter_subscribers
   FOR DELETE USING (true);
