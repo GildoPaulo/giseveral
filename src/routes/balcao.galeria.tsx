@@ -17,6 +17,8 @@ type GalleryItem = {
   client: string;
   category: string;
   rating: number;
+  before_url: string | null;
+  project_url: string | null;
   created_at: string;
 };
 
@@ -35,8 +37,8 @@ function StarPicker({ value, onChange }: { value: number; onChange: (v: number) 
   );
 }
 
-type ItemForm = { title: string; description: string; client: string; category: string; rating: number };
-const emptyForm = (): ItemForm => ({ title: "", description: "", client: "", category: "Impressão", rating: 5 });
+type ItemForm = { title: string; description: string; client: string; category: string; rating: number; before_url: string; project_url: string };
+const emptyForm = (): ItemForm => ({ title: "", description: "", client: "", category: "Impressão", rating: 5, before_url: "", project_url: "" });
 
 function BalcaoGaleria() {
   const [items, setItems] = useState<GalleryItem[]>([]);
@@ -88,6 +90,8 @@ function BalcaoGaleria() {
         client: addForm.client.trim(),
         category: addForm.category,
         rating: addForm.rating,
+        before_url: addForm.before_url.trim() || null,
+        project_url: addForm.project_url.trim() || null,
       })
       .select()
       .single();
@@ -122,14 +126,14 @@ function BalcaoGaleria() {
 
   function startEdit(item: GalleryItem) {
     setEditId(item.id);
-    setEditForm({ title: item.title, description: item.description, client: item.client, category: item.category, rating: item.rating });
+    setEditForm({ title: item.title, description: item.description, client: item.client, category: item.category, rating: item.rating, before_url: item.before_url ?? "", project_url: item.project_url ?? "" });
   }
 
   async function saveEdit() {
     if (!editId) return;
     const { error } = await (supabase as any)
       .from("gallery_items")
-      .update({ title: editForm.title, description: editForm.description, client: editForm.client, category: editForm.category, rating: editForm.rating })
+      .update({ title: editForm.title, description: editForm.description, client: editForm.client, category: editForm.category, rating: editForm.rating, before_url: editForm.before_url.trim() || null, project_url: editForm.project_url.trim() || null })
       .eq("id", editId);
     if (error) { toast.error("Erro ao actualizar"); return; }
     setItems((prev) => prev.map((i) => i.id === editId ? { ...i, ...editForm } : i));
@@ -202,6 +206,18 @@ function BalcaoGaleria() {
               </div>
             </div>
             <div>
+              <label className="block text-sm font-medium text-foreground mb-1">URL imagem "Antes" <span className="text-muted-foreground font-normal">(opcional)</span></label>
+              <input value={addForm.before_url} onChange={(e) => setAddForm({ ...addForm, before_url: e.target.value })}
+                placeholder="https://... (para comparação Antes/Depois)"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">URL do projecto <span className="text-muted-foreground font-normal">(opcional)</span></label>
+              <input value={addForm.project_url} onChange={(e) => setAddForm({ ...addForm, project_url: e.target.value })}
+                placeholder="https://... (link externo para o projecto)"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+            </div>
+            <div>
               <label className="block text-sm font-medium text-foreground mb-1">Avaliação do cliente</label>
               <StarPicker value={addForm.rating} onChange={(v) => setAddForm({ ...addForm, rating: v })} />
             </div>
@@ -248,6 +264,12 @@ function BalcaoGaleria() {
                   <input value={editForm.client} onChange={(e) => setEditForm({ ...editForm, client: e.target.value })}
                     placeholder="Cliente"
                     className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                  <input value={editForm.before_url} onChange={(e) => setEditForm({ ...editForm, before_url: e.target.value })}
+                    placeholder="URL imagem Antes (opcional)"
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                  <input value={editForm.project_url} onChange={(e) => setEditForm({ ...editForm, project_url: e.target.value })}
+                    placeholder="URL do projecto (opcional)"
+                    className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
                   <StarPicker value={editForm.rating} onChange={(v) => setEditForm({ ...editForm, rating: v })} />
                   <div className="flex gap-2">
                     <button onClick={saveEdit} className="flex-1 rounded-md bg-gradient-brand py-2 text-xs font-semibold text-brand-foreground flex items-center justify-center gap-1">
@@ -262,7 +284,10 @@ function BalcaoGaleria() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <h3 className="font-semibold text-brand text-sm leading-snug">{item.title}</h3>
-                    <span className="text-[10px] rounded-full bg-muted px-2 py-0.5 text-muted-foreground flex-shrink-0">{item.category}</span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-[10px] rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{item.category}</span>
+                      {item.before_url && <span className="text-[9px] rounded-full bg-brand/10 text-brand px-2 py-0.5 font-medium">Antes/Depois</span>}
+                    </div>
                   </div>
                   {item.description && <p className="text-xs text-muted-foreground mb-1">{item.description}</p>}
                   {item.client && <p className="text-xs text-muted-foreground">Cliente: <span className="font-medium text-foreground">{item.client}</span></p>}

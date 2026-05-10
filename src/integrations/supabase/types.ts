@@ -970,32 +970,38 @@ export type Database = {
       gallery_items: {
         Row: {
           id: string
+          url: string
           title: string
+          description: string
+          client: string
           category: string
-          image_url: string
+          rating: number
           before_url: string | null
           project_url: string | null
-          stars: number | null
           created_at: string
         }
         Insert: {
           id?: string
-          title: string
-          category: string
-          image_url: string
+          url: string
+          title?: string
+          description?: string
+          client?: string
+          category?: string
+          rating?: number
           before_url?: string | null
           project_url?: string | null
-          stars?: number | null
           created_at?: string
         }
         Update: {
           id?: string
+          url?: string
           title?: string
+          description?: string
+          client?: string
           category?: string
-          image_url?: string
+          rating?: number
           before_url?: string | null
           project_url?: string | null
-          stars?: number | null
           created_at?: string
         }
         Relationships: []
