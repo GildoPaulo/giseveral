@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { triggerAutoNotify } from "@/services/autoNotify";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
@@ -405,6 +406,16 @@ function BalcaoBlog() {
       setDrafts(next);
       saveDraftsLocal(next);
       toast.success("Artigo publicado no site!");
+      if (!existing) {
+        triggerAutoNotify({
+          event_type: "nova_noticia",
+          title: `Novo artigo: ${editing.title}`,
+          body: (editing as { intro?: string }).intro || editing.title,
+          url: `/blog/${slug}`,
+          channels: ["push", "email"],
+          target: "all",
+        });
+      }
     } catch (e) {
       toast.error("Erro ao publicar: " + (e instanceof Error ? e.message : "desconhecido"));
     } finally {

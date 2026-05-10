@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { triggerAutoNotify } from "@/services/autoNotify";
 import { DOC_CATEGORIES, type DocCategory } from "@/data/hub-documents";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import {
@@ -247,6 +248,18 @@ function BalcaoHub() {
 
       setDocs((prev) => prev.map((x) => x.id === d.id ? { ...x, published: true } : x));
       toast.success("Documento aprovado! +2 créditos atribuídos ao autor.");
+      if (d.user_id) {
+        triggerAutoNotify({
+          event_type: "doc_aprovado",
+          title: "O teu documento foi aprovado! 🎉",
+          body: `"${d.title}" está agora disponível no Hub. +2 créditos adicionados à tua conta.`,
+          url: `/hub/documento/${d.id}`,
+          channels: ["push", "email", "inapp"],
+          target: "user",
+          user_id: d.user_id,
+          notif_type: "done",
+        });
+      }
     } catch (e: unknown) {
       toast.error("Erro ao aprovar", { description: (e as Error).message });
     } finally {

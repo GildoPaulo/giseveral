@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { triggerAutoNotify } from "@/services/autoNotify";
 import { SCHOLARSHIPS } from "@/data/hub-bolsas";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { FileUpload } from "@/components/admin/FileUpload";
@@ -252,6 +253,16 @@ function BalcaoBolsas() {
       else setItems((prev) => prev.map((s) => s.id === form.id ? form : s));
       toast.success("Bolsa guardada!");
       setEditing(null);
+      if (isNew && form.active) {
+        triggerAutoNotify({
+          event_type: "nova_bolsa",
+          title: `Nova bolsa: ${form.title}`,
+          body: `${form.institution || form.country} · Prazo: ${form.deadline || "em aberto"}`,
+          url: `/hub/bolsas`,
+          channels: ["push", "email"],
+          target: "all",
+        });
+      }
     }
     setSaving(false);
   }

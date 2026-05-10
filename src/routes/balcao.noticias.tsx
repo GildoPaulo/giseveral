@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { triggerAutoNotify } from "@/services/autoNotify";
 import { HUB_NEWS } from "@/data/hub-bolsas";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
@@ -157,6 +158,16 @@ function BalcaoNoticias() {
       else setItems((prev) => prev.map((n) => n.id === form.id ? form : n));
       toast.success("Notícia guardada!");
       setEditing(null);
+      if (isNew && form.published) {
+        triggerAutoNotify({
+          event_type: "nova_noticia",
+          title: `Nova notícia: ${form.title}`,
+          body: form.excerpt || form.title,
+          url: `/hub/noticias`,
+          channels: ["push", "email"],
+          target: "all",
+        });
+      }
     }
     setSaving(false);
   }

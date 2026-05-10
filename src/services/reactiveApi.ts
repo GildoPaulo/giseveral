@@ -1,6 +1,6 @@
 import type { CvData } from "@/components/cv-builder";
 
-// All rxresu.me calls go through our Cloudflare proxy to avoid CORS
+// PDF generation calls go through our Cloudflare proxy to avoid CORS
 const API_BASE = "/api/reactive-proxy";
 
 export interface APITemplate {
@@ -11,15 +11,31 @@ export interface APITemplate {
   isPremium?: boolean;
 }
 
+// Reactive Resume v4 templates (fixed set — no public /templates endpoint)
+const STATIC_TEMPLATES: APITemplate[] = [
+  { id: "azurill",   name: "Azurill",   description: "Moderno com barra lateral colorida" },
+  { id: "bronzor",   name: "Bronzor",   description: "Limpo e profissional" },
+  { id: "chikorita", name: "Chikorita", description: "Duas colunas elegantes" },
+  { id: "ditto",     name: "Ditto",     description: "Minimalista e versátil" },
+  { id: "elegant",   name: "Elegant",   description: "Clássico e sofisticado" },
+  { id: "gengar",    name: "Gengar",    description: "Escuro e impactante" },
+  { id: "glalie",    name: "Glalie",    description: "Compacto e eficiente" },
+  { id: "kakuna",    name: "Kakuna",    description: "Simples e directo" },
+  { id: "leafish",   name: "Leafish",   description: "Fresco e contemporâneo" },
+  { id: "nosepass",  name: "Nosepass",  description: "Estruturado e claro" },
+  { id: "onyx",      name: "Onyx",      description: "Escuro e profissional" },
+  { id: "pikachu",   name: "Pikachu",   description: "Dinâmico e energético" },
+  { id: "porcelain", name: "Porcelain", description: "Elegante e refinado" },
+  { id: "rhyhorn",   name: "Rhyhorn",   description: "Robusto e sólido" },
+  { id: "slategray", name: "Slategray", description: "Neutro e versátil" },
+];
+
 function headers() {
   return { "Content-Type": "application/json" };
 }
 
 export async function fetchAPITemplates(): Promise<APITemplate[]> {
-  const res = await fetch(`${API_BASE}/templates`, { headers: headers() });
-  if (!res.ok) throw new Error(`API retornou ${res.status}`);
-  const json = await res.json();
-  return Array.isArray(json) ? json : json.data ?? [];
+  return STATIC_TEMPLATES;
 }
 
 export async function generateAPIPreview(data: CvData, templateId: string): Promise<string> {
