@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useMemo, FormEvent } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo, FormEvent, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { DocumentCard } from "@/components/hub/DocumentCard";
@@ -9,7 +9,7 @@ import { fetchHubDocuments } from "@/lib/hub";
 import { HUB_SITE as SITE } from "@/data/hub-site";
 import {
   Search, Upload, Printer, Crown, FileText, TrendingUp,
-  ShieldCheck, ArrowRight, UserPlus, Eye, Download, CheckCircle2, Zap, BookOpen,
+  ShieldCheck, ArrowRight, UserPlus, Eye, Download, CheckCircle2, Zap, BookOpen, Newspaper,
 } from "lucide-react";
 
 export const Route = createFileRoute("/hub/")({
@@ -45,6 +45,32 @@ const scaleCard: any = {
   hidden: { opacity: 0, scale: 0.94, y: 16 },
   visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
 };
+
+function HubStatCard({ num, suffix, label }: { num: number; suffix: string; label: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const [displayed, setDisplayed] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / 1400, 1);
+      setDisplayed(Math.round((1 - Math.pow(1 - t, 3)) * num));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [inView, num]);
+
+  return (
+    <motion.div ref={ref} variants={fadeUp} className="text-center rounded-2xl bg-card border border-border p-5 shadow-card">
+      <div className="text-2xl sm:text-4xl font-extrabold text-brand">
+        {displayed.toLocaleString()}{suffix}
+      </div>
+      <div className="text-xs sm:text-sm text-muted-foreground mt-1">{label}</div>
+    </motion.div>
+  );
+}
 
 function HubIndexPage() {
   const navigate = useNavigate();
@@ -142,18 +168,11 @@ function HubIndexPage() {
           className="grid grid-cols-3 gap-3 sm:gap-6 max-w-3xl mx-auto"
         >
           {[
-            { v: `${allDocs.length}+`, l: "Documentos" },
-            { v: `${totalDownloads.toLocaleString()}+`, l: "Downloads" },
-            { v: "12k+", l: "Estudantes" },
-          ].map((s, i) => (
-            <motion.div
-              key={s.l}
-              variants={fadeUp}
-              className="text-center rounded-2xl bg-card border border-border p-5 shadow-card"
-            >
-              <div className="text-2xl sm:text-4xl font-extrabold text-brand">{s.v}</div>
-              <div className="text-xs sm:text-sm text-muted-foreground mt-1">{s.l}</div>
-            </motion.div>
+            { num: allDocs.length,   suffix: "+",    l: "Documentos" },
+            { num: totalDownloads,   suffix: "+",    l: "Downloads" },
+            { num: 12000,            suffix: "+",    l: "Estudantes" },
+          ].map((s) => (
+            <HubStatCard key={s.l} num={s.num} suffix={s.suffix} label={s.l} />
           ))}
         </motion.div>
       </section>
@@ -412,8 +431,8 @@ function HubIndexPage() {
         </motion.div>
       </section>
 
-      {/* ── BANNERS – BOLSAS + CARTAS ─────────────────────────────────────────── */}
-      <section className="container mx-auto px-4 pb-4 max-w-5xl grid sm:grid-cols-2 gap-4">
+      {/* ── BANNERS – BOLSAS + CARTAS + NOTICIAS ────────────────────────────────── */}
+      <section className="container mx-auto px-4 pb-4 max-w-5xl grid sm:grid-cols-3 gap-4">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
           <Link
             to="/hub/bolsas"
@@ -424,6 +443,24 @@ function HubIndexPage() {
               <div>
                 <h3 className="font-bold text-brand group-hover:text-gold transition-smooth">Bolsas de estudo 2026</h3>
                 <p className="text-sm text-muted-foreground">Chevening, DAAD, Erasmus, Fulbright e mais</p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-gold shrink-0 group-hover:translate-x-1 transition-smooth" />
+          </Link>
+        </motion.div>
+
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+          <Link
+            to="/hub/noticias"
+            className="group flex items-center justify-between rounded-2xl bg-card border border-border p-5 shadow-card hover:shadow-elegant transition-smooth"
+          >
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+                <Newspaper className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-brand group-hover:text-gold transition-smooth">Notícias</h3>
+                <p className="text-sm text-muted-foreground">Bolsas, prazos e oportunidades</p>
               </div>
             </div>
             <ArrowRight className="h-5 w-5 text-gold shrink-0 group-hover:translate-x-1 transition-smooth" />

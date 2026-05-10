@@ -1,0 +1,9 @@
+export const WHATSAPP_NUMBER = "258874383621";
+export const WHATSAPP_DISPLAY = "874 383 621";
+export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
+export const PHONE_NUMBER = "+258874383621";
+export const PHONE_DISPLAY = "(258) 874 383 621";
+export const MAX_UPLOAD_MB = 20;
+export const MAX_UPLOAD_BYTES = MAX_UPLOAD_MB * 1024 * 1024;
+export const SITE_NAME = "Giseveral e Services";
+export const SITE_URL = "https://giseveral.pages.dev";

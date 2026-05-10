@@ -153,7 +153,7 @@ function HubUploadPage() {
     setSubmitting(false);
     setSubmitted(true);
     toast.success("Documento submetido para revisão!", {
-      description: "A equipa Giseveral irá verificar e publicar em breve. Ganhou 2 créditos!",
+      description: "A equipa Giseveral irá verificar e publicar em breve. Os 2 créditos serão atribuídos após aprovação.",
       duration: 6000,
     });
   }
@@ -202,7 +202,7 @@ function HubUploadPage() {
             Obrigado por contribuir com a comunidade. O documento será revisto e publicado em até 24 horas.
           </p>
           <div className="inline-flex items-center gap-2 rounded-full bg-gold/15 text-gold-foreground px-4 py-2 text-sm font-semibold mb-8">
-            <Sparkles className="h-4 w-4 text-gold" /> +2 créditos adicionados à sua conta
+            <Sparkles className="h-4 w-4 text-gold" /> +2 créditos após aprovação do documento
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <button

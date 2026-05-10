@@ -246,7 +246,6 @@ function Checkout() {
       clearCart();
       navigate({ to: "/loja/pedido/$id", params: { id: order.id } });
     } catch (err) {
-      console.error(err);
       toast.error("Ocorreu um erro. Tenta novamente.");
     } finally {
       setSubmitting(false);

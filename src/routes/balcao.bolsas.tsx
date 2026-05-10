@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SCHOLARSHIPS } from "@/data/hub-bolsas";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { FileUpload } from "@/components/admin/FileUpload";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 export const Route = createFileRoute("/balcao/bolsas")({
@@ -42,6 +43,7 @@ type ScholarshipRow = {
   guides: GuideStep[];
   materials: Material[];
   image_url: string | null;
+  edital_url: string | null;
   comments_enabled: boolean;
   allow_applications: boolean;
 };
@@ -54,7 +56,7 @@ function emptyRow(): ScholarshipRow {
     institution: "", description: "", apply_url: "",
     benefits: [], requirements: [], process_steps: [], documents: [], tips: [],
     featured: false, active: true, created_at: new Date().toISOString(),
-    content_rich: null, guides: [], materials: [], image_url: null,
+    content_rich: null, guides: [], materials: [], image_url: null, edital_url: null,
     comments_enabled: true, allow_applications: true,
   };
 }
@@ -182,7 +184,7 @@ function BalcaoBolsas() {
         apply_url: s.applyUrl, benefits: s.benefits ?? [], requirements: s.requirements ?? [],
         process_steps: s.process ?? [], documents: s.documents ?? [], tips: s.tips ?? [],
         featured: s.featured ?? false, active: true, created_at: new Date().toISOString(),
-        content_rich: null, guides: [], materials: [], image_url: null,
+        content_rich: null, guides: [], materials: [], image_url: null, edital_url: null,
         comments_enabled: true, allow_applications: true,
       })));
     } else {
@@ -234,8 +236,8 @@ function BalcaoBolsas() {
       process_steps: form.process_steps, documents: form.documents, tips: form.tips,
       featured: form.featured, active: form.active,
       content_rich: form.content_rich || null, guides: form.guides, materials: form.materials,
-      image_url: form.image_url || null, comments_enabled: form.comments_enabled,
-      allow_applications: form.allow_applications,
+      image_url: form.image_url || null, edital_url: form.edital_url || null,
+      comments_enabled: form.comments_enabled, allow_applications: form.allow_applications,
     };
 
     const { error } = await (supabase as any).from("hub_scholarships").upsert(
@@ -371,14 +373,22 @@ function BalcaoBolsas() {
             />
           </div>
 
-          <div>
+          <div className="grid sm:grid-cols-2 gap-4">
             <ImageUpload
               value={f.image_url}
               onChange={(url) => upd((p) => ({ ...p, image_url: url }))}
               label="Imagem de capa"
-              hint="Arraste uma imagem ou use uma URL externa como fallback."
+              hint="Arraste uma imagem ou use uma URL externa."
               bucket="images"
               folder="bolsas"
+            />
+            <FileUpload
+              value={f.edital_url}
+              onChange={(url) => upd((p) => ({ ...p, edital_url: url }))}
+              label="Edital / PDF oficial"
+              hint="PDF do edital da bolsa"
+              bucket="hub-documents"
+              folder="bolsas/editais"
             />
           </div>
 

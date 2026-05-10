@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Layout, PageHero } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import {
   Printer, Laptop, Network, Palette, MessageCircle,
-  CheckCircle2, ShoppingCart, Calculator, Zap, TrendingDown,
+  CheckCircle2, ShoppingCart, Calculator, Zap, TrendingDown, DollarSign,
 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
@@ -339,7 +340,29 @@ function VolumeBanner() {
 
 /* ─── page ──────────────────────────────────────────────── */
 
+type DbPrice = { id: string; category: string; name: string; price: number | null; unit: string; description: string | null; highlight: boolean };
+
 function PrecosPage() {
+  const [dbCats, setDbCats] = useState<Record<string, DbPrice[]> | null>(null);
+
+  useEffect(() => {
+    (supabase as any)
+      .from("prices")
+      .select("id, category, name, price, unit, description, highlight")
+      .eq("active", true)
+      .order("category")
+      .order("sort_order")
+      .then(({ data }: { data: DbPrice[] | null }) => {
+        if (data && data.length > 0) {
+          const grouped = data.reduce<Record<string, DbPrice[]>>((acc, p) => {
+            (acc[p.category] ??= []).push(p);
+            return acc;
+          }, {});
+          setDbCats(grouped);
+        }
+      });
+  }, []);
+
   return (
     <Layout>
       <PageHero
@@ -356,7 +379,35 @@ function PrecosPage() {
             {/* Volume info banner */}
             <VolumeBanner />
 
-            {categorias.map(({ icon: Icon, title, cor, servicos }) => (
+            {/* DB-driven categories if available, else static */}
+            {dbCats ? (
+              Object.entries(dbCats).map(([cat, prices]) => (
+                <div key={cat} className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
+                  <div className="flex items-center gap-3 px-5 py-4 bg-gradient-brand text-brand-foreground">
+                    <DollarSign className="h-5 w-5 flex-shrink-0" />
+                    <h2 className="font-bold text-base">{cat}</h2>
+                  </div>
+                  <table className="w-full text-sm">
+                    <tbody className="divide-y divide-border">
+                      {prices.map((p) => (
+                        <tr key={p.id} className={`${p.highlight ? "bg-gold/5" : ""}`}>
+                          <td className="px-5 py-3">
+                            <span className={`font-medium ${p.highlight ? "text-brand font-bold" : "text-foreground"}`}>{p.name}</span>
+                            {p.description && <p className="text-xs text-muted-foreground mt-0.5">{p.description}</p>}
+                          </td>
+                          <td className="px-5 py-3 text-right">
+                            {p.price !== null
+                              ? <span className={`font-bold ${p.highlight ? "text-gold" : "text-brand"}`}>{Number(p.price).toLocaleString("pt-MZ")} MZN</span>
+                              : <span className="text-muted-foreground text-xs">Sob orçamento</span>}
+                            {p.unit && <p className="text-[10px] text-muted-foreground">{p.unit}</p>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))
+            ) : categorias.map(({ icon: Icon, title, cor, servicos }) => (
               <div key={title} className="rounded-2xl border border-border bg-card shadow-card overflow-hidden">
                 <div className={`flex items-center gap-3 px-5 py-4 ${cor}`}>
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/15">

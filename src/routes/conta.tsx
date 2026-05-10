@@ -177,15 +177,24 @@ function AccountPage() {
   };
 
   const cancelRequest = async (id: string) => {
-    const { error } = await supabase.from("service_requests").update({ status: "cancelled" }).eq("id", id);
+    if (!user) return;
+    const { error } = await supabase.from("service_requests").update({ status: "cancelled" }).eq("id", id).eq("user_id", user.id);
     if (error) { toast.error(error.message); return; }
     setRequests((r) => r.map((x) => (x.id === id ? { ...x, status: "cancelled" as RequestStatus } : x)));
     toast.success("Pedido cancelado");
   };
 
   const submitReview = async (orderId: string) => {
+    if (!user) return;
     const r = reviewMap[orderId];
     if (!r || r.rating === 0) { toast.error("Seleciona uma classificação"); return; }
+    const { error } = await (supabase as any).from("order_reviews").upsert({
+      order_id: orderId,
+      user_id: user.id,
+      rating: r.rating,
+      comment: r.comment.trim() || null,
+    }, { onConflict: "order_id,user_id" });
+    if (error) { toast.error("Erro ao guardar avaliação: " + error.message); return; }
     setReviewMap((m) => ({ ...m, [orderId]: { ...r, saved: true } }));
     toast.success("Avaliação guardada! Obrigado pelo seu feedback.");
   };

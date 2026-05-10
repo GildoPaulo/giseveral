@@ -70,7 +70,7 @@ function OrcamentoPage() {
 
   function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0] ?? null;
-    if (f && f.size > 10 * 1024 * 1024) { toast.error("Ficheiro demasiado grande (máx 10 MB)"); return; }
+    if (f && f.size > 20 * 1024 * 1024) { toast.error("Ficheiro demasiado grande (máx 20 MB)"); return; }
     setFile(f);
   }
 
@@ -247,7 +247,7 @@ function OrcamentoPage() {
                   className="w-full rounded-xl border-2 border-dashed border-border hover:border-brand/40 bg-muted/20 px-4 py-5 text-sm text-muted-foreground hover:text-brand transition-smooth flex items-center justify-center gap-2"
                 >
                   <Paperclip className="h-4 w-4" />
-                  Anexar ficheiro (PDF, imagem — máx 10 MB)
+                  Anexar ficheiro (PDF, imagem — máx 20 MB)
                 </button>
               )}
               <input ref={fileRef} type="file" accept="image/*,.pdf,.doc,.docx,.ai,.psd,.zip" className="hidden" onChange={handleFile} />

@@ -9,6 +9,7 @@ import { MiniBanner } from "@/components/promos/MiniBanner";
 import { PromoPopup } from "@/components/promos/PromoPopup";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { motion } from "framer-motion";
+import { StatCounter } from "@/components/StatCounter";
 import { fetchHubNews } from "@/lib/hub";
 import { HUB_NEWS, type NewsItem } from "@/data/hub-bolsas";
 import {
@@ -60,10 +61,10 @@ const typewriterPhrases = [
 ];
 
 const stats = [
-  { icon: Users,       value: "5 000+",     label: "Clientes satisfeitos" },
-  { icon: Clock,       value: "10+ anos",   label: "De experiência" },
-  { icon: CheckCircle2,value: "99%",        label: "Taxa de satisfação" },
-  { icon: TrendingUp,  value: "24h",        label: "Entrega rápida" },
+  { icon: Users,        numValue: 5000, suffix: "+",    label: "Clientes satisfeitos" },
+  { icon: Clock,        numValue: 10,   suffix: "+ anos", label: "De experiência" },
+  { icon: CheckCircle2, numValue: 99,   suffix: "%",    label: "Taxa de satisfação" },
+  { icon: TrendingUp,   numValue: 24,   suffix: "h",    label: "Entrega rápida" },
 ];
 
 const highlights = [
@@ -224,20 +225,14 @@ function Index() {
       <section className="border-y border-border bg-card">
         <div className="container mx-auto max-w-6xl px-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-border">
-            {stats.map((s, i) => (
-              <motion.div
+            {stats.map((s) => (
+              <StatCounter
                 key={s.label}
-                className="flex flex-col sm:flex-row items-center justify-center gap-3 py-7 px-4 text-center sm:text-left"
-                initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
-              >
-                <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-brand/8 dark:bg-brand/15">
-                  <s.icon className="h-5 w-5 text-brand" />
-                </div>
-                <div>
-                  <p className="text-2xl font-extrabold text-brand leading-none">{s.value}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{s.label}</p>
-                </div>
-              </motion.div>
+                value={s.numValue}
+                suffix={s.suffix}
+                label={s.label}
+                icon={s.icon}
+              />
             ))}
           </div>
         </div>

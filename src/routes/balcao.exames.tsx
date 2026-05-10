@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { EXAMS } from "@/data/hub-exams";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { FileUpload } from "@/components/admin/FileUpload";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 
 export const Route = createFileRoute("/balcao/exames")({
@@ -217,16 +218,22 @@ function BalcaoExames() {
             </div>
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do ficheiro PDF</label>
-              <input value={f.file_url ?? ""} onChange={(e) => upd((p) => ({ ...p, file_url: e.target.value }))} placeholder="https://..."
-                className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
-            </div>
-            <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL do gabarito</label>
-              <input value={f.solution_url ?? ""} onChange={(e) => upd((p) => ({ ...p, solution_url: e.target.value }))} placeholder="https://..."
-                className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
-            </div>
+            <FileUpload
+              value={f.file_url}
+              onChange={(url) => upd((p) => ({ ...p, file_url: url }))}
+              label="Ficheiro do exame (PDF / DOCX)"
+              hint="PDF, DOCX, PPTX aceites"
+              bucket="hub-documents"
+              folder="exames"
+            />
+            <FileUpload
+              value={f.solution_url}
+              onChange={(url) => upd((p) => ({ ...p, solution_url: url }))}
+              label="Gabarito / Resolução"
+              hint="PDF ou DOCX com resolução"
+              bucket="hub-documents"
+              folder="exames/resolucoes"
+            />
           </div>
           <div>
             <ImageUpload

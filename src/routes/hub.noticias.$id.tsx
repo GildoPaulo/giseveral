@@ -11,6 +11,19 @@ import {
   Copy, ThumbsUp, Send, BookOpen, ExternalLink,
 } from "lucide-react";
 
+function sanitizeHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("script, iframe, object, embed, form, input, button, link[rel!=stylesheet], meta, base").forEach((el) => el.remove());
+  doc.querySelectorAll("*").forEach((el) => {
+    Array.from(el.attributes).forEach((attr) => {
+      if (attr.name.startsWith("on") || (attr.name === "href" && /^(javascript|vbscript):/i.test(attr.value))) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return doc.body.innerHTML;
+}
+
 const SITE_URL = "https://giseveral.pages.dev";
 
 type DbNewsRow = {
@@ -86,7 +99,7 @@ function NoticiaDetailPage() {
       .then(({ data }) => {
         if (data) {
           setDbData(data as DbNewsRow);
-          supabase.from("hub_news").update({ views: (data.views ?? 0) + 1 }).eq("id", id);
+          (supabase as any).rpc("increment_news_views", { news_id: id });
         } else if (!staticData) {
           setNotFoundState(true);
         }
@@ -239,7 +252,7 @@ function NoticiaDetailPage() {
       <article className="container mx-auto px-4 py-10 max-w-3xl space-y-6 prose prose-sm prose-headings:text-brand prose-a:text-gold text-foreground/85">
         {n.content_rich ? (
           /<[^>]+>/.test(n.content_rich) ? (
-            <div dangerouslySetInnerHTML={{ __html: n.content_rich }} />
+            <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(n.content_rich) }} />
           ) : (
             n.content_rich.split("\n\n").map((p, i) => (
               <p key={i} className="leading-relaxed">{p}</p>

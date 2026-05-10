@@ -15,6 +15,19 @@ import {
 
 const SITE_URL = "https://giseveral.pages.dev";
 
+function sanitizeHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  doc.querySelectorAll("script, iframe, object, embed, form, meta, base").forEach((el) => el.remove());
+  doc.querySelectorAll("*").forEach((el) => {
+    Array.from(el.attributes).forEach((attr) => {
+      if (attr.name.startsWith("on") || (attr.name === "href" && /^(javascript|vbscript):/i.test(attr.value))) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
+  return doc.body.innerHTML;
+}
+
 type GuideStep = { title: string; description: string; tip?: string; link?: string };
 type Material = { title: string; type: "pdf" | "link" | "video" | "whatsapp"; url: string };
 type CommentRow = {
@@ -138,13 +151,16 @@ function BolsaDetailPage() {
   });
 
   useEffect(() => {
+    // Reset on ID change so stale content from the previous scholarship never shows
+    setDbData(null);
+    setNotFoundState(false);
+    setComments([]);
+
     supabase.from("hub_scholarships").select("*").eq("id", id).single()
       .then(({ data }) => {
         if (data) {
           setDbData(data as DbRow);
-          supabase.from("hub_scholarships")
-            .update({ views: (data.views ?? 0) + 1 })
-            .eq("id", id);
+          (supabase as any).rpc("increment_scholarship_views", { scholarship_id: id });
         } else if (!staticData) {
           setNotFoundState(true);
         }
@@ -156,7 +172,7 @@ function BolsaDetailPage() {
       .eq("approved", true)
       .order("created_at", { ascending: true })
       .then(({ data }) => { if (data) setComments(data as CommentRow[]); });
-  }, [id, staticData]);
+  }, [id]);
 
   if (notFoundState) {
     return (
@@ -209,6 +225,7 @@ function BolsaDetailPage() {
     allow_applications: dbData?.allow_applications ?? true,
     views: dbData?.views ?? 0,
     applications_count: dbData?.applications_count ?? 0,
+    edital_url: (dbData as any)?.edital_url ?? null,
   };
 
   const expired = new Date(s.deadline).getTime() < Date.now();
@@ -383,7 +400,7 @@ function BolsaDetailPage() {
             <div className="prose prose-sm max-w-none text-foreground/80 space-y-3">
               {s.content_rich ? (
                 /<[^>]+>/.test(s.content_rich) ? (
-                  <div dangerouslySetInnerHTML={{ __html: s.content_rich }} />
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(s.content_rich) }} />
                 ) : (
                   s.content_rich.split("\n\n").map((p, i) => <p key={i} className="leading-relaxed">{p}</p>)
                 )
@@ -391,6 +408,21 @@ function BolsaDetailPage() {
                 <p className="leading-relaxed">{s.description}</p>
               )}
             </div>
+
+            {/* Edital download CTA */}
+            {s.edital_url && (
+              <div className="mt-5 flex items-center gap-4 rounded-xl border border-gold/30 bg-gold/5 px-5 py-4">
+                <FileDown className="h-6 w-6 text-gold flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground text-sm">Edital oficial disponível</p>
+                  <p className="text-xs text-muted-foreground">Podes baixar o edital completo em PDF</p>
+                </div>
+                <a href={s.edital_url} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-gold px-4 py-2 text-xs font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth flex-shrink-0">
+                  <FileDown className="h-3.5 w-3.5" /> Baixar PDF
+                </a>
+              </div>
+            )}
           </section>
         )}
 
