@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,10 @@ import { SkeletonCard } from "@/components/Skeleton";
 import {
   Newspaper, Search, Calendar, Tag, Eye, ArrowRight, Filter, X, Heart,
 } from "lucide-react";
+import heroBgImg from "@/assets/hero-bg.jpg";
+import designImg from "@/assets/design.jpg";
+import documentsImg from "@/assets/documents.jpg";
+import printingImg from "@/assets/printing.jpg";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -22,6 +26,43 @@ export const Route = createFileRoute("/hub/noticias/")({
   }),
   component: HubNoticiasPage,
 });
+
+// ── Hero Slides ───────────────────────────────────────────────────────────────
+
+const NOTICIAS_SLIDES = [
+  {
+    badge: "📰 Últimas notícias",
+    title: "Fique Sempre",
+    highlight: "Informado",
+    sub: "Prazos de candidatura, alertas de bolsas e novidades para estudantes em todo Moçambique.",
+    img: heroBgImg,
+    overlay: "from-brand via-brand/80 to-brand/50",
+  },
+  {
+    badge: "🎓 Bolsas em destaque",
+    title: "Chevening &",
+    highlight: "DAAD 2026",
+    sub: "Candidaturas abertas para as bolsas mais prestigiadas do mundo. Não perca os prazos.",
+    img: designImg,
+    overlay: "from-amber-900 via-amber-800/80 to-amber-700/50",
+  },
+  {
+    badge: "🏫 Universidades",
+    title: "Admissões",
+    highlight: "Abertas",
+    sub: "UEM, UCM, UniLúrio e outras universidades moçambicanas anunciaram as suas vagas para 2026.",
+    img: documentsImg,
+    overlay: "from-emerald-900 via-emerald-800/80 to-emerald-700/50",
+  },
+  {
+    badge: "⏰ Prazos urgentes",
+    title: "Não Perca",
+    highlight: "os Prazos",
+    sub: "Receba alertas automáticos sobre candidaturas e prazos importantes antes que seja tarde.",
+    img: printingImg,
+    overlay: "from-rose-900 via-rose-800/80 to-rose-700/50",
+  },
+] as const;
 
 const CATEGORIES = ["Todas", "Bolsas", "Universidades", "Prazos", "Oportunidades", "Exames", "Educação", "Geral"];
 
@@ -57,6 +98,18 @@ function HubNoticiasPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("Todas");
+  const [slide, setSlide] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const resetTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => setSlide((p) => (p + 1) % NOTICIAS_SLIDES.length), 5500);
+  }, []);
+
+  useEffect(() => {
+    resetTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [resetTimer]);
 
   useEffect(() => {
     supabase
@@ -105,22 +158,53 @@ function HubNoticiasPage() {
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="bg-gradient-hero text-brand-foreground">
-        <div className="container mx-auto px-4 py-14 max-w-5xl">
-          <motion.div initial="hidden" animate="visible" variants={stagger}>
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-brand-foreground/20 bg-brand-foreground/10 px-3 py-1 text-[11px] font-bold tracking-widest uppercase mb-4">
-              <Newspaper className="h-3.5 w-3.5" /> Notícias
+      {/* ── HERO CAROUSEL ─────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden" style={{ height: "clamp(340px, 50vw, 480px)" }}>
+        <AnimatePresence initial={false} mode="sync">
+          {NOTICIAS_SLIDES.map((s, i) => i !== slide ? null : (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7 }}
+              className="absolute inset-0"
+            >
+              <div className="absolute inset-0 bg-cover bg-center scale-105" style={{ backgroundImage: `url(${s.img})` }} />
+              <div className={`absolute inset-0 bg-gradient-to-r ${s.overlay}`} />
+              <div className="relative h-full flex items-center">
+                <div className="container mx-auto px-6 md:px-10 max-w-5xl">
+                  <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs font-bold mb-5">
+                      {s.badge}
+                    </span>
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-white leading-tight mb-3 drop-shadow-lg">
+                      {s.title}<br /><span className="text-gold">{s.highlight}</span>
+                    </h1>
+                    <p className="text-base md:text-lg text-white/80 max-w-xl leading-relaxed">{s.sub}</p>
+                  </motion.div>
+                </div>
+              </div>
             </motion.div>
-            <motion.h1 variants={fadeUp} className="text-3xl md:text-5xl font-extrabold leading-tight">
-              Notícias & Oportunidades
-            </motion.h1>
-            <motion.p variants={fadeUp} className="mt-3 text-base text-brand-foreground/80 max-w-xl">
-              Fique informado sobre bolsas, exames de admissão, prazos e novidades da educação em Moçambique.
-            </motion.p>
-          </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* Dot indicators */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {NOTICIAS_SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => { setSlide(i); resetTimer(); }}
+              className={`h-2 rounded-full transition-all duration-300 ${i === slide ? "bg-gold w-8" : "bg-white/50 w-2 hover:bg-white/75"}`}
+              aria-label={`Ir para slide ${i + 1}`}
+            />
+          ))}
         </div>
-      </section>
+      </div>
 
       {/* Filters */}
       <section className="sticky top-14 z-20 bg-background/90 backdrop-blur border-b border-border">

@@ -119,6 +119,20 @@ function HubUploadPage() {
 
     setSubmitting(true);
 
+    // Duplicate title check
+    const { data: existing } = await supabase
+      .from("hub_documents")
+      .select("id")
+      .ilike("title", form.title.trim())
+      .limit(1);
+    if (existing && existing.length > 0) {
+      toast.error("Documento duplicado", {
+        description: "Já existe um documento com este título. Por favor, use um título diferente.",
+      });
+      setSubmitting(false);
+      return;
+    }
+
     const { url, error: uploadError } = await uploadHubDocument(file!, user.id);
     if (uploadError) {
       toast.error("Erro ao carregar ficheiro.", { description: uploadError });

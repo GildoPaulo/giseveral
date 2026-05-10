@@ -9,10 +9,12 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as RegistoRouteImport } from './routes/registo'
 import { Route as RedesRouteImport } from './routes/redes'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as OrcamentoRouteImport } from './routes/orcamento'
 import { Route as LoginRouteImport } from './routes/login'
@@ -36,6 +38,7 @@ import { Route as HubNoticiasRouteImport } from './routes/hub.noticias'
 import { Route as HubFavoritosRouteImport } from './routes/hub.favoritos'
 import { Route as HubExplorarRouteImport } from './routes/hub.explorar'
 import { Route as HubExamesRouteImport } from './routes/hub.exames'
+import { Route as HubCvRouteImport } from './routes/hub.cv'
 import { Route as HubCreditosRouteImport } from './routes/hub.creditos'
 import { Route as HubCartasRouteImport } from './routes/hub.cartas'
 import { Route as HubBolsasRouteImport } from './routes/hub.bolsas'
@@ -45,7 +48,9 @@ import { Route as BalcaoServicosRouteImport } from './routes/balcao.servicos'
 import { Route as BalcaoProdutosRouteImport } from './routes/balcao.produtos'
 import { Route as BalcaoPrecosRouteImport } from './routes/balcao.precos'
 import { Route as BalcaoPedidosRouteImport } from './routes/balcao.pedidos'
+import { Route as BalcaoNotificacoesRouteImport } from './routes/balcao.notificacoes'
 import { Route as BalcaoNoticiasRouteImport } from './routes/balcao.noticias'
+import { Route as BalcaoNewsletterRouteImport } from './routes/balcao.newsletter'
 import { Route as BalcaoHubRouteImport } from './routes/balcao.hub'
 import { Route as BalcaoGaleriaRouteImport } from './routes/balcao.galeria'
 import { Route as BalcaoExamesRouteImport } from './routes/balcao.exames'
@@ -54,21 +59,21 @@ import { Route as BalcaoCartasRouteImport } from './routes/balcao.cartas'
 import { Route as BalcaoCampanhasRouteImport } from './routes/balcao.campanhas'
 import { Route as BalcaoBolsasRouteImport } from './routes/balcao.bolsas'
 import { Route as BalcaoBlogRouteImport } from './routes/balcao.blog'
+import { Route as BalcaoAtividadeRouteImport } from './routes/balcao.atividade'
+import { Route as HubNoticiasIndexRouteImport } from './routes/hub.noticias.index'
+import { Route as HubBolsasIndexRouteImport } from './routes/hub.bolsas.index'
 import { Route as LojaProdutoIdRouteImport } from './routes/loja.produto.$id'
 import { Route as LojaPedidoIdRouteImport } from './routes/loja.pedido.$id'
 import { Route as HubNoticiasIdRouteImport } from './routes/hub.noticias.$id'
 import { Route as HubExamesIdRouteImport } from './routes/hub.exames.$id'
 import { Route as HubDocumentoIdRouteImport } from './routes/hub.documento.$id'
 import { Route as HubBolsasIdRouteImport } from './routes/hub.bolsas.$id'
-import { Route as HubBolsasIndexRouteImport } from './routes/hub.bolsas.index'
-import { Route as HubNoticiasIndexRouteImport } from './routes/hub.noticias.index'
-import { Route as HubCvRouteImport } from './routes/hub.cv'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
-import { Route as BalcaoNewsletterRouteImport } from './routes/balcao.newsletter'
-import { Route as BalcaoAtividadeRouteImport } from './routes/balcao.atividade'
-import { Route as BalcaoNotificacoesRouteImport } from './routes/balcao.notificacoes'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
   path: '/sobre',
@@ -87,6 +92,11 @@ const RegistoRoute = RegistoRouteImport.update({
 const RedesRoute = RedesRouteImport.update({
   id: '/redes',
   path: '/redes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrecosRoute = PrecosRouteImport.update({
@@ -204,6 +214,11 @@ const HubExamesRoute = HubExamesRouteImport.update({
   path: '/hub/exames',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HubCvRoute = HubCvRouteImport.update({
+  id: '/hub/cv',
+  path: '/hub/cv',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HubCreditosRoute = HubCreditosRouteImport.update({
   id: '/hub/creditos',
   path: '/hub/creditos',
@@ -249,9 +264,19 @@ const BalcaoPedidosRoute = BalcaoPedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => BalcaoRoute,
 } as any)
+const BalcaoNotificacoesRoute = BalcaoNotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
+  getParentRoute: () => BalcaoRoute,
+} as any)
 const BalcaoNoticiasRoute = BalcaoNoticiasRouteImport.update({
   id: '/noticias',
   path: '/noticias',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoNewsletterRoute = BalcaoNewsletterRouteImport.update({
+  id: '/newsletter',
+  path: '/newsletter',
   getParentRoute: () => BalcaoRoute,
 } as any)
 const BalcaoHubRoute = BalcaoHubRouteImport.update({
@@ -294,6 +319,21 @@ const BalcaoBlogRoute = BalcaoBlogRouteImport.update({
   path: '/blog',
   getParentRoute: () => BalcaoRoute,
 } as any)
+const BalcaoAtividadeRoute = BalcaoAtividadeRouteImport.update({
+  id: '/atividade',
+  path: '/atividade',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const HubNoticiasIndexRoute = HubNoticiasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HubNoticiasRoute,
+} as any)
+const HubBolsasIndexRoute = HubBolsasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HubBolsasRoute,
+} as any)
 const LojaProdutoIdRoute = LojaProdutoIdRouteImport.update({
   id: '/loja/produto/$id',
   path: '/loja/produto/$id',
@@ -324,46 +364,6 @@ const HubBolsasIdRoute = HubBolsasIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => HubBolsasRoute,
 } as any)
-const HubBolsasIndexRoute = HubBolsasIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => HubBolsasRoute,
-} as any)
-const HubNoticiasIndexRoute = HubNoticiasIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => HubNoticiasRoute,
-} as any)
-const HubCvRoute = HubCvRouteImport.update({
-  id: '/hub/cv',
-  path: '/hub/cv',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
-  id: '/privacy-policy',
-  path: '/privacy-policy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BalcaoNewsletterRoute = BalcaoNewsletterRouteImport.update({
-  id: '/newsletter',
-  path: '/newsletter',
-  getParentRoute: () => BalcaoRoute,
-} as any)
-const BalcaoAtividadeRoute = BalcaoAtividadeRouteImport.update({
-  id: '/atividade',
-  path: '/atividade',
-  getParentRoute: () => BalcaoRoute,
-} as any)
-const BalcaoNotificacoesRoute = BalcaoNotificacoesRouteImport.update({
-  id: '/notificacoes',
-  path: '/notificacoes',
-  getParentRoute: () => BalcaoRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -375,10 +375,13 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/precos': typeof PrecosRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
   '/servicos': typeof ServicosRouteWithChildren
   '/sobre': typeof SobreRoute
+  '/terms': typeof TermsRoute
+  '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/balcao/blog': typeof BalcaoBlogRoute
   '/balcao/bolsas': typeof BalcaoBolsasRoute
   '/balcao/campanhas': typeof BalcaoCampanhasRoute
@@ -387,27 +390,24 @@ export interface FileRoutesByFullPath {
   '/balcao/exames': typeof BalcaoExamesRoute
   '/balcao/galeria': typeof BalcaoGaleriaRoute
   '/balcao/hub': typeof BalcaoHubRoute
+  '/balcao/newsletter': typeof BalcaoNewsletterRoute
   '/balcao/noticias': typeof BalcaoNoticiasRoute
+  '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
-  '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
-  '/balcao/newsletter': typeof BalcaoNewsletterRoute
-  '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
   '/hub/creditos': typeof HubCreditosRoute
+  '/hub/cv': typeof HubCvRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
   '/hub/favoritos': typeof HubFavoritosRoute
   '/hub/noticias': typeof HubNoticiasRouteWithChildren
   '/hub/upload': typeof HubUploadRoute
-  '/hub/cv': typeof HubCvRoute
-  '/terms': typeof TermsRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
@@ -423,6 +423,8 @@ export interface FileRoutesByFullPath {
   '/hub/noticias/$id': typeof HubNoticiasIdRoute
   '/loja/pedido/$id': typeof LojaPedidoIdRoute
   '/loja/produto/$id': typeof LojaProdutoIdRoute
+  '/hub/bolsas/': typeof HubBolsasIndexRoute
+  '/hub/noticias/': typeof HubNoticiasIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -433,9 +435,12 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/precos': typeof PrecosRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
   '/sobre': typeof SobreRoute
+  '/terms': typeof TermsRoute
+  '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/balcao/blog': typeof BalcaoBlogRoute
   '/balcao/bolsas': typeof BalcaoBolsasRoute
   '/balcao/campanhas': typeof BalcaoCampanhasRoute
@@ -444,27 +449,22 @@ export interface FileRoutesByTo {
   '/balcao/exames': typeof BalcaoExamesRoute
   '/balcao/galeria': typeof BalcaoGaleriaRoute
   '/balcao/hub': typeof BalcaoHubRoute
+  '/balcao/newsletter': typeof BalcaoNewsletterRoute
   '/balcao/noticias': typeof BalcaoNoticiasRoute
+  '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
-  '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
-  '/balcao/newsletter': typeof BalcaoNewsletterRoute
-  '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/blog/$slug': typeof BlogSlugRoute
-  '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
   '/hub/creditos': typeof HubCreditosRoute
+  '/hub/cv': typeof HubCvRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
   '/hub/favoritos': typeof HubFavoritosRoute
-  '/hub/noticias': typeof HubNoticiasRouteWithChildren
   '/hub/upload': typeof HubUploadRoute
-  '/hub/cv': typeof HubCvRoute
-  '/terms': typeof TermsRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
@@ -480,6 +480,8 @@ export interface FileRoutesByTo {
   '/hub/noticias/$id': typeof HubNoticiasIdRoute
   '/loja/pedido/$id': typeof LojaPedidoIdRoute
   '/loja/produto/$id': typeof LojaProdutoIdRoute
+  '/hub/bolsas': typeof HubBolsasIndexRoute
+  '/hub/noticias': typeof HubNoticiasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -492,10 +494,13 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/orcamento': typeof OrcamentoRoute
   '/precos': typeof PrecosRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
   '/servicos': typeof ServicosRouteWithChildren
   '/sobre': typeof SobreRoute
+  '/terms': typeof TermsRoute
+  '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/balcao/blog': typeof BalcaoBlogRoute
   '/balcao/bolsas': typeof BalcaoBolsasRoute
   '/balcao/campanhas': typeof BalcaoCampanhasRoute
@@ -504,27 +509,24 @@ export interface FileRoutesById {
   '/balcao/exames': typeof BalcaoExamesRoute
   '/balcao/galeria': typeof BalcaoGaleriaRoute
   '/balcao/hub': typeof BalcaoHubRoute
+  '/balcao/newsletter': typeof BalcaoNewsletterRoute
   '/balcao/noticias': typeof BalcaoNoticiasRoute
+  '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
-  '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
-  '/balcao/newsletter': typeof BalcaoNewsletterRoute
-  '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
   '/hub/creditos': typeof HubCreditosRoute
+  '/hub/cv': typeof HubCvRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
   '/hub/favoritos': typeof HubFavoritosRoute
   '/hub/noticias': typeof HubNoticiasRouteWithChildren
   '/hub/upload': typeof HubUploadRoute
-  '/hub/cv': typeof HubCvRoute
-  '/terms': typeof TermsRoute
-  '/privacy-policy': typeof PrivacyPolicyRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
@@ -540,6 +542,8 @@ export interface FileRoutesById {
   '/hub/noticias/$id': typeof HubNoticiasIdRoute
   '/loja/pedido/$id': typeof LojaPedidoIdRoute
   '/loja/produto/$id': typeof LojaProdutoIdRoute
+  '/hub/bolsas/': typeof HubBolsasIndexRoute
+  '/hub/noticias/': typeof HubNoticiasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -553,10 +557,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/orcamento'
     | '/precos'
+    | '/privacy-policy'
     | '/redes'
     | '/registo'
     | '/servicos'
     | '/sobre'
+    | '/terms'
+    | '/balcao/atividade'
     | '/balcao/blog'
     | '/balcao/bolsas'
     | '/balcao/campanhas'
@@ -565,27 +572,24 @@ export interface FileRouteTypes {
     | '/balcao/exames'
     | '/balcao/galeria'
     | '/balcao/hub'
+    | '/balcao/newsletter'
     | '/balcao/noticias'
+    | '/balcao/notificacoes'
     | '/balcao/pedidos'
     | '/balcao/precos'
     | '/balcao/produtos'
     | '/balcao/servicos'
     | '/balcao/stock'
-    | '/balcao/notificacoes'
-    | '/balcao/newsletter'
-    | '/balcao/atividade'
     | '/blog/$slug'
     | '/hub/bolsas'
     | '/hub/cartas'
     | '/hub/creditos'
+    | '/hub/cv'
     | '/hub/exames'
     | '/hub/explorar'
     | '/hub/favoritos'
     | '/hub/noticias'
     | '/hub/upload'
-    | '/hub/cv'
-    | '/terms'
-    | '/privacy-policy'
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/papelaria'
@@ -601,6 +605,8 @@ export interface FileRouteTypes {
     | '/hub/noticias/$id'
     | '/loja/pedido/$id'
     | '/loja/produto/$id'
+    | '/hub/bolsas/'
+    | '/hub/noticias/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -611,9 +617,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/orcamento'
     | '/precos'
+    | '/privacy-policy'
     | '/redes'
     | '/registo'
     | '/sobre'
+    | '/terms'
+    | '/balcao/atividade'
     | '/balcao/blog'
     | '/balcao/bolsas'
     | '/balcao/campanhas'
@@ -622,27 +631,22 @@ export interface FileRouteTypes {
     | '/balcao/exames'
     | '/balcao/galeria'
     | '/balcao/hub'
+    | '/balcao/newsletter'
     | '/balcao/noticias'
+    | '/balcao/notificacoes'
     | '/balcao/pedidos'
     | '/balcao/precos'
     | '/balcao/produtos'
     | '/balcao/servicos'
     | '/balcao/stock'
-    | '/balcao/notificacoes'
-    | '/balcao/newsletter'
-    | '/balcao/atividade'
     | '/blog/$slug'
-    | '/hub/bolsas'
     | '/hub/cartas'
     | '/hub/creditos'
+    | '/hub/cv'
     | '/hub/exames'
     | '/hub/explorar'
     | '/hub/favoritos'
-    | '/hub/noticias'
     | '/hub/upload'
-    | '/hub/cv'
-    | '/terms'
-    | '/privacy-policy'
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/papelaria'
@@ -658,6 +662,8 @@ export interface FileRouteTypes {
     | '/hub/noticias/$id'
     | '/loja/pedido/$id'
     | '/loja/produto/$id'
+    | '/hub/bolsas'
+    | '/hub/noticias'
   id:
     | '__root__'
     | '/'
@@ -669,10 +675,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/orcamento'
     | '/precos'
+    | '/privacy-policy'
     | '/redes'
     | '/registo'
     | '/servicos'
     | '/sobre'
+    | '/terms'
+    | '/balcao/atividade'
     | '/balcao/blog'
     | '/balcao/bolsas'
     | '/balcao/campanhas'
@@ -681,27 +690,24 @@ export interface FileRouteTypes {
     | '/balcao/exames'
     | '/balcao/galeria'
     | '/balcao/hub'
+    | '/balcao/newsletter'
     | '/balcao/noticias'
+    | '/balcao/notificacoes'
     | '/balcao/pedidos'
     | '/balcao/precos'
     | '/balcao/produtos'
     | '/balcao/servicos'
     | '/balcao/stock'
-    | '/balcao/notificacoes'
-    | '/balcao/newsletter'
-    | '/balcao/atividade'
     | '/blog/$slug'
     | '/hub/bolsas'
     | '/hub/cartas'
     | '/hub/creditos'
+    | '/hub/cv'
     | '/hub/exames'
     | '/hub/explorar'
     | '/hub/favoritos'
     | '/hub/noticias'
     | '/hub/upload'
-    | '/hub/cv'
-    | '/terms'
-    | '/privacy-policy'
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/papelaria'
@@ -717,6 +723,8 @@ export interface FileRouteTypes {
     | '/hub/noticias/$id'
     | '/loja/pedido/$id'
     | '/loja/produto/$id'
+    | '/hub/bolsas/'
+    | '/hub/noticias/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -729,22 +737,22 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   OrcamentoRoute: typeof OrcamentoRoute
   PrecosRoute: typeof PrecosRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   RedesRoute: typeof RedesRoute
   RegistoRoute: typeof RegistoRoute
   ServicosRoute: typeof ServicosRouteWithChildren
   SobreRoute: typeof SobreRoute
+  TermsRoute: typeof TermsRoute
   BlogSlugRoute: typeof BlogSlugRoute
   HubBolsasRoute: typeof HubBolsasRouteWithChildren
   HubCartasRoute: typeof HubCartasRoute
   HubCreditosRoute: typeof HubCreditosRoute
+  HubCvRoute: typeof HubCvRoute
   HubExamesRoute: typeof HubExamesRouteWithChildren
   HubExplorarRoute: typeof HubExplorarRoute
   HubFavoritosRoute: typeof HubFavoritosRoute
   HubNoticiasRoute: typeof HubNoticiasRouteWithChildren
   HubUploadRoute: typeof HubUploadRoute
-  HubCvRoute: typeof HubCvRoute
-  TermsRoute: typeof TermsRoute
-  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   LojaCarrinhoRoute: typeof LojaCarrinhoRoute
   LojaCheckoutRoute: typeof LojaCheckoutRoute
   LojaPapelariaRoute: typeof LojaPapelariaRoute
@@ -758,6 +766,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sobre': {
       id: '/sobre'
       path: '/sobre'
@@ -784,6 +799,13 @@ declare module '@tanstack/react-router' {
       path: '/redes'
       fullPath: '/redes'
       preLoaderRoute: typeof RedesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/precos': {
@@ -919,27 +941,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HubUploadRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/hub/cv': {
-      id: '/hub/cv'
-      path: '/hub/cv'
-      fullPath: '/hub/cv'
-      preLoaderRoute: typeof HubCvRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy-policy': {
-      id: '/privacy-policy'
-      path: '/privacy-policy'
-      fullPath: '/privacy-policy'
-      preLoaderRoute: typeof PrivacyPolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/hub/noticias': {
       id: '/hub/noticias'
       path: '/hub/noticias'
@@ -966,6 +967,13 @@ declare module '@tanstack/react-router' {
       path: '/hub/exames'
       fullPath: '/hub/exames'
       preLoaderRoute: typeof HubExamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/cv': {
+      id: '/hub/cv'
+      path: '/hub/cv'
+      fullPath: '/hub/cv'
+      preLoaderRoute: typeof HubCvRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub/creditos': {
@@ -1031,6 +1039,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoPedidosRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/notificacoes': {
+      id: '/balcao/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/balcao/notificacoes'
+      preLoaderRoute: typeof BalcaoNotificacoesRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
     '/balcao/noticias': {
       id: '/balcao/noticias'
       path: '/noticias'
@@ -1043,13 +1058,6 @@ declare module '@tanstack/react-router' {
       path: '/newsletter'
       fullPath: '/balcao/newsletter'
       preLoaderRoute: typeof BalcaoNewsletterRouteImport
-      parentRoute: typeof BalcaoRoute
-    }
-    '/balcao/atividade': {
-      id: '/balcao/atividade'
-      path: '/atividade'
-      fullPath: '/balcao/atividade'
-      preLoaderRoute: typeof BalcaoAtividadeRouteImport
       parentRoute: typeof BalcaoRoute
     }
     '/balcao/hub': {
@@ -1108,6 +1116,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoBlogRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/atividade': {
+      id: '/balcao/atividade'
+      path: '/atividade'
+      fullPath: '/balcao/atividade'
+      preLoaderRoute: typeof BalcaoAtividadeRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/hub/noticias/': {
+      id: '/hub/noticias/'
+      path: '/'
+      fullPath: '/hub/noticias/'
+      preLoaderRoute: typeof HubNoticiasIndexRouteImport
+      parentRoute: typeof HubNoticiasRoute
+    }
+    '/hub/bolsas/': {
+      id: '/hub/bolsas/'
+      path: '/'
+      fullPath: '/hub/bolsas/'
+      preLoaderRoute: typeof HubBolsasIndexRouteImport
+      parentRoute: typeof HubBolsasRoute
+    }
     '/loja/produto/$id': {
       id: '/loja/produto/$id'
       path: '/loja/produto/$id'
@@ -1154,6 +1183,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface BalcaoRouteChildren {
+  BalcaoAtividadeRoute: typeof BalcaoAtividadeRoute
   BalcaoBlogRoute: typeof BalcaoBlogRoute
   BalcaoBolsasRoute: typeof BalcaoBolsasRoute
   BalcaoCampanhasRoute: typeof BalcaoCampanhasRoute
@@ -1162,19 +1192,19 @@ interface BalcaoRouteChildren {
   BalcaoExamesRoute: typeof BalcaoExamesRoute
   BalcaoGaleriaRoute: typeof BalcaoGaleriaRoute
   BalcaoHubRoute: typeof BalcaoHubRoute
+  BalcaoNewsletterRoute: typeof BalcaoNewsletterRoute
   BalcaoNoticiasRoute: typeof BalcaoNoticiasRoute
+  BalcaoNotificacoesRoute: typeof BalcaoNotificacoesRoute
   BalcaoPedidosRoute: typeof BalcaoPedidosRoute
   BalcaoPrecosRoute: typeof BalcaoPrecosRoute
   BalcaoProdutosRoute: typeof BalcaoProdutosRoute
   BalcaoServicosRoute: typeof BalcaoServicosRoute
   BalcaoStockRoute: typeof BalcaoStockRoute
-  BalcaoNotificacoesRoute: typeof BalcaoNotificacoesRoute
-  BalcaoNewsletterRoute: typeof BalcaoNewsletterRoute
-  BalcaoAtividadeRoute: typeof BalcaoAtividadeRoute
   BalcaoIndexRoute: typeof BalcaoIndexRoute
 }
 
 const BalcaoRouteChildren: BalcaoRouteChildren = {
+  BalcaoAtividadeRoute: BalcaoAtividadeRoute,
   BalcaoBlogRoute: BalcaoBlogRoute,
   BalcaoBolsasRoute: BalcaoBolsasRoute,
   BalcaoCampanhasRoute: BalcaoCampanhasRoute,
@@ -1183,15 +1213,14 @@ const BalcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoExamesRoute: BalcaoExamesRoute,
   BalcaoGaleriaRoute: BalcaoGaleriaRoute,
   BalcaoHubRoute: BalcaoHubRoute,
+  BalcaoNewsletterRoute: BalcaoNewsletterRoute,
   BalcaoNoticiasRoute: BalcaoNoticiasRoute,
+  BalcaoNotificacoesRoute: BalcaoNotificacoesRoute,
   BalcaoPedidosRoute: BalcaoPedidosRoute,
   BalcaoPrecosRoute: BalcaoPrecosRoute,
   BalcaoProdutosRoute: BalcaoProdutosRoute,
   BalcaoServicosRoute: BalcaoServicosRoute,
   BalcaoStockRoute: BalcaoStockRoute,
-  BalcaoNotificacoesRoute: BalcaoNotificacoesRoute,
-  BalcaoNewsletterRoute: BalcaoNewsletterRoute,
-  BalcaoAtividadeRoute: BalcaoAtividadeRoute,
   BalcaoIndexRoute: BalcaoIndexRoute,
 }
 
@@ -1213,13 +1242,13 @@ const ServicosRouteWithChildren = ServicosRoute._addFileChildren(
 )
 
 interface HubBolsasRouteChildren {
-  HubBolsasIndexRoute: typeof HubBolsasIndexRoute
   HubBolsasIdRoute: typeof HubBolsasIdRoute
+  HubBolsasIndexRoute: typeof HubBolsasIndexRoute
 }
 
 const HubBolsasRouteChildren: HubBolsasRouteChildren = {
-  HubBolsasIndexRoute: HubBolsasIndexRoute,
   HubBolsasIdRoute: HubBolsasIdRoute,
+  HubBolsasIndexRoute: HubBolsasIndexRoute,
 }
 
 const HubBolsasRouteWithChildren = HubBolsasRoute._addFileChildren(
@@ -1239,13 +1268,13 @@ const HubExamesRouteWithChildren = HubExamesRoute._addFileChildren(
 )
 
 interface HubNoticiasRouteChildren {
-  HubNoticiasIndexRoute: typeof HubNoticiasIndexRoute
   HubNoticiasIdRoute: typeof HubNoticiasIdRoute
+  HubNoticiasIndexRoute: typeof HubNoticiasIndexRoute
 }
 
 const HubNoticiasRouteChildren: HubNoticiasRouteChildren = {
-  HubNoticiasIndexRoute: HubNoticiasIndexRoute,
   HubNoticiasIdRoute: HubNoticiasIdRoute,
+  HubNoticiasIndexRoute: HubNoticiasIndexRoute,
 }
 
 const HubNoticiasRouteWithChildren = HubNoticiasRoute._addFileChildren(
@@ -1262,22 +1291,22 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   OrcamentoRoute: OrcamentoRoute,
   PrecosRoute: PrecosRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   RedesRoute: RedesRoute,
   RegistoRoute: RegistoRoute,
   ServicosRoute: ServicosRouteWithChildren,
   SobreRoute: SobreRoute,
+  TermsRoute: TermsRoute,
   BlogSlugRoute: BlogSlugRoute,
   HubBolsasRoute: HubBolsasRouteWithChildren,
   HubCartasRoute: HubCartasRoute,
   HubCreditosRoute: HubCreditosRoute,
+  HubCvRoute: HubCvRoute,
   HubExamesRoute: HubExamesRouteWithChildren,
   HubExplorarRoute: HubExplorarRoute,
   HubFavoritosRoute: HubFavoritosRoute,
   HubNoticiasRoute: HubNoticiasRouteWithChildren,
   HubUploadRoute: HubUploadRoute,
-  HubCvRoute: HubCvRoute,
-  TermsRoute: TermsRoute,
-  PrivacyPolicyRoute: PrivacyPolicyRoute,
   LojaCarrinhoRoute: LojaCarrinhoRoute,
   LojaCheckoutRoute: LojaCheckoutRoute,
   LojaPapelariaRoute: LojaPapelariaRoute,

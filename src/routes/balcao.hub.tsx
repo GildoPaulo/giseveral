@@ -7,6 +7,7 @@ import { ImageUpload } from "@/components/admin/ImageUpload";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, Upload, X, Crown,
   FileText, Download, CheckCircle2, AlertTriangle, Search, Filter,
+  ThumbsUp, ThumbsDown, Clock, User,
 } from "lucide-react";
 
 export const Route = createFileRoute("/balcao/hub")({
@@ -28,6 +29,7 @@ type HubDoc = {
   downloads: number;
   views: number;
   file_url: string | null;
+  user_id: string | null;
   created_at: string;
 };
 
@@ -50,9 +52,12 @@ const EMPTY: FormData = {
   premium: false, published: true,
 };
 
+type Tab = "todos" | "publicados" | "pendentes";
+
 function BalcaoHub() {
   const [docs, setDocs] = useState<HubDoc[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<Tab>("todos");
   const [search, setSearch] = useState("");
   const [catFilter, setCatFilter] = useState<DocCategory | "all">("all");
   const [showForm, setShowForm] = useState(false);
@@ -61,6 +66,7 @@ function BalcaoHub() {
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
@@ -85,7 +91,11 @@ function BalcaoHub() {
 
   // ── Filtered list ─────────────────────────────────────────────────────────
 
+  const pending = docs.filter((d) => !d.published && !!d.user_id);
+
   const visible = docs.filter((d) => {
+    if (tab === "publicados" && !d.published) return false;
+    if (tab === "pendentes" && !((!d.published) && !!d.user_id)) return false;
     const matchCat = catFilter === "all" || d.category === catFilter;
     const matchSearch = !search.trim() || d.title.toLowerCase().includes(search.toLowerCase()) || d.author.toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
@@ -210,12 +220,61 @@ function BalcaoHub() {
     }
   }
 
+  // ── Approve user-submitted document ──────────────────────────────────────
+
+  async function handleApprove(d: HubDoc) {
+    setApprovingId(d.id);
+    try {
+      const { error: pubErr } = await supabase
+        .from("hub_documents")
+        .update({ published: true })
+        .eq("id", d.id);
+      if (pubErr) throw pubErr;
+
+      // Grant +2 credits to the submitter
+      if (d.user_id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("hub_credits")
+          .eq("id", d.user_id)
+          .single();
+        const current = (profile as { hub_credits?: number } | null)?.hub_credits ?? 0;
+        await supabase
+          .from("profiles")
+          .update({ hub_credits: current + 2 })
+          .eq("id", d.user_id);
+      }
+
+      setDocs((prev) => prev.map((x) => x.id === d.id ? { ...x, published: true } : x));
+      toast.success("Documento aprovado! +2 créditos atribuídos ao autor.");
+    } catch (e: unknown) {
+      toast.error("Erro ao aprovar", { description: (e as Error).message });
+    } finally {
+      setApprovingId(null);
+    }
+  }
+
+  async function handleReject(d: HubDoc) {
+    if (!confirm(`Rejeitar e eliminar "${d.title}"?`)) return;
+    setDeletingId(d.id);
+    try {
+      const { error } = await supabase.from("hub_documents").delete().eq("id", d.id);
+      if (error) throw error;
+      setDocs((prev) => prev.filter((x) => x.id !== d.id));
+      toast.success("Documento rejeitado e eliminado.");
+    } catch (e: unknown) {
+      toast.error("Erro ao rejeitar", { description: (e as Error).message });
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   // ── Send notification helper ──────────────────────────────────────────────
 
   const stats = {
     total: docs.length,
     published: docs.filter((d) => d.published).length,
-    premium: docs.filter((d) => d.premium).length,
+    pendingCount: pending.length,
     downloads: docs.reduce((s, d) => s + d.downloads, 0),
   };
 
@@ -240,7 +299,7 @@ function BalcaoHub() {
         {[
           { label: "Total", value: stats.total, icon: FileText, cls: "text-brand" },
           { label: "Publicados", value: stats.published, icon: CheckCircle2, cls: "text-emerald-600" },
-          { label: "Premium", value: stats.premium, icon: Crown, cls: "text-gold" },
+          { label: "Pendentes", value: stats.pendingCount, icon: Clock, cls: stats.pendingCount > 0 ? "text-amber-500" : "text-muted-foreground" },
           { label: "Downloads", value: stats.downloads.toLocaleString(), icon: Download, cls: "text-violet-600" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-border bg-card p-4 flex items-center gap-3">
@@ -250,6 +309,30 @@ function BalcaoHub() {
               <p className="text-xs text-muted-foreground">{s.label}</p>
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex items-center gap-1 border-b border-border">
+        {([
+          { id: "todos", label: "Todos", count: docs.length },
+          { id: "publicados", label: "Publicados", count: stats.published },
+          { id: "pendentes", label: "Pendentes", count: stats.pendingCount, alert: stats.pendingCount > 0 },
+        ] as const).map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`relative flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+              tab === t.id ? "border-brand text-brand" : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {t.label}
+            <span className={`inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-[11px] font-bold min-w-[20px] ${
+              tab === t.id ? "bg-brand/15 text-brand" : "bg-muted text-muted-foreground"
+            } ${"alert" in t && t.alert ? "bg-amber-100 text-amber-700" : ""}`}>
+              {t.count}
+            </span>
+          </button>
         ))}
       </div>
 
@@ -289,7 +372,10 @@ function BalcaoHub() {
             <table className="w-full text-sm">
               <thead className="border-b border-border bg-muted/40">
                 <tr>
-                  {["Título / Autor", "Categoria", "Páginas", "Downloads", "Estado", "Acções"].map((h) => (
+                  {(tab === "pendentes"
+                ? ["Título / Autor", "Categoria", "Submetido por", "Estado", "Acções"]
+                : ["Título / Autor", "Categoria", "Páginas", "Downloads", "Estado", "Acções"]
+              ).map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                       {h}
                     </th>
@@ -306,7 +392,7 @@ function BalcaoHub() {
                 ) : visible.map((d) => {
                   const cat = DOC_CATEGORIES.find((c) => c.id === d.category);
                   return (
-                    <tr key={d.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                    <tr key={d.id} className={`border-b border-border last:border-0 hover:bg-muted/30 transition-colors ${!d.published && d.user_id ? "bg-amber-50/30 dark:bg-amber-950/10" : ""}`}>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div
@@ -323,17 +409,55 @@ function BalcaoHub() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-xs">{cat?.icon} {cat?.label}</td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground">{d.pages}</td>
-                      <td className="px-4 py-3 text-xs">{d.downloads.toLocaleString()}</td>
+                      {tab === "pendentes" ? (
+                        <td className="px-4 py-3 text-xs text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <User className="h-3 w-3" />
+                            {d.user_id ? d.user_id.slice(0, 8) + "…" : "Admin"}
+                          </div>
+                          <div className="text-[10px] mt-0.5">{new Date(d.created_at).toLocaleDateString("pt-PT")}</div>
+                        </td>
+                      ) : (
+                        <>
+                          <td className="px-4 py-3 text-xs text-muted-foreground">{d.pages}</td>
+                          <td className="px-4 py-3 text-xs">{d.downloads.toLocaleString()}</td>
+                        </>
+                      )}
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium
-                          ${d.published ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}
+                          ${d.published
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400"
+                            : d.user_id
+                              ? "bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
+                              : "bg-muted text-muted-foreground"
+                          }`}
                         >
-                          {d.published ? "Publicado" : "Oculto"}
+                          {d.published ? "Publicado" : d.user_id ? "Pendente" : "Rascunho"}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1">
+                          {/* Approve/Reject for pending user submissions */}
+                          {!d.published && d.user_id && (
+                            <>
+                              <button
+                                onClick={() => handleApprove(d)}
+                                disabled={approvingId === d.id}
+                                className="rounded p-1.5 text-emerald-600 hover:bg-emerald-100 transition-colors disabled:opacity-40"
+                                title="Aprovar (+2 créditos)"
+                              >
+                                <ThumbsUp className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleReject(d)}
+                                disabled={deletingId === d.id}
+                                className="rounded p-1.5 text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-40"
+                                title="Rejeitar e eliminar"
+                              >
+                                <ThumbsDown className="h-3.5 w-3.5" />
+                              </button>
+                            </>
+                          )}
                           <Link
                             to="/hub/documento/$id"
                             params={{ id: d.id }}

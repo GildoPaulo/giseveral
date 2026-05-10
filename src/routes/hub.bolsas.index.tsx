@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState, useEffect, FormEvent } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback, FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
@@ -16,6 +16,11 @@ import {
   BookOpen, Sparkles, ArrowRight, Languages, Wallet, Bell, CheckCircle2,
   MapPin, Filter, Clock, BookMarked, Heart,
 } from "lucide-react";
+import heroBgImg from "@/assets/hero-bg.jpg";
+import designImg from "@/assets/design.jpg";
+import documentsImg from "@/assets/documents.jpg";
+import printingImg from "@/assets/printing.jpg";
+import heroImg from "@/assets/hero.jpg";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -29,6 +34,51 @@ export const Route = createFileRoute("/hub/bolsas/")({
   }),
   component: HubBolsasPage,
 });
+
+// ── Hero Slides ───────────────────────────────────────────────────────────────
+
+const BOLSAS_SLIDES = [
+  {
+    badge: "🇬🇧 Chevening — Reino Unido",
+    title: "Estuda no",
+    highlight: "Reino Unido",
+    sub: "A bolsa mais prestigiada do governo britânico. Mestrado completo, passagem, alojamento e subsídio mensal.",
+    img: heroBgImg,
+    overlay: "from-brand via-brand/80 to-brand/50",
+  },
+  {
+    badge: "🇩🇪 DAAD — Alemanha",
+    title: "Engenharia na",
+    highlight: "Alemanha",
+    sub: "Bolsa total para mestrado e doutoramento. O DAAD apoia milhares de estudantes africanos anualmente.",
+    img: designImg,
+    overlay: "from-slate-800 via-slate-700/80 to-slate-600/50",
+  },
+  {
+    badge: "🇪🇺 Erasmus Mundus",
+    title: "Estuda em",
+    highlight: "Toda a Europa",
+    sub: "Programa europeu com bolsas integrais para estudar em 2 ou 3 países europeus consecutivamente.",
+    img: documentsImg,
+    overlay: "from-blue-900 via-blue-800/80 to-blue-700/50",
+  },
+  {
+    badge: "🇺🇸 Fulbright — EUA",
+    title: "Universidades de",
+    highlight: "Topo nos EUA",
+    sub: "O programa de bolsas mais reconhecido dos Estados Unidos. Mestrado e doutoramento em qualquer área.",
+    img: printingImg,
+    overlay: "from-rose-900 via-rose-800/80 to-rose-700/50",
+  },
+  {
+    badge: "🇵🇹 Bolsas Lusofonia",
+    title: "Estuda em",
+    highlight: "Portugal",
+    sub: "FCT, Santander, Camões e universidades portuguesas com bolsas exclusivas para estudantes da CPLP.",
+    img: heroImg,
+    overlay: "from-emerald-900 via-emerald-800/80 to-emerald-700/50",
+  },
+] as const;
 
 // ── Variants ──────────────────────────────────────────────────────────────────
 
@@ -82,6 +132,18 @@ function HubBolsasPage() {
   const [recLevel, setRecLevel] = useState("");
   const [recommended, setRecommended] = useState<Scholarship[] | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [slide, setSlide] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const resetTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => setSlide((p) => (p + 1) % BOLSAS_SLIDES.length), 5500);
+  }, []);
+
+  useEffect(() => {
+    resetTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [resetTimer]);
 
   useEffect(() => {
     Promise.all([fetchScholarships(), fetchHubNews()]).then(([sc, news]) => {
@@ -132,86 +194,92 @@ function HubBolsasPage() {
   return (
     <Layout>
 
-      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-hero text-brand-foreground min-h-[420px] flex items-center">
-        {/* Background orbs */}
-        <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-gold/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-
-        {/* Floating flags — decorative */}
-        <div className="absolute right-8 top-8 hidden lg:flex flex-col gap-4 text-4xl opacity-30 select-none pointer-events-none">
-          {["🇬🇧", "🇩🇪", "🇺🇸", "🇵🇹", "🇯🇵", "🇨🇳"].map((f, i) => (
-            <motion.span
-              key={f}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 + i * 0.1, duration: 0.6 }}
+      {/* ── HERO CAROUSEL ─────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden" style={{ height: "clamp(380px, 55vw, 520px)" }}>
+        <AnimatePresence initial={false} mode="sync">
+          {BOLSAS_SLIDES.map((s, i) => i !== slide ? null : (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7 }}
+              className="absolute inset-0"
             >
-              {f}
-            </motion.span>
+              <div className="absolute inset-0 bg-cover bg-center scale-105" style={{ backgroundImage: `url(${s.img})` }} />
+              <div className={`absolute inset-0 bg-gradient-to-r ${s.overlay}`} />
+              <div className="relative h-full flex items-center">
+                <div className="container mx-auto px-6 md:px-10 max-w-5xl">
+                  <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs font-bold mb-5">
+                      {s.badge}
+                    </span>
+                    <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4 drop-shadow-lg">
+                      {s.title}<br /><span className="text-gold">{s.highlight}</span>
+                    </h1>
+                    <p className="text-base md:text-lg text-white/80 max-w-xl mb-8 leading-relaxed">{s.sub}</p>
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById("bolsas-search")?.focus()}
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-gold px-6 py-3 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth"
+                    >
+                      <Search className="h-4 w-4" /> Pesquisar bolsas <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </motion.div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* Dot indicators */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {BOLSAS_SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => { setSlide(i); resetTimer(); }}
+              className={`h-2 rounded-full transition-all duration-300 ${i === slide ? "bg-gold w-8" : "bg-white/50 w-2 hover:bg-white/75"}`}
+              aria-label={`Ir para slide ${i + 1}`}
+            />
           ))}
         </div>
+      </div>
 
-        <div className="container mx-auto px-4 py-16 sm:py-20 relative max-w-5xl">
-          <motion.div initial="hidden" animate="visible" variants={stagger}>
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-bold mb-4">
-              <Sparkles className="h-3.5 w-3.5" /> BOLSAS DE ESTUDO 2026
-            </motion.div>
-            <motion.h1 variants={fadeUp} className="font-extrabold text-4xl sm:text-5xl lg:text-6xl mb-4 max-w-3xl leading-tight">
-              Estuda no<br /><span className="text-gold">mundo inteiro</span>
-            </motion.h1>
-            <motion.p variants={fadeUp} className="text-lg sm:text-xl opacity-90 mb-8 max-w-2xl">
-              Bolsas internacionais para estudantes moçambicanos — Chevening, DAAD, Erasmus, Fulbright e mais.
-            </motion.p>
-
-            {/* Search bar */}
-            <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-2 bg-card text-foreground rounded-2xl p-2 shadow-elegant max-w-2xl">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="País, área ou universidade..."
-                  className="h-12 pl-12 border-0 bg-transparent focus-visible:ring-0 shadow-none"
-                />
-              </div>
+      {/* ── SEARCH BAR ────────────────────────────────────────────────────────── */}
+      <section className="container mx-auto px-4 py-5 max-w-3xl -mt-4 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex flex-col sm:flex-row gap-2 bg-card rounded-2xl p-2 shadow-elegant border border-border"
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              id="bolsas-search"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="País, área ou universidade..."
+              className="h-12 pl-12 border-0 bg-transparent focus-visible:ring-0 shadow-none"
+            />
+          </div>
+          <div className="flex flex-wrap gap-1 items-center px-1">
+            {["Chevening", "DAAD", "Erasmus"].map((t) => (
               <button
+                key={t}
                 type="button"
-                onClick={() => {}}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-brand px-5 py-3 text-sm font-semibold text-brand-foreground"
+                onClick={() => setQ(t)}
+                className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-foreground/70 hover:bg-brand hover:text-white transition-smooth"
               >
-                <Search className="h-4 w-4" /> Pesquisar
+                {t}
               </button>
-            </motion.div>
-
-            {/* Quick filters */}
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-2 mt-4 text-xs opacity-90">
-              <span className="font-semibold">Popular:</span>
-              {["Chevening", "DAAD", "Erasmus", "Fulbright", "Portugal"].map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setQ(t)}
-                  className="px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 transition-smooth"
-                >
-                  {t}
-                </button>
-              ))}
-            </motion.div>
-
-            {/* Stats row */}
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-6 mt-8 text-sm">
-              {[
-                { icon: <GraduationCap className="h-4 w-4" />, label: `${allScholarships.length} bolsas` },
-                { icon: <Globe className="h-4 w-4" />, label: `${countries.length} países` },
-                { icon: <BookMarked className="h-4 w-4" />, label: "Guias completos" },
-              ].map((s) => (
-                <span key={s.label} className="flex items-center gap-1.5 opacity-80">
-                  {s.icon} {s.label}
-                </span>
-              ))}
-            </motion.div>
-          </motion.div>
-        </div>
+            ))}
+          </div>
+        </motion.div>
       </section>
 
       {/* ── BOLSAS EM DESTAQUE ────────────────────────────────────────────────── */}

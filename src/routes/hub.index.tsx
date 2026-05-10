@@ -10,7 +10,7 @@ import { HUB_SITE as SITE } from "@/data/hub-site";
 import {
   Search, Upload, Printer, Crown, FileText, TrendingUp,
   ShieldCheck, ArrowRight, UserPlus, Eye, Download, CheckCircle2, Zap, BookOpen, Newspaper,
-  ChevronLeft, ChevronRight, GraduationCap, ScrollText, PenLine, FileSearch,
+  GraduationCap, ScrollText, PenLine, FileSearch,
 } from "lucide-react";
 import documentsImg from "@/assets/documents.jpg";
 import heroBgImg from "@/assets/hero-bg.jpg";
@@ -157,9 +157,6 @@ function HubIndexPage() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [resetTimer]);
 
-  const prevSlide = () => { setSlide((p) => (p - 1 + HERO_SLIDES.length) % HERO_SLIDES.length); resetTimer(); };
-  const nextSlide = () => { setSlide((p) => (p + 1) % HERO_SLIDES.length); resetTimer(); };
-
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
     navigate({ to: "/hub/explorar", search: q.trim() ? { q: q.trim() } : {} });
@@ -217,22 +214,6 @@ function HubIndexPage() {
             </motion.div>
           ))}
         </AnimatePresence>
-
-        {/* Prev / Next */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/35 transition-smooth shadow-card"
-          aria-label="Slide anterior"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/35 transition-smooth shadow-card"
-          aria-label="Próximo slide"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
 
         {/* Dot indicators */}
         <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2">
