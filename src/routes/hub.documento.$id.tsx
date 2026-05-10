@@ -10,7 +10,7 @@ import { fetchHubDocumentById, fetchUserCredits, spendCredit } from "@/lib/hub";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Download, Printer, Share2, Calendar, FileText, Eye, Crown,
-  ChevronLeft, User, Coins, LogIn, CheckCircle2, AlertTriangle,
+  ChevronLeft, User, Coins, LogIn, CheckCircle2, AlertTriangle, Upload,
 } from "lucide-react";
 
 export const Route = createFileRoute("/hub/documento/$id")({
@@ -116,8 +116,8 @@ function HubDocumentoPage() {
 
     if (!isFree && currentCredits <= 0) {
       toast.error("Sem créditos suficientes.", {
-        description: "Compre créditos ou torne-se Premium para downloads ilimitados.",
-        action: { label: "Obter créditos", onClick: () => navigate({ to: "/hub/creditos" }) },
+        description: "Envie um documento para ganhar +2 créditos grátis, ou adquira um plano.",
+        action: { label: "📤 Enviar documento", onClick: () => navigate({ to: "/hub/upload" }) },
       });
       return;
     }
@@ -402,10 +402,24 @@ function DownloadButton({
             )}
           </button>
 
-          {!canDownload && (
-            <p className="text-[11px] text-center opacity-70 mb-2">
-              Sem créditos — <Link to="/hub/creditos" className="underline font-semibold">obter créditos</Link>
-            </p>
+          {!canDownload && credits === 0 && (
+            <div className="rounded-xl bg-white/10 border border-white/20 p-3 mb-2 text-center">
+              <p className="text-xs font-semibold mb-2 opacity-90">Sem créditos disponíveis</p>
+              <div className="flex flex-col gap-1.5">
+                <Link
+                  to="/hub/upload"
+                  className="flex items-center justify-center gap-1.5 rounded-lg bg-white/20 hover:bg-white/30 px-3 py-2 text-xs font-semibold text-brand-foreground transition-smooth"
+                >
+                  <Upload className="h-3 w-3" /> Enviar documento (+2 créditos)
+                </Link>
+                <Link
+                  to="/hub/creditos"
+                  className="text-[11px] opacity-70 hover:opacity-100 underline transition-smooth"
+                >
+                  ou comprar créditos
+                </Link>
+              </div>
+            </div>
           )}
         </>
       )}

@@ -5,7 +5,8 @@ import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { supabase } from "@/integrations/supabase/client";
 import { EXAMS, type Exam } from "@/data/hub-exams";
 import { SkeletonCard } from "@/components/Skeleton";
-import { BookOpen, Search, GraduationCap, FileText, Calendar, Zap } from "lucide-react";
+import { BookOpen, Search, GraduationCap, FileText, Calendar, Zap, Download } from "lucide-react";
+import type { DocItem } from "@/data/hub-documents";
 
 export const Route = createFileRoute("/hub/exames")({
   head: () => ({
@@ -93,6 +94,7 @@ function HubExamesPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const [difficulty, setDifficulty] = useState("all");
+  const [examDocs, setExamDocs] = useState<DocItem[]>([]);
 
   useEffect(() => {
     supabase.from("hub_exams").select("*").eq("active", true)
@@ -110,6 +112,26 @@ function HubExamesPage() {
           })));
         }
         setLoading(false);
+      });
+
+    // Also fetch uploaded exam documents from hub_documents
+    supabase
+      .from("hub_documents")
+      .select("id, title, author, description, pages, downloads, cover_hue, premium, created_at, category")
+      .eq("published", true)
+      .in("category", ["exames", "exame"])
+      .order("downloads", { ascending: false })
+      .limit(12)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setExamDocs(data.map((d) => ({
+            id: d.id, title: d.title, author: d.author,
+            category: "exames" as DocItem["category"],
+            pages: d.pages, description: d.description,
+            tags: [], cover: d.cover_hue, premium: d.premium,
+            downloads: d.downloads, views: 0, uploadedAt: d.created_at,
+          })));
+        }
       });
   }, []);
 
@@ -204,6 +226,46 @@ function HubExamesPage() {
           </div>
         )}
       </section>
+
+      {/* Uploaded exam documents */}
+      {examDocs.length > 0 && (
+        <section className="container mx-auto px-4 py-12 max-w-5xl border-t border-border">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-brand flex items-center gap-2">
+              <FileText className="h-5 w-5 text-gold" /> Documentos de Exames
+            </h2>
+            <Link to="/hub/explorar" search={{ cat: "exames" }} className="text-sm text-gold hover:underline">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {examDocs.map((doc) => (
+              <Link
+                key={doc.id}
+                to="/hub/documento/$id"
+                params={{ id: doc.id }}
+                className="group flex gap-4 rounded-xl bg-card border border-border p-4 hover:shadow-card hover:-translate-y-0.5 transition-smooth"
+              >
+                <div
+                  className="h-14 w-10 rounded-md flex-shrink-0 flex items-end justify-end p-1"
+                  style={{ background: `hsl(${doc.cover ?? 220} 70% 55%)` }}
+                >
+                  <FileText className="h-3 w-3 text-white/80" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-foreground line-clamp-2 group-hover:text-brand transition-colors">{doc.title}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{doc.author}</p>
+                  <div className="flex items-center gap-3 mt-1.5 text-[11px] text-muted-foreground">
+                    <span className="flex items-center gap-1"><Download className="h-3 w-3" />{doc.downloads}</span>
+                    <span>{doc.pages} pág.</span>
+                    {doc.premium && <span className="text-gold font-semibold">Premium</span>}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* CTA Giseveral */}
       <section className="container mx-auto px-4 pb-16 max-w-5xl">

@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Sparkles, Check, Loader2, AlertTriangle, Zap } from "lucide-react";
+import { Layout } from "@/components/Layout";
 import {
   TEMPLATE_META,
   DEFAULT_CV_DATA,
@@ -100,13 +101,15 @@ function CVBuilderPage() {
   }
 
   return (
-    <Gallery
-      onSelectLocal={selectLocalTemplate}
-      onSelectAPI={selectAPITemplate}
-      selectedLocal={template}
-      selectedApiId={apiTemplateId}
-      templateSource={templateSource}
-    />
+    <Layout>
+      <Gallery
+        onSelectLocal={selectLocalTemplate}
+        onSelectAPI={selectAPITemplate}
+        selectedLocal={template}
+        selectedApiId={apiTemplateId}
+        templateSource={templateSource}
+      />
+    </Layout>
   );
 }
 
@@ -132,7 +135,7 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
   }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background">
       {/* Hero */}
       <div className="border-b border-border px-6 py-10 text-center">
         <div className="inline-flex items-center gap-2 text-brand text-sm font-semibold mb-3">
@@ -190,7 +193,11 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
                   <p className="font-semibold text-foreground mb-1">Templates da API indisponíveis</p>
                   <p className="text-muted-foreground text-xs mb-3">{apiError}</p>
                   <p className="text-xs text-muted-foreground">
-                    Para activar, defina <code className="bg-muted rounded px-1 py-0.5 font-mono">VITE_REACTIVE_API_KEY</code> no ficheiro <code className="bg-muted rounded px-1 py-0.5 font-mono">.env</code>.
+                    Para activar em produção, adicione{" "}
+                    <code className="bg-muted rounded px-1 py-0.5 font-mono">VITE_REACTIVE_API_KEY</code>{" "}
+                    nas <strong>Build environment variables</strong> do Cloudflare Pages
+                    (Settings → Environment variables → Build). Localmente, basta definir no ficheiro{" "}
+                    <code className="bg-muted rounded px-1 py-0.5 font-mono">.env</code>.
                     Entretanto, usa os templates locais acima.
                   </p>
                 </div>
