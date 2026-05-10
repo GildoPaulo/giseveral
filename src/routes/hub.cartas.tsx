@@ -213,8 +213,19 @@ function HubCartasPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handlePrint() {
-    window.print();
+  function handlePdfDirect() {
+    const escaped = generated
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+    const html = `<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8"><title>${getTitle()}</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Times New Roman",serif;font-size:12pt;line-height:1.8;color:#000;background:#fff}
+.page{max-width:21cm;margin:0 auto;padding:2.5cm 2.5cm 3cm}
+@page{margin:2cm}@media print{body{-webkit-print-color-adjust:exact}}</style>
+</head><body><div class="page"><p>${escaped}</p></div></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) { toast.error("Popup bloqueado. Permita popups para este site."); return; }
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => { w.focus(); w.print(); }, 400);
   }
 
   function getTitle() {
@@ -328,8 +339,17 @@ ${rtfLines}
         toast.success("Carta melhorada com IA!", { description: "Texto revisto e polido automaticamente." });
       }
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Erro desconhecido";
-      toast.error("Não foi possível melhorar a carta.", { description: msg });
+      const msg = e instanceof Error ? e.message : String(e);
+      const isKeyMissing = msg.toLowerCase().includes("gemini_api_key") || msg.toLowerCase().includes("not configured");
+      toast.error(
+        isKeyMissing ? "Chave de API não configurada" : "Não foi possível melhorar a carta.",
+        {
+          description: isKeyMissing
+            ? "A chave GEMINI_API_KEY não está definida. Contacte o administrador ou defina-a em Supabase → Edge Functions → Secrets."
+            : msg,
+          duration: isKeyMissing ? 8000 : 4000,
+        }
+      );
     } finally {
       setImproving(false);
     }
@@ -357,31 +377,7 @@ ${rtfLines}
 
   return (
     <Layout>
-      {/* Print styles */}
-      <style>{`
-        @media print {
-          header, footer, nav, #hub-cartas-ui { display: none !important; }
-          #carta-print-area {
-            display: block !important;
-            position: fixed;
-            inset: 0;
-            padding: 48px 60px;
-            font-family: "Times New Roman", serif;
-            font-size: 12pt;
-            line-height: 1.8;
-            color: #000;
-            background: #fff;
-            white-space: pre-wrap;
-          }
-        }
-      `}</style>
-
-      {/* Hidden print area */}
-      <div id="carta-print-area" className="hidden">
-        {generated}
-      </div>
-
-      <div id="hub-cartas-ui" className="container mx-auto px-4 py-10 max-w-4xl">
+      <div className="container mx-auto px-4 py-10 max-w-4xl">
 
         {/* Header */}
         <div className="mb-10 text-center">
@@ -811,23 +807,17 @@ Atentamente,
                 <FileDown className="h-3.5 w-3.5" /> Word / .RTF
               </button>
               <button
-                onClick={handleDownloadHtml}
+                onClick={handlePdfDirect}
                 className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-card hover:shadow-glow transition-smooth"
-                title="Abra no browser e imprima como PDF"
+                title="Abre o diálogo de impressão numa janela limpa"
               >
-                <Download className="h-3.5 w-3.5" /> PDF (HTML)
+                <Printer className="h-3.5 w-3.5" /> PDF
               </button>
               <button
                 onClick={handleDownloadTxt}
                 className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-smooth"
               >
                 <Download className="h-3.5 w-3.5" /> .TXT
-              </button>
-              <button
-                onClick={handlePrint}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-gold px-3 py-2 text-sm font-semibold text-gold-foreground shadow-card hover:shadow-glow transition-smooth"
-              >
-                <Printer className="h-3.5 w-3.5" /> Imprimir
               </button>
               <button
                 onClick={handleWhatsApp}
@@ -864,7 +854,7 @@ Atentamente,
               <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-3 flex items-start gap-2">
                 <Printer className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
                 <p className="text-xs text-red-700 dark:text-red-400">
-                  <strong>PDF:</strong> Descarregue o HTML, abra no browser e use Ctrl+P → "Guardar como PDF".
+                  <strong>PDF:</strong> Clique em PDF para abrir o diálogo de impressão — seleccione "Guardar como PDF" sem cabeçalhos do browser.
                 </p>
               </div>
               <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30 px-4 py-3 flex items-start gap-2">
