@@ -1,7 +1,7 @@
 import type { CvData } from "@/components/cv-builder";
 
-const API_BASE = "https://rxresu.me/api/v1";
-const API_KEY = import.meta.env.VITE_REACTIVE_API_KEY as string | undefined;
+// All rxresu.me calls go through our Cloudflare proxy to avoid CORS
+const API_BASE = "/api/reactive-proxy";
 
 export interface APITemplate {
   id: string;
@@ -12,14 +12,10 @@ export interface APITemplate {
 }
 
 function headers() {
-  return {
-    Authorization: `Bearer ${API_KEY ?? ""}`,
-    "Content-Type": "application/json",
-  };
+  return { "Content-Type": "application/json" };
 }
 
 export async function fetchAPITemplates(): Promise<APITemplate[]> {
-  if (!API_KEY) throw new Error("VITE_REACTIVE_API_KEY não configurada.");
   const res = await fetch(`${API_BASE}/templates`, { headers: headers() });
   if (!res.ok) throw new Error(`API retornou ${res.status}`);
   const json = await res.json();
@@ -27,7 +23,6 @@ export async function fetchAPITemplates(): Promise<APITemplate[]> {
 }
 
 export async function generateAPIPreview(data: CvData, templateId: string): Promise<string> {
-  if (!API_KEY) throw new Error("VITE_REACTIVE_API_KEY não configurada.");
   const res = await fetch(`${API_BASE}/resume/preview`, {
     method: "POST",
     headers: headers(),
@@ -46,7 +41,6 @@ export async function generateAPIPreview(data: CvData, templateId: string): Prom
 }
 
 export async function generateAPIPdf(data: CvData, templateId: string): Promise<Blob> {
-  if (!API_KEY) throw new Error("VITE_REACTIVE_API_KEY não configurada.");
   const res = await fetch(`${API_BASE}/resume/pdf`, {
     method: "POST",
     headers: headers(),

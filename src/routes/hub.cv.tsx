@@ -193,12 +193,10 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
                   <p className="font-semibold text-foreground mb-1">Templates da API indisponíveis</p>
                   <p className="text-muted-foreground text-xs mb-3">{apiError}</p>
                   <p className="text-xs text-muted-foreground">
-                    Para activar em produção, adicione{" "}
-                    <code className="bg-muted rounded px-1 py-0.5 font-mono">VITE_REACTIVE_API_KEY</code>{" "}
-                    nas <strong>Build environment variables</strong> do Cloudflare Pages
-                    (Settings → Environment variables → Build). Localmente, basta definir no ficheiro{" "}
-                    <code className="bg-muted rounded px-1 py-0.5 font-mono">.env</code>.
-                    Entretanto, usa os templates locais acima.
+                    Adicione{" "}
+                    <code className="bg-muted rounded px-1 py-0.5 font-mono">REACTIVE_API_KEY</code>{" "}
+                    nas <strong>variáveis de ambiente</strong> do Cloudflare Pages
+                    (Settings → Environment variables → Production). Entretanto, usa os templates locais acima.
                   </p>
                 </div>
               </div>
