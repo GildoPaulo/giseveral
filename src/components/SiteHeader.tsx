@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 import {
   Menu, X, User, LogIn, ShoppingCart, Bell, Sun, Moon,
   Package, Wrench, Truck, CheckCircle2, Tag, AlertTriangle,
-  BellOff, Trash2, Info, Search,
+  BellOff, Trash2, Info, Search, BellRing,
 } from "lucide-react";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import logo from "@/assets/logo.jpeg";
 import { useAuth } from "@/contexts/AuthContext";
@@ -79,6 +80,8 @@ export function SiteHeader() {
     clickNotification,
     deleteNotification,
   } = useNotifications();
+
+  const { supported: pushSupported, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
 
   const visible =
     filter === "all"
@@ -260,10 +263,20 @@ export function SiteHeader() {
                       >
                         Ver todos os pedidos →
                       </Link>
-                      {notifications.length > 0 && (
-                        <span className="text-[10px] text-muted-foreground/50">
-                          {notifications.length} notificaç{notifications.length === 1 ? "ão" : "ões"}
-                        </span>
+                      {pushSupported && (
+                        <button
+                          onClick={pushSubscribed ? pushUnsubscribe : pushSubscribe}
+                          disabled={pushLoading}
+                          title={pushSubscribed ? "Desactivar notificações push" : "Activar notificações push"}
+                          className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md transition-colors ${
+                            pushSubscribed
+                              ? "text-brand bg-brand/10 hover:bg-destructive/10 hover:text-destructive"
+                              : "text-muted-foreground hover:text-brand hover:bg-brand/10"
+                          }`}
+                        >
+                          <BellRing className="h-3 w-3" />
+                          {pushLoading ? "…" : pushSubscribed ? "Push ON" : "Push OFF"}
+                        </button>
                       )}
                     </div>
                   </div>

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ChevronDown, Search, RefreshCw, Phone, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { sendPushNotification } from "@/lib/push";
 
 export const Route = createFileRoute("/balcao/pedidos")({
   component: BalcaoPedidos,
@@ -79,6 +80,11 @@ function BalcaoPedidos() {
     else {
       toast.success(`Pedido ${order.order_number} → ${statusConfig[next]?.label}`);
       setOrders((prev) => prev.map((o) => o.id === order.id ? { ...o, status: next } : o));
+      sendPushNotification({
+        title: `Pedido ${order.order_number}`,
+        body: `Estado actualizado: ${statusConfig[next]?.label}`,
+        url: "/conta",
+      });
     }
     setUpdating(null);
   };

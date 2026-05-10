@@ -88,6 +88,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="pt">
       <head>
         <HeadContent />
+        {/* Umami Analytics */}
+        <script defer src="https://cloud.umami.is/script.js" data-website-id="d4d93fe5-a539-4151-9e19-8f8316787e92" />
       </head>
       <body>
         {children}
