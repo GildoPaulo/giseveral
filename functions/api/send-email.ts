@@ -1,5 +1,6 @@
 interface Env {
   RESEND_API_KEY: string;
+  RESEND_FROM_EMAIL: string; // Set to "Giseveral <geral@giseveral.com>" after verifying domain in Resend
 }
 
 interface EmailPayload {
@@ -34,7 +35,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Giseveral <onboarding@resend.dev>",
+        from: context.env.RESEND_FROM_EMAIL || "Giseveral <onboarding@resend.dev>",
         to: [to],
         subject,
         html,

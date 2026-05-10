@@ -5,7 +5,7 @@ import {
   LayoutDashboard, ShoppingBag, Package, Truck,
   LogOut, Menu, X, ChevronRight, BoxesIcon, BookOpen,
   Wrench, Images, Megaphone, GraduationCap, Award,
-  FileText, Newspaper, Mail, DollarSign, Bell,
+  FileText, Newspaper, Mail, DollarSign, Bell, TrendingUp, SendHorizonal,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,6 +20,7 @@ export const Route = createFileRoute("/balcao")({
 
 const navItems = [
   { to: "/balcao/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/balcao/atividade", label: "Atividade", icon: TrendingUp },
   { to: "/balcao/pedidos", label: "Pedidos", icon: ShoppingBag },
   { to: "/balcao/produtos", label: "Produtos", icon: BoxesIcon },
   { to: "/balcao/stock", label: "Stock", icon: Package },
@@ -27,6 +28,8 @@ const navItems = [
   { to: "/balcao/servicos", label: "Serviços", icon: Wrench },
   { to: "/balcao/galeria", label: "Galeria", icon: Images },
   { to: "/balcao/campanhas", label: "Campanhas", icon: Megaphone },
+  { to: "/balcao/newsletter", label: "Newsletter", icon: SendHorizonal },
+  { to: "/balcao/notificacoes", label: "Push Notifications", icon: Bell },
   { to: "/balcao/blog", label: "Blog + IA", icon: BookOpen },
   { to: "/balcao/hub", label: "Hub Documentos", icon: GraduationCap },
   { to: "/balcao/bolsas", label: "Bolsas Hub", icon: Award },
@@ -34,7 +37,6 @@ const navItems = [
   { to: "/balcao/noticias", label: "Notícias Hub", icon: Newspaper },
   { to: "/balcao/cartas", label: "Cartas Templates", icon: Mail },
   { to: "/balcao/precos", label: "Preços", icon: DollarSign },
-  { to: "/balcao/notificacoes", label: "Notificações Push", icon: Bell },
 ] as const;
 
 function BalcaoLayout() {

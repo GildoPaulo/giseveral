@@ -65,6 +65,8 @@ import { Route as HubNoticiasIndexRouteImport } from './routes/hub.noticias.inde
 import { Route as HubCvRouteImport } from './routes/hub.cv'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as BalcaoNewsletterRouteImport } from './routes/balcao.newsletter'
+import { Route as BalcaoAtividadeRouteImport } from './routes/balcao.atividade'
 import { Route as BalcaoNotificacoesRouteImport } from './routes/balcao.notificacoes'
 
 const SobreRoute = SobreRouteImport.update({
@@ -347,6 +349,16 @@ const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BalcaoNewsletterRoute = BalcaoNewsletterRouteImport.update({
+  id: '/newsletter',
+  path: '/newsletter',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoAtividadeRoute = BalcaoAtividadeRouteImport.update({
+  id: '/atividade',
+  path: '/atividade',
+  getParentRoute: () => BalcaoRoute,
+} as any)
 const BalcaoNotificacoesRoute = BalcaoNotificacoesRouteImport.update({
   id: '/notificacoes',
   path: '/notificacoes',
@@ -381,6 +393,9 @@ export interface FileRoutesByFullPath {
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
+  '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
+  '/balcao/newsletter': typeof BalcaoNewsletterRoute
+  '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
@@ -435,6 +450,9 @@ export interface FileRoutesByTo {
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
+  '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
+  '/balcao/newsletter': typeof BalcaoNewsletterRoute
+  '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
@@ -492,6 +510,9 @@ export interface FileRoutesById {
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
+  '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
+  '/balcao/newsletter': typeof BalcaoNewsletterRoute
+  '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
@@ -550,6 +571,9 @@ export interface FileRouteTypes {
     | '/balcao/produtos'
     | '/balcao/servicos'
     | '/balcao/stock'
+    | '/balcao/notificacoes'
+    | '/balcao/newsletter'
+    | '/balcao/atividade'
     | '/blog/$slug'
     | '/hub/bolsas'
     | '/hub/cartas'
@@ -604,6 +628,9 @@ export interface FileRouteTypes {
     | '/balcao/produtos'
     | '/balcao/servicos'
     | '/balcao/stock'
+    | '/balcao/notificacoes'
+    | '/balcao/newsletter'
+    | '/balcao/atividade'
     | '/blog/$slug'
     | '/hub/bolsas'
     | '/hub/cartas'
@@ -660,6 +687,9 @@ export interface FileRouteTypes {
     | '/balcao/produtos'
     | '/balcao/servicos'
     | '/balcao/stock'
+    | '/balcao/notificacoes'
+    | '/balcao/newsletter'
+    | '/balcao/atividade'
     | '/blog/$slug'
     | '/hub/bolsas'
     | '/hub/cartas'
@@ -1008,6 +1038,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoNoticiasRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/newsletter': {
+      id: '/balcao/newsletter'
+      path: '/newsletter'
+      fullPath: '/balcao/newsletter'
+      preLoaderRoute: typeof BalcaoNewsletterRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/atividade': {
+      id: '/balcao/atividade'
+      path: '/atividade'
+      fullPath: '/balcao/atividade'
+      preLoaderRoute: typeof BalcaoAtividadeRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
     '/balcao/hub': {
       id: '/balcao/hub'
       path: '/hub'
@@ -1125,6 +1169,8 @@ interface BalcaoRouteChildren {
   BalcaoServicosRoute: typeof BalcaoServicosRoute
   BalcaoStockRoute: typeof BalcaoStockRoute
   BalcaoNotificacoesRoute: typeof BalcaoNotificacoesRoute
+  BalcaoNewsletterRoute: typeof BalcaoNewsletterRoute
+  BalcaoAtividadeRoute: typeof BalcaoAtividadeRoute
   BalcaoIndexRoute: typeof BalcaoIndexRoute
 }
 
@@ -1144,6 +1190,8 @@ const BalcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoServicosRoute: BalcaoServicosRoute,
   BalcaoStockRoute: BalcaoStockRoute,
   BalcaoNotificacoesRoute: BalcaoNotificacoesRoute,
+  BalcaoNewsletterRoute: BalcaoNewsletterRoute,
+  BalcaoAtividadeRoute: BalcaoAtividadeRoute,
   BalcaoIndexRoute: BalcaoIndexRoute,
 }
 
