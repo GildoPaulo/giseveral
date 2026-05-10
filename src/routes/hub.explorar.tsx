@@ -6,6 +6,7 @@ import { DocumentCard, DocumentCardSkeleton } from "@/components/hub/DocumentCar
 import { HUB_DOCUMENTS, DOC_CATEGORIES, type DocItem, type DocCategory } from "@/data/hub-documents";
 import { fetchHubDocuments } from "@/lib/hub";
 import { Search, SlidersHorizontal, ArrowLeft, LayoutGrid, List, X } from "lucide-react";
+import documentsImg from "@/assets/documents.jpg";
 
 type SearchParams = { q?: string; cat?: string };
 
@@ -86,8 +87,9 @@ function HubExplorarPage() {
   return (
     <Layout>
       {/* Hero */}
-      <section className="bg-gradient-hero text-brand-foreground py-12">
-        <div className="container mx-auto px-4 max-w-5xl">
+      <section className="relative overflow-hidden bg-gradient-hero text-brand-foreground py-12">
+        <div className="absolute inset-0 bg-cover bg-center opacity-20" style={{ backgroundImage: `url(${documentsImg})` }} />
+        <div className="relative container mx-auto px-4 max-w-5xl">
           <Link
             to="/hub"
             className="inline-flex items-center gap-1.5 text-sm text-brand-foreground/70 hover:text-gold mb-4 transition-smooth"

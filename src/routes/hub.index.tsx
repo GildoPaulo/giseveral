@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useMemo, FormEvent, useRef } from "react";
-import { motion, useInView } from "framer-motion";
+import { useState, useEffect, useMemo, FormEvent, useRef, useCallback } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { DocumentCard } from "@/components/hub/DocumentCard";
@@ -10,7 +10,12 @@ import { HUB_SITE as SITE } from "@/data/hub-site";
 import {
   Search, Upload, Printer, Crown, FileText, TrendingUp,
   ShieldCheck, ArrowRight, UserPlus, Eye, Download, CheckCircle2, Zap, BookOpen, Newspaper,
+  ChevronLeft, ChevronRight, GraduationCap, ScrollText, PenLine, FileSearch,
 } from "lucide-react";
+import documentsImg from "@/assets/documents.jpg";
+import heroBgImg from "@/assets/hero-bg.jpg";
+import printingImg from "@/assets/printing.jpg";
+import designImg from "@/assets/design.jpg";
 
 export const Route = createFileRoute("/hub/")({
   head: () => ({
@@ -24,6 +29,61 @@ export const Route = createFileRoute("/hub/")({
 });
 
 // ── Animation variants ────────────────────────────────────────────────────────
+
+// ── Hero Slides ───────────────────────────────────────────────────────────────
+
+const HERO_SLIDES = [
+  {
+    badge: "🎓 Bolsas Internacionais 2026",
+    title: "Bolsas de Estudo",
+    highlight: "para Moçambicanos",
+    sub: "Chevening, DAAD, Erasmus, Fulbright e muito mais. Candidatura assistida pela Giseveral.",
+    cta: { label: "Ver bolsas abertas", to: "/hub/bolsas" as const },
+    img: documentsImg,
+    overlay: "from-brand via-brand/80 to-brand/50",
+    icon: GraduationCap,
+  },
+  {
+    badge: "📚 Documentos Académicos",
+    title: "Exames, Sebentas",
+    highlight: "e Trabalhos",
+    sub: "Documentos partilhados pela comunidade estudantil de Moçambique — descarregue gratuitamente.",
+    cta: { label: "Explorar documentos", to: "/hub/explorar" as const },
+    img: heroBgImg,
+    overlay: "from-emerald-900 via-emerald-800/80 to-emerald-700/50",
+    icon: FileSearch,
+  },
+  {
+    badge: "📰 Notícias e Oportunidades",
+    title: "Fique Sempre",
+    highlight: "Informado",
+    sub: "Prazos de candidatura, alertas de bolsas e novidades para estudantes em todo Moçambique.",
+    cta: { label: "Ver notícias", to: "/hub/noticias" as const },
+    img: printingImg,
+    overlay: "from-amber-900 via-amber-800/80 to-amber-700/50",
+    icon: Newspaper,
+  },
+  {
+    badge: "✉️ Cartas com IA",
+    title: "Cartas Profissionais",
+    highlight: "em Segundos",
+    sub: "Carta de candidatura, motivação ou apresentação — gere automaticamente com inteligência artificial.",
+    cta: { label: "Criar carta agora", to: "/hub/cartas" as const },
+    img: designImg,
+    overlay: "from-purple-900 via-purple-800/80 to-purple-700/50",
+    icon: PenLine,
+  },
+  {
+    badge: "📄 CV Builder",
+    title: "Crie o Seu CV",
+    highlight: "Profissional Grátis",
+    sub: "Formulário guiado, pré-visualização em tempo real e exportação para PDF ou Word.",
+    cta: { label: "Criar CV agora", to: "/hub/cv" as const },
+    img: heroBgImg,
+    overlay: "from-rose-900 via-rose-800/80 to-rose-700/50",
+    icon: ScrollText,
+  },
+] as const;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fadeUp: any = {
@@ -76,6 +136,8 @@ function HubIndexPage() {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [allDocs, setAllDocs] = useState<DocItem[]>(HUB_DOCUMENTS);
+  const [slide, setSlide] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     fetchHubDocuments().then(setAllDocs);
@@ -85,6 +147,19 @@ function HubIndexPage() {
   const recent  = useMemo(() => [...allDocs].sort((a, b) => +new Date(b.uploadedAt) - +new Date(a.uploadedAt)).slice(0, 4), [allDocs]);
   const totalDownloads = useMemo(() => allDocs.reduce((s, d) => s + d.downloads, 0), [allDocs]);
 
+  const resetTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => setSlide((p) => (p + 1) % HERO_SLIDES.length), 5500);
+  }, []);
+
+  useEffect(() => {
+    resetTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [resetTimer]);
+
+  const prevSlide = () => { setSlide((p) => (p - 1 + HERO_SLIDES.length) % HERO_SLIDES.length); resetTimer(); };
+  const nextSlide = () => { setSlide((p) => (p + 1) % HERO_SLIDES.length); resetTimer(); };
+
   const onSearch = (e: FormEvent) => {
     e.preventDefault();
     navigate({ to: "/hub/explorar", search: q.trim() ? { q: q.trim() } : {} });
@@ -92,69 +167,118 @@ function HubIndexPage() {
 
   return (
     <Layout>
-      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
-      <section className="relative bg-gradient-hero text-brand-foreground overflow-hidden">
-        {/* decorative blobs */}
-        <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-gold/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 -left-16 h-72 w-72 rounded-full bg-brand/20 blur-3xl pointer-events-none" />
-
-        <div className="container mx-auto px-4 py-20 md:py-28 max-w-5xl relative">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={stagger}
-            className="max-w-3xl"
-          >
-            <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gold/20 text-gold text-xs font-bold mb-5">
-              <BookOpen className="h-3.5 w-3.5" /> GISEVERAL HUB — PLATAFORMA ACADÉMICA
-            </motion.div>
-
-            <motion.h1 variants={fadeUp} className="text-4xl md:text-6xl font-extrabold leading-tight mb-5">
-              Documentos académicos<br />
-              <span className="text-gold">de Moçambique</span>
-            </motion.h1>
-
-            <motion.p variants={fadeUp} className="text-lg md:text-xl text-brand-foreground/80 max-w-2xl mb-8">
-              Exames, sebentas, trabalhos e bolsas de estudo — tudo partilhado pela comunidade estudantil moçambicana.
-            </motion.p>
-
-            {/* Search bar */}
-            <motion.form
-              variants={fadeUp}
-              onSubmit={onSearch}
-              className="flex flex-col sm:flex-row gap-2 bg-white/95 text-foreground rounded-2xl p-2 shadow-elegant max-w-2xl"
+      {/* ── HERO CAROUSEL ─────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden" style={{ height: "clamp(420px, 60vw, 580px)" }}>
+        <AnimatePresence initial={false} mode="sync">
+          {HERO_SLIDES.map((s, i) => i !== slide ? null : (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.7 }}
+              className="absolute inset-0"
             >
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder="Procure exames, trabalhos, sebentas..."
-                  className="w-full h-12 pl-12 bg-transparent text-base outline-none placeholder:text-muted-foreground"
-                />
-              </div>
-              <button
-                type="submit"
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-brand px-5 py-3 text-sm font-semibold text-brand-foreground shadow-card transition-smooth hover:shadow-elegant"
-              >
-                <Search className="h-4 w-4" /> Pesquisar
-              </button>
-            </motion.form>
+              {/* Photo layer */}
+              <div
+                className="absolute inset-0 bg-cover bg-center scale-105"
+                style={{ backgroundImage: `url(${s.img})` }}
+              />
+              {/* Gradient overlay */}
+              <div className={`absolute inset-0 bg-gradient-to-r ${s.overlay}`} />
 
-            <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-2 mt-4 text-xs text-brand-foreground/70">
-              <span className="font-semibold">Populares:</span>
-              {["Matemática", "Direito", "Contabilidade", "CV", "Engenharia"].map((t) => (
-                <Link
-                  key={t}
-                  to="/hub/explorar"
-                  search={{ q: t }}
-                  className="px-2.5 py-1 rounded-full bg-white/15 hover:bg-white/25 transition-smooth"
-                >
-                  {t}
-                </Link>
-              ))}
+              {/* Content */}
+              <div className="relative h-full flex items-center">
+                <div className="container mx-auto px-6 md:px-10 max-w-5xl">
+                  <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs font-bold mb-5">
+                      {s.badge}
+                    </span>
+                    <h1 className="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4 drop-shadow-lg">
+                      {s.title}<br />
+                      <span className="text-gold">{s.highlight}</span>
+                    </h1>
+                    <p className="text-base md:text-lg text-white/80 max-w-xl mb-8 leading-relaxed">{s.sub}</p>
+                    <Link
+                      to={s.cta.to}
+                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-gold px-6 py-3 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth"
+                    >
+                      <s.icon className="h-4 w-4" />
+                      {s.cta.label}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </motion.div>
+                </div>
+              </div>
             </motion.div>
-          </motion.div>
+          ))}
+        </AnimatePresence>
+
+        {/* Prev / Next */}
+        <button
+          onClick={prevSlide}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/35 transition-smooth shadow-card"
+          aria-label="Slide anterior"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <button
+          onClick={nextSlide}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm text-white hover:bg-white/35 transition-smooth shadow-card"
+          aria-label="Próximo slide"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+
+        {/* Dot indicators */}
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          {HERO_SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => { setSlide(i); resetTimer(); }}
+              className={`h-2 rounded-full transition-all duration-300 ${i === slide ? "bg-gold w-8" : "bg-white/50 w-2 hover:bg-white/75"}`}
+              aria-label={`Ir para slide ${i + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* ── SEARCH BAR ────────────────────────────────────────────────────────── */}
+      <section className="container mx-auto px-4 py-6 max-w-3xl -mt-4 relative z-10">
+        <motion.form
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          onSubmit={onSearch}
+          className="flex flex-col sm:flex-row gap-2 bg-card rounded-2xl p-2 shadow-elegant border border-border"
+        >
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Procure exames, trabalhos, sebentas..."
+              className="w-full h-12 pl-12 bg-transparent text-base outline-none placeholder:text-muted-foreground text-foreground"
+            />
+          </div>
+          <button
+            type="submit"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-brand px-5 py-3 text-sm font-semibold text-brand-foreground shadow-card transition-smooth hover:shadow-elegant"
+          >
+            <Search className="h-4 w-4" /> Pesquisar
+          </button>
+        </motion.form>
+        <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-muted-foreground px-1">
+          <span className="font-semibold">Populares:</span>
+          {["Matemática", "Direito", "Contabilidade", "CV", "Engenharia"].map((t) => (
+            <Link key={t} to="/hub/explorar" search={{ q: t }} className="px-2.5 py-1 rounded-full bg-muted hover:bg-accent transition-smooth">
+              {t}
+            </Link>
+          ))}
         </div>
       </section>
 

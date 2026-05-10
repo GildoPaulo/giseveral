@@ -62,6 +62,7 @@ import { Route as HubDocumentoIdRouteImport } from './routes/hub.documento.$id'
 import { Route as HubBolsasIdRouteImport } from './routes/hub.bolsas.$id'
 import { Route as HubBolsasIndexRouteImport } from './routes/hub.bolsas.index'
 import { Route as HubNoticiasIndexRouteImport } from './routes/hub.noticias.index'
+import { Route as HubCvRouteImport } from './routes/hub.cv'
 import { Route as BalcaoNotificacoesRouteImport } from './routes/balcao.notificacoes'
 
 const SobreRoute = SobreRouteImport.update({
@@ -329,6 +330,11 @@ const HubNoticiasIndexRoute = HubNoticiasIndexRouteImport.update({
   path: '/',
   getParentRoute: () => HubNoticiasRoute,
 } as any)
+const HubCvRoute = HubCvRouteImport.update({
+  id: '/hub/cv',
+  path: '/hub/cv',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BalcaoNotificacoesRoute = BalcaoNotificacoesRouteImport.update({
   id: '/notificacoes',
   path: '/notificacoes',
@@ -372,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/hub/favoritos': typeof HubFavoritosRoute
   '/hub/noticias': typeof HubNoticiasRouteWithChildren
   '/hub/upload': typeof HubUploadRoute
+  '/hub/cv': typeof HubCvRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
@@ -423,6 +430,7 @@ export interface FileRoutesByTo {
   '/hub/favoritos': typeof HubFavoritosRoute
   '/hub/noticias': typeof HubNoticiasRouteWithChildren
   '/hub/upload': typeof HubUploadRoute
+  '/hub/cv': typeof HubCvRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
@@ -477,6 +485,7 @@ export interface FileRoutesById {
   '/hub/favoritos': typeof HubFavoritosRoute
   '/hub/noticias': typeof HubNoticiasRouteWithChildren
   '/hub/upload': typeof HubUploadRoute
+  '/hub/cv': typeof HubCvRoute
   '/loja/carrinho': typeof LojaCarrinhoRoute
   '/loja/checkout': typeof LojaCheckoutRoute
   '/loja/papelaria': typeof LojaPapelariaRoute
@@ -532,6 +541,7 @@ export interface FileRouteTypes {
     | '/hub/favoritos'
     | '/hub/noticias'
     | '/hub/upload'
+    | '/hub/cv'
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/papelaria'
@@ -583,6 +593,7 @@ export interface FileRouteTypes {
     | '/hub/favoritos'
     | '/hub/noticias'
     | '/hub/upload'
+    | '/hub/cv'
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/papelaria'
@@ -636,6 +647,7 @@ export interface FileRouteTypes {
     | '/hub/favoritos'
     | '/hub/noticias'
     | '/hub/upload'
+    | '/hub/cv'
     | '/loja/carrinho'
     | '/loja/checkout'
     | '/loja/papelaria'
@@ -676,6 +688,7 @@ export interface RootRouteChildren {
   HubFavoritosRoute: typeof HubFavoritosRoute
   HubNoticiasRoute: typeof HubNoticiasRouteWithChildren
   HubUploadRoute: typeof HubUploadRoute
+  HubCvRoute: typeof HubCvRoute
   LojaCarrinhoRoute: typeof LojaCarrinhoRoute
   LojaCheckoutRoute: typeof LojaCheckoutRoute
   LojaPapelariaRoute: typeof LojaPapelariaRoute
@@ -848,6 +861,13 @@ declare module '@tanstack/react-router' {
       path: '/hub/upload'
       fullPath: '/hub/upload'
       preLoaderRoute: typeof HubUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/cv': {
+      id: '/hub/cv'
+      path: '/hub/cv'
+      fullPath: '/hub/cv'
+      preLoaderRoute: typeof HubCvRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub/noticias': {
@@ -1167,6 +1187,7 @@ const rootRouteChildren: RootRouteChildren = {
   HubFavoritosRoute: HubFavoritosRoute,
   HubNoticiasRoute: HubNoticiasRouteWithChildren,
   HubUploadRoute: HubUploadRoute,
+  HubCvRoute: HubCvRoute,
   LojaCarrinhoRoute: LojaCarrinhoRoute,
   LojaCheckoutRoute: LojaCheckoutRoute,
   LojaPapelariaRoute: LojaPapelariaRoute,

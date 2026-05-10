@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { SCHOLARSHIPS, getScholarship } from "@/data/hub-bolsas";
 import { toast } from "sonner";
+import documentsDefaultImg from "@/assets/documents.jpg";
 import {
   ArrowLeft, Calendar, Globe, CheckCircle2, BookOpen, FileText,
   MessageCircle, Phone, Share2, Copy, MapPin, Wallet, Languages,
@@ -297,9 +298,10 @@ function BolsaDetailPage() {
     <Layout>
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-gradient-hero text-brand-foreground">
-        {s.image_url && (
-          <div className="absolute inset-0 bg-cover bg-center opacity-25" style={{ backgroundImage: `url(${s.image_url})` }} />
-        )}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-25"
+          style={{ backgroundImage: `url(${s.image_url ?? documentsDefaultImg})` }}
+        />
         <div className="relative container mx-auto px-4 py-10 md:py-14 max-w-4xl">
           <Link to="/hub/bolsas" className="inline-flex items-center gap-1.5 text-sm text-brand-foreground/70 hover:text-gold transition-smooth">
             <ArrowLeft className="h-4 w-4" /> Todas as bolsas
