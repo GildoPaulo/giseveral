@@ -1,12 +1,72 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { LETTER_TYPES, type LetterField } from "@/data/hub-cartas";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, ChevronDown, ChevronUp,
   FileText, Save, X, GripVertical, CheckCircle2, AlertCircle, Sparkles,
+  Upload, Loader2,
 } from "lucide-react";
+
+// ── Extract text from uploaded template file (.txt, .pdf, .docx, .rtf) ─────────
+
+async function extractTextFromFile(file: File): Promise<string> {
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+
+  if (ext === "txt") {
+    return new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = (e) => res((e.target?.result as string) ?? "");
+      reader.onerror = rej;
+      reader.readAsText(file, "utf-8");
+    });
+  }
+
+  if (ext === "pdf") {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfjs = await import("pdfjs-dist");
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      "pdfjs-dist/build/pdf.worker.mjs",
+      import.meta.url,
+    ).toString();
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+    const pages: string[] = [];
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      pages.push(content.items.map((it: any) => it.str).join(" "));
+    }
+    return pages.join("\n");
+  }
+
+  if (ext === "docx") {
+    const { default: mammoth } = await import("mammoth");
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammoth.extractRawText({ arrayBuffer });
+    return result.value;
+  }
+
+  if (ext === "rtf") {
+    // Simple RTF text extraction: remove control words and braces
+    const raw = await new Promise<string>((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = (e) => res((e.target?.result as string) ?? "");
+      reader.onerror = rej;
+      reader.readAsText(file, "ascii");
+    });
+    const text = raw
+      .replace(/\{\\[^{}]*\}/g, "")       // remove groups like {\fonttbl ...}
+      .replace(/\\[a-z]+[-\d]* ?/g, " ")  // remove control words
+      .replace(/[{}]/g, "")               // remove braces
+      .replace(/\r?\n/g, "\n")
+      .replace(/  +/g, " ")
+      .trim();
+    return text;
+  }
+
+  throw new Error(`Formato não suportado: .${ext}`);
+}
 
 export const Route = createFileRoute("/balcao/cartas")({
   component: BalcaoCartasPage,
@@ -81,6 +141,25 @@ function BalcaoCartasPage() {
   const [form, setForm] = useState<FormState>(BLANK_FORM);
   const [saving, setSaving] = useState(false);
   const [expandedStatic, setExpandedStatic] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const importRef = useRef<HTMLInputElement>(null);
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setImporting(true);
+    try {
+      const text = await extractTextFromFile(file);
+      if (!text.trim()) { toast.error("Ficheiro vazio ou sem texto extraível."); return; }
+      setForm((p) => ({ ...p, template: text.trim() }));
+      toast.success("Texto importado! Verifique e ajuste o template.");
+    } catch (err) {
+      toast.error("Erro ao importar", { description: String(err) });
+    } finally {
+      setImporting(false);
+    }
+  }
 
   useEffect(() => { loadTemplates(); }, []);
 
@@ -262,12 +341,31 @@ function BalcaoCartasPage() {
 
             {/* Template text */}
             <div className="sm:col-span-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1.5">
-                Texto do template *
-                <span className="ml-2 normal-case font-normal text-muted-foreground/70">
-                  Use {"{{CAMPO}}"} para campos variáveis
-                </span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5 flex-wrap gap-2">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Texto do template *
+                  <span className="ml-2 normal-case font-normal text-muted-foreground/70">
+                    Use {"{{CAMPO}}"} para campos variáveis
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => importRef.current?.click()}
+                  disabled={importing}
+                  className="inline-flex items-center gap-1.5 text-xs rounded-lg border border-brand/40 px-2.5 py-1 text-brand hover:bg-brand/10 transition-smooth disabled:opacity-50"
+                  title="Importar de ficheiro .txt, .pdf, .docx ou .rtf"
+                >
+                  {importing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+                  Importar ficheiro
+                </button>
+                <input
+                  ref={importRef}
+                  type="file"
+                  accept=".txt,.pdf,.docx,.rtf,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                  className="hidden"
+                  onChange={handleImportFile}
+                />
+              </div>
               <textarea
                 rows={12}
                 value={form.template}
@@ -275,6 +373,9 @@ function BalcaoCartasPage() {
                 placeholder={`Maputo, {{DATA}}\n\nAssunto: {{ASSUNTO}}\n\nExmos. Senhores,\n\n{{TEXTO_PRINCIPAL}}\n\nCom os melhores cumprimentos,\n{{NOME_COMPLETO}}`}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand/30 resize-y"
               />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Importar: <strong>.txt</strong>, <strong>.pdf</strong>, <strong>.docx</strong>, <strong>.rtf</strong> — o texto será extraído e colocado aqui para edição.
+              </p>
             </div>
 
             {/* Fields JSON */}

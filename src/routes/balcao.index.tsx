@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ShoppingBag, Clock, CheckCircle2, TrendingUp, AlertTriangle, Package } from "lucide-react";
+import { ShoppingBag, Clock, CheckCircle2, TrendingUp, AlertTriangle, Package, Users, Eye, Globe, Monitor, Smartphone, Tablet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ResponsiveContainer,
@@ -57,6 +57,71 @@ type StatusSlice = {
   fill: string;
 };
 
+// ── Umami Analytics ──────────────────────────────────────────────────────────
+
+const UMAMI_API = "https://api.umami.is/v1";
+const UMAMI_KEY = import.meta.env.VITE_UMAMI_API_KEY as string | undefined;
+const UMAMI_WID = import.meta.env.VITE_UMAMI_WEBSITE_ID as string | undefined;
+
+type UmamiStats = {
+  pageviews: { value: number };
+  visitors: { value: number };
+  visits: { value: number };
+  bounces: { value: number };
+  totaltime: { value: number };
+};
+
+type UmamiMetric = { x: string; y: number };
+
+type UmamiPageview = { t: string; v: number };
+
+type AnalyticsData = {
+  stats: UmamiStats | null;
+  topPages: UmamiMetric[];
+  referrers: UmamiMetric[];
+  devices: UmamiMetric[];
+  pageviewsChart: { day: string; views: number }[];
+};
+
+async function fetchUmamiAnalytics(days = 30): Promise<AnalyticsData | null> {
+  if (!UMAMI_KEY || !UMAMI_WID) return null;
+  const endAt = Date.now();
+  const startAt = endAt - days * 24 * 60 * 60 * 1000;
+  const qs = `startAt=${startAt}&endAt=${endAt}`;
+  const h = { "x-umami-api-key": UMAMI_KEY };
+
+  try {
+    const [statsRes, pagesRes, refRes, devRes, pvRes] = await Promise.all([
+      fetch(`${UMAMI_API}/websites/${UMAMI_WID}/stats?${qs}`, { headers: h }),
+      fetch(`${UMAMI_API}/websites/${UMAMI_WID}/metrics?${qs}&type=url&limit=10`, { headers: h }),
+      fetch(`${UMAMI_API}/websites/${UMAMI_WID}/metrics?${qs}&type=referrer&limit=8`, { headers: h }),
+      fetch(`${UMAMI_API}/websites/${UMAMI_WID}/metrics?${qs}&type=device`, { headers: h }),
+      fetch(`${UMAMI_API}/websites/${UMAMI_WID}/pageviews?${qs}&unit=day&timezone=Africa%2FMaputo`, { headers: h }),
+    ]);
+
+    const [stats, pages, refs, devs, pvData] = await Promise.all([
+      statsRes.ok ? statsRes.json() : null,
+      pagesRes.ok ? pagesRes.json() : [],
+      refRes.ok ? refRes.json() : [],
+      devRes.ok ? devRes.json() : [],
+      pvRes.ok ? pvRes.json() : { pageviews: [] },
+    ]);
+
+    return {
+      stats: stats as UmamiStats | null,
+      topPages: (Array.isArray(pages) ? pages : []) as UmamiMetric[],
+      referrers: (Array.isArray(refs) ? refs : []) as UmamiMetric[],
+      devices: (Array.isArray(devs) ? devs : []) as UmamiMetric[],
+      pageviewsChart: ((pvData?.pageviews ?? []) as UmamiPageview[]).map((p) => ({
+        day: new Date(p.t).toLocaleDateString("pt-PT", { day: "numeric", month: "short" }),
+        views: p.v,
+      })),
+    };
+  } catch {
+    return null;
+  }
+}
+
 const statusLabel: Record<string, { label: string; cls: string }> = {
   pending:    { label: "Pendente",      cls: "bg-yellow-100 text-yellow-700" },
   confirmed:  { label: "Confirmado",    cls: "bg-blue-100 text-blue-700" },
@@ -72,6 +137,8 @@ function BalcaoDashboard() {
   const [lowStock, setLowStock] = useState<LowStockProduct[]>([]);
   const [chartData, setChartData] = useState<ChartDay[]>([]);
   const [statusData, setStatusData] = useState<StatusSlice[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
   useEffect(() => {
     const today = new Date();
@@ -132,6 +199,12 @@ function BalcaoDashboard() {
         { name: "Cancelados", value: cancelled,                                               fill: "#ef4444" },
       ].filter((s) => s.value > 0);
       setStatusData(slices);
+    });
+
+    // Fetch Umami analytics in background
+    fetchUmamiAnalytics(30).then((data) => {
+      setAnalytics(data);
+      setAnalyticsLoading(false);
     });
   }, []);
 
@@ -271,6 +344,153 @@ function BalcaoDashboard() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* ── ANALYTICS ─────────────────────────────────────────────────────────── */}
+      <div className="border-t border-border pt-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
+              <Globe className="h-5 w-5 text-brand" /> Estatísticas de Visitas
+            </h2>
+            <p className="text-xs text-muted-foreground">Últimos 30 dias · fonte: Umami Analytics</p>
+          </div>
+        </div>
+
+        {analyticsLoading ? (
+          <div className="flex items-center justify-center py-10 text-muted-foreground/40">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-brand border-t-transparent mr-3" />
+            A carregar estatísticas…
+          </div>
+        ) : !analytics || !analytics.stats ? (
+          <div className="rounded-xl border border-dashed border-border p-8 text-center text-muted-foreground">
+            <Globe className="h-10 w-10 mx-auto mb-3 opacity-20" />
+            <p className="text-sm font-medium">Estatísticas não disponíveis</p>
+            <p className="text-xs mt-1">
+              {UMAMI_KEY ? "Erro ao contactar a API do Umami." : "Configure VITE_UMAMI_API_KEY e VITE_UMAMI_WEBSITE_ID no ambiente."}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Stat cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: "Visitantes únicos", value: analytics.stats.visitors.value.toLocaleString(), icon: Users, color: "text-brand" },
+                { label: "Visualizações", value: analytics.stats.pageviews.value.toLocaleString(), icon: Eye, color: "text-indigo-600" },
+                { label: "Visitas totais", value: analytics.stats.visits.value.toLocaleString(), icon: TrendingUp, color: "text-emerald-600" },
+                { label: "Tempo médio (s)", value: Math.round((analytics.stats.totaltime.value / (analytics.stats.visits.value || 1))).toLocaleString(), icon: Clock, color: "text-amber-600" },
+              ].map(({ label, value, icon: Icon, color }) => (
+                <div key={label} className="rounded-xl border border-border bg-card p-4 flex items-center gap-3 shadow-card">
+                  <Icon className={`h-8 w-8 ${color} flex-shrink-0`} />
+                  <div>
+                    <p className="text-xl font-bold text-foreground">{value}</p>
+                    <p className="text-xs text-muted-foreground">{label}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pageviews chart + top pages */}
+            <div className="grid lg:grid-cols-3 gap-6">
+              {/* Chart */}
+              <div className="lg:col-span-2 rounded-xl border border-border bg-card shadow-card p-5">
+                <h3 className="font-bold text-foreground mb-1 text-sm">Visitas diárias</h3>
+                <p className="text-xs text-muted-foreground mb-4">Últimos 30 dias</p>
+                {analytics.pageviewsChart.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={analytics.pageviewsChart}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval={4} />
+                      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                      <Tooltip
+                        contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
+                        labelStyle={{ fontWeight: 600, fontSize: 11 }}
+                      />
+                      <Line type="monotone" dataKey="views" stroke="#1a3a6b" strokeWidth={2} dot={false} name="Visualizações" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <p className="text-sm text-muted-foreground py-8 text-center">Sem dados de visitas</p>
+                )}
+              </div>
+
+              {/* Devices pie */}
+              <div className="rounded-xl border border-border bg-card shadow-card p-5">
+                <h3 className="font-bold text-foreground mb-1 text-sm">Dispositivos</h3>
+                <p className="text-xs text-muted-foreground mb-4">Desktop · Mobile · Tablet</p>
+                {analytics.devices.length > 0 ? (
+                  <div className="space-y-2">
+                    {analytics.devices.slice(0, 4).map((d) => {
+                      const total = analytics.devices.reduce((s, x) => s + x.y, 0);
+                      const pct = total > 0 ? Math.round((d.y / total) * 100) : 0;
+                      const DevIcon = d.x?.toLowerCase().includes("mobile") ? Smartphone
+                        : d.x?.toLowerCase().includes("tablet") ? Tablet : Monitor;
+                      return (
+                        <div key={d.x} className="flex items-center gap-2">
+                          <DevIcon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex justify-between text-xs mb-0.5">
+                              <span className="text-foreground/80 truncate">{d.x || "Desconhecido"}</span>
+                              <span className="font-semibold text-foreground ml-1">{pct}%</span>
+                            </div>
+                            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                              <div className="h-full bg-brand rounded-full" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground py-4 text-center">Sem dados</p>
+                )}
+              </div>
+            </div>
+
+            {/* Top pages + referrers */}
+            <div className="grid lg:grid-cols-2 gap-6">
+              <div className="rounded-xl border border-border bg-card shadow-card">
+                <div className="px-5 py-4 border-b border-border">
+                  <h3 className="font-bold text-foreground text-sm">Páginas mais visitadas</h3>
+                </div>
+                <div className="divide-y divide-border">
+                  {analytics.topPages.slice(0, 8).map((p, i) => (
+                    <div key={p.x} className="flex items-center gap-3 px-5 py-2.5">
+                      <span className="text-xs text-muted-foreground w-5 flex-shrink-0">{i + 1}</span>
+                      <span className="text-xs text-foreground flex-1 truncate font-mono">{p.x || "/"}</span>
+                      <span className="text-xs font-semibold text-brand flex-shrink-0">{p.y.toLocaleString()}</span>
+                    </div>
+                  ))}
+                  {analytics.topPages.length === 0 && <p className="p-5 text-sm text-muted-foreground">Sem dados</p>}
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card shadow-card">
+                <div className="px-5 py-4 border-b border-border">
+                  <h3 className="font-bold text-foreground text-sm">Origem do tráfego</h3>
+                </div>
+                <div className="divide-y divide-border">
+                  {analytics.referrers.slice(0, 8).map((r) => {
+                    const total = analytics.referrers.reduce((s, x) => s + x.y, 0);
+                    const pct = total > 0 ? Math.round((r.y / total) * 100) : 0;
+                    return (
+                      <div key={r.x} className="flex items-center gap-3 px-5 py-2.5">
+                        <span className="text-xs text-foreground flex-1 truncate">{r.x || "Directo"}</span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="w-12 h-1.5 rounded-full bg-muted overflow-hidden">
+                            <div className="h-full bg-gold rounded-full" style={{ width: `${pct}%` }} />
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground w-8 text-right">{r.y}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {analytics.referrers.length === 0 && <p className="p-5 text-sm text-muted-foreground">Sem dados</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

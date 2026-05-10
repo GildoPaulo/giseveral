@@ -9,8 +9,28 @@ import Youtube from "@tiptap/extension-youtube";
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
 import FontFamily from "@tiptap/extension-font-family";
+import { Extension } from "@tiptap/core";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+// Extend TextStyle to support fontSize attribute
+const FontSize = Extension.create({
+  name: "fontSize",
+  addGlobalAttributes() {
+    return [
+      {
+        types: ["textStyle"],
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: (el) => el.style.fontSize || null,
+            renderHTML: (attrs) => (!attrs.fontSize ? {} : { style: `font-size: ${attrs.fontSize}` }),
+          },
+        },
+      },
+    ];
+  },
+});
 
 type RichTextEditorProps = {
   value: string;
@@ -48,6 +68,7 @@ export function RichTextEditor({
       Underline,
       TextStyle,
       FontFamily,
+      FontSize,
       Link.configure({ openOnClick: false, autolink: false }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Image,
@@ -208,13 +229,17 @@ export function RichTextEditor({
             {FONTS.map(f => <option key={f} value={f}>{f}</option>)}
           </select>
 
-          {/* Font size via inline style */}
+          {/* Font size via FontSize extension */}
           <select
             className="text-xs bg-background border border-input rounded px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
             defaultValue=""
             onChange={e => {
-              if (!e.target.value || !editor) return;
-              editor.chain().focus().setMark("textStyle", { fontSize: e.target.value }).run();
+              if (!editor) return;
+              if (!e.target.value) {
+                editor.chain().focus().setMark("textStyle", { fontSize: null }).run();
+              } else {
+                editor.chain().focus().setMark("textStyle", { fontSize: e.target.value }).run();
+              }
             }}
             disabled={!editor}
             title="Tamanho de letra"

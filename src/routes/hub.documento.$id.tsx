@@ -40,11 +40,11 @@ function HubDocumentoPage() {
   const [printOpen, setPrintOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
-  const [credits, setCredits] = useState<number>(3);
+  const [credits, setCredits] = useState<number | null>(null);
   const [premium, setPremium] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setCredits(null); return; }
     fetchUserCredits(user.id).then(({ hub_credits, hub_premium }) => {
       setCredits(hub_credits);
       setPremium(hub_premium);
@@ -102,9 +102,19 @@ function HubDocumentoPage() {
       return;
     }
 
-    const isFree = premium || doc.premium;
+    // Premium documents require premium subscription; normal docs cost 1 credit
+    if (doc.premium && !premium) {
+      toast.error("Documento exclusivo Premium", {
+        description: "Torne-se Premium para aceder a este documento sem limite.",
+        action: { label: "Ver planos", onClick: () => navigate({ to: "/hub/creditos" }) },
+      });
+      return;
+    }
 
-    if (!isFree && credits <= 0) {
+    const isFree = premium; // only premium subscribers download for free
+    const currentCredits = credits ?? 0;
+
+    if (!isFree && currentCredits <= 0) {
       toast.error("Sem créditos suficientes.", {
         description: "Compre créditos ou torne-se Premium para downloads ilimitados.",
         action: { label: "Obter créditos", onClick: () => navigate({ to: "/hub/creditos" }) },
@@ -115,7 +125,7 @@ function HubDocumentoPage() {
     setDownloading(true);
 
     if (!isFree) {
-      const result = await spendCredit(user.id, doc.id, credits);
+      const result = await spendCredit(user.id, doc.id, currentCredits);
       if (!result.success) {
         toast.error(result.message);
         setDownloading(false);
@@ -136,7 +146,7 @@ function HubDocumentoPage() {
     toast.success("Download iniciado!", {
       description: isFree
         ? "Download gratuito — crédito não descontado."
-        : `1 crédito descontado. Restam ${credits - 1} crédito${credits - 1 !== 1 ? "s" : ""}.`,
+        : `1 crédito descontado. Restam ${(credits ?? 1) - 1} crédito${(credits ?? 1) - 1 !== 1 ? "s" : ""}.`,
     });
   }
 
@@ -246,7 +256,7 @@ function HubDocumentoPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-muted-foreground">{premium ? "Conta Premium" : "Os seus créditos"}</p>
                   <p className="font-bold text-foreground">
-                    {premium ? "∞ ilimitados" : `${credits} crédito${credits !== 1 ? "s" : ""}`}
+                    {premium ? "∞ ilimitados" : credits === null ? "A carregar…" : `${credits} crédito${credits !== 1 ? "s" : ""}`}
                   </p>
                 </div>
                 {!premium && (
@@ -332,24 +342,31 @@ function DownloadButton({
 }: {
   doc: DocItem;
   user: unknown;
-  credits: number;
+  credits: number | null;
   premium: boolean;
   downloading: boolean;
   downloaded: boolean;
   onDownload: () => void;
   onPrint: () => void;
 }) {
-  const hasAccess = premium || doc.premium || credits > 0;
-  const canDownload = !!user && hasAccess;
+  const resolvedCredits = credits ?? 0;
+  // Premium docs: only premium users; normal docs: anyone with ≥1 credit or premium user
+  const hasAccess = premium || (!doc.premium && resolvedCredits > 0);
+  const canDownload = !!user && hasAccess && credits !== null; // null = still loading
 
   return (
     <div className="rounded-2xl bg-gradient-hero text-brand-foreground p-6 shadow-elegant">
       <div className="text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Descarregar documento</div>
       <div className="flex items-baseline gap-2 mb-5">
-        {doc.premium || premium ? (
+        {premium ? (
           <>
             <Crown className="h-6 w-6 text-gold" />
-            <span className="text-lg font-bold text-gold">{doc.premium ? "Premium" : "Ilimitado"}</span>
+            <span className="text-lg font-bold text-gold">Ilimitado</span>
+          </>
+        ) : doc.premium ? (
+          <>
+            <Crown className="h-6 w-6 text-gold" />
+            <span className="text-lg font-bold text-gold">Premium</span>
           </>
         ) : (
           <>

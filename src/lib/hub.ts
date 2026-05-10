@@ -41,12 +41,24 @@ export type UserCredits = {
 
 // ── Document helpers ──────────────────────────────────────────────────────────
 
+// Normalize legacy/singular category names from DB to the plural form used in the app
+const CAT_NORMALIZE: Record<string, DocItem["category"]> = {
+  exame: "exames",
+  trabalho: "trabalhos",
+  cv: "cvs",
+  carta: "cvs",
+  livro: "livros",
+  sebenta: "livros",
+};
+
 function dbDocToLocal(d: HubDocument): DocItem {
+  const rawCat = d.category as string;
+  const normalizedCat = (CAT_NORMALIZE[rawCat] ?? rawCat) as DocItem["category"];
   return {
     id: d.id,
     title: d.title,
     author: d.author,
-    category: d.category as DocItem["category"],
+    category: normalizedCat,
     pages: d.pages,
     description: d.description,
     tags: d.tags,
