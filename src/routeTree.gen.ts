@@ -60,6 +60,9 @@ import { Route as HubNoticiasIdRouteImport } from './routes/hub.noticias.$id'
 import { Route as HubExamesIdRouteImport } from './routes/hub.exames.$id'
 import { Route as HubDocumentoIdRouteImport } from './routes/hub.documento.$id'
 import { Route as HubBolsasIdRouteImport } from './routes/hub.bolsas.$id'
+import { Route as HubBolsasIndexRouteImport } from './routes/hub.bolsas.index'
+import { Route as HubNoticiasIndexRouteImport } from './routes/hub.noticias.index'
+import { Route as BalcaoNotificacoesRouteImport } from './routes/balcao.notificacoes'
 
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
@@ -315,6 +318,21 @@ const HubBolsasIdRoute = HubBolsasIdRouteImport.update({
   id: '/$id',
   path: '/$id',
   getParentRoute: () => HubBolsasRoute,
+} as any)
+const HubBolsasIndexRoute = HubBolsasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HubBolsasRoute,
+} as any)
+const HubNoticiasIndexRoute = HubNoticiasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => HubNoticiasRoute,
+} as any)
+const BalcaoNotificacoesRoute = BalcaoNotificacoesRouteImport.update({
+  id: '/notificacoes',
+  path: '/notificacoes',
+  getParentRoute: () => BalcaoRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -1046,6 +1064,7 @@ interface BalcaoRouteChildren {
   BalcaoProdutosRoute: typeof BalcaoProdutosRoute
   BalcaoServicosRoute: typeof BalcaoServicosRoute
   BalcaoStockRoute: typeof BalcaoStockRoute
+  BalcaoNotificacoesRoute: typeof BalcaoNotificacoesRoute
   BalcaoIndexRoute: typeof BalcaoIndexRoute
 }
 
@@ -1064,6 +1083,7 @@ const BalcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoProdutosRoute: BalcaoProdutosRoute,
   BalcaoServicosRoute: BalcaoServicosRoute,
   BalcaoStockRoute: BalcaoStockRoute,
+  BalcaoNotificacoesRoute: BalcaoNotificacoesRoute,
   BalcaoIndexRoute: BalcaoIndexRoute,
 }
 
@@ -1085,10 +1105,12 @@ const ServicosRouteWithChildren = ServicosRoute._addFileChildren(
 )
 
 interface HubBolsasRouteChildren {
+  HubBolsasIndexRoute: typeof HubBolsasIndexRoute
   HubBolsasIdRoute: typeof HubBolsasIdRoute
 }
 
 const HubBolsasRouteChildren: HubBolsasRouteChildren = {
+  HubBolsasIndexRoute: HubBolsasIndexRoute,
   HubBolsasIdRoute: HubBolsasIdRoute,
 }
 
@@ -1109,10 +1131,12 @@ const HubExamesRouteWithChildren = HubExamesRoute._addFileChildren(
 )
 
 interface HubNoticiasRouteChildren {
+  HubNoticiasIndexRoute: typeof HubNoticiasIndexRoute
   HubNoticiasIdRoute: typeof HubNoticiasIdRoute
 }
 
 const HubNoticiasRouteChildren: HubNoticiasRouteChildren = {
+  HubNoticiasIndexRoute: HubNoticiasIndexRoute,
   HubNoticiasIdRoute: HubNoticiasIdRoute,
 }
 
