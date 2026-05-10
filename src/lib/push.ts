@@ -2,6 +2,8 @@ export async function sendPushNotification(opts: {
   title: string;
   body: string;
   url?: string;
+  target?: "all" | "admins" | "students" | "user";
+  user_id?: string;
 }): Promise<void> {
   try {
     await fetch("/api/push-send", {

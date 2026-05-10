@@ -81,7 +81,7 @@ export function SiteHeader() {
     deleteNotification,
   } = useNotifications();
 
-  const { supported: pushSupported, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe } = usePushNotifications();
+  const { supported: pushSupported, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe, unsupportedReason } = usePushNotifications();
 
   const visible =
     filter === "all"
@@ -263,21 +263,25 @@ export function SiteHeader() {
                       >
                         Ver todos os pedidos →
                       </Link>
-                      {pushSupported && (
+                      {pushSupported ? (
                         <button
                           onClick={pushSubscribed ? pushUnsubscribe : pushSubscribe}
                           disabled={pushLoading}
-                          title={pushSubscribed ? "Desactivar notificações push" : "Activar notificações push"}
-                          className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-md transition-colors ${
+                          title={pushSubscribed ? "Clica para desactivar alertas push" : "Clica para receber alertas push"}
+                          className={`flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-1 rounded-full border transition-all ${
                             pushSubscribed
-                              ? "text-brand bg-brand/10 hover:bg-destructive/10 hover:text-destructive"
-                              : "text-muted-foreground hover:text-brand hover:bg-brand/10"
+                              ? "border-brand/30 text-brand bg-brand/8 hover:border-destructive/40 hover:bg-destructive/8 hover:text-destructive"
+                              : "border-border text-muted-foreground hover:border-brand/40 hover:text-brand hover:bg-brand/8"
                           }`}
                         >
-                          <BellRing className="h-3 w-3" />
-                          {pushLoading ? "…" : pushSubscribed ? "Push ON" : "Push OFF"}
+                          <BellRing className={`h-3 w-3 ${pushSubscribed && !pushLoading ? "animate-[wiggle_1s_ease-in-out_1]" : ""}`} />
+                          {pushLoading ? "…" : pushSubscribed ? "Alertas ON" : "Alertar-me"}
                         </button>
-                      )}
+                      ) : unsupportedReason ? (
+                        <span className="text-[10px] text-muted-foreground/60 italic">
+                          Push não suportado
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                 </>

@@ -1,5 +1,5 @@
 // POST /api/push-send
-// Body: { title, body, url, target?: "all" | "admins" }
+// Body: { title, body, url, target?: "all" | "admins" | "students" | "user", user_id? }
 // Requires VAPID_PRIVATE_KEY_JWK and SUPABASE_* env vars.
 // Uses RFC 8291 (aes128gcm) Web Push encryption.
 
@@ -7,11 +7,27 @@ interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_ROLE_KEY: string;
   VAPID_PRIVATE_KEY_JWK: string;
+  PUSH_RATE_LIMIT?: string; // optional, defaults to 20/min
 }
 
 const VAPID_PUBLIC_KEY =
   "BCRMoEH3RVWPg7NYPGtPnth4x4uL5ZOR7kIhEvadQdpNA4SbuqjJAUzWRXuVAS4ARe-kTo3HSCeM4Ml8p-RHK1Y";
 const VAPID_SUBJECT = "mailto:geral@giseveral.com";
+
+// Simple in-memory rate limiter (resets per worker instance, ~1–5 min TTL)
+const rateLimiter = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string, maxPerMin = 20): boolean {
+  const now = Date.now();
+  const entry = rateLimiter.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimiter.set(ip, { count: 1, resetAt: now + 60_000 });
+    return true;
+  }
+  if (entry.count >= maxPerMin) return false;
+  entry.count++;
+  return true;
+}
 
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -29,7 +45,6 @@ function fromB64url(s: string): Uint8Array {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
-// HMAC-SHA-256 extract
 async function hmac256(key: ArrayBuffer | Uint8Array, data: ArrayBuffer | Uint8Array): Promise<ArrayBuffer> {
   const k = await crypto.subtle.importKey(
     "raw", key, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]
@@ -37,7 +52,6 @@ async function hmac256(key: ArrayBuffer | Uint8Array, data: ArrayBuffer | Uint8A
   return crypto.subtle.sign("HMAC", k, data);
 }
 
-// HKDF-Expand (RFC 5869 §2.3)
 async function hkdfExpand(prk: ArrayBuffer, info: Uint8Array, len: number): Promise<Uint8Array> {
   const result = new Uint8Array(Math.ceil(len / 32) * 32);
   let prev = new Uint8Array(0);
@@ -58,59 +72,46 @@ async function encryptPayload(
   authB64: string,
 ): Promise<ArrayBuffer> {
   const enc = new TextEncoder();
-
-  const subPubKeyRaw = fromB64url(p256dhB64); // 65-byte uncompressed EC point
-  const authSecret = fromB64url(authB64);       // 16-byte auth secret
+  const subPubKeyRaw = fromB64url(p256dhB64);
+  const authSecret = fromB64url(authB64);
 
   const subPubKey = await crypto.subtle.importKey(
     "raw", subPubKeyRaw, { name: "ECDH", namedCurve: "P-256" }, false, []
   );
 
-  // Ephemeral sender key pair
   const senderPair = await crypto.subtle.generateKey(
     { name: "ECDH", namedCurve: "P-256" }, true, ["deriveBits"]
   );
   const senderPubRaw = new Uint8Array(
     await crypto.subtle.exportKey("raw", senderPair.publicKey)
-  ); // 65 bytes
+  );
 
-  // ECDH shared secret
   const ecdhSecret = await crypto.subtle.deriveBits(
     { name: "ECDH", public: subPubKey }, senderPair.privateKey, 256
   );
 
-  // Random 16-byte salt
   const salt = crypto.getRandomValues(new Uint8Array(16));
 
-  // key_info = "WebPush: info\x00" || subPubKeyRaw || senderPubRaw
   const keyInfoLabel = enc.encode("WebPush: info");
   const keyInfo = new Uint8Array(keyInfoLabel.length + 1 + subPubKeyRaw.length + senderPubRaw.length);
   keyInfo.set(keyInfoLabel); keyInfo[keyInfoLabel.length] = 0x00;
   keyInfo.set(subPubKeyRaw, keyInfoLabel.length + 1);
   keyInfo.set(senderPubRaw, keyInfoLabel.length + 1 + subPubKeyRaw.length);
 
-  // PRK_key = HMAC-SHA-256(key=authSecret, data=ecdhSecret)
   const prkKey = await hmac256(authSecret, ecdhSecret);
-
-  // IKM = HKDF-Expand(PRK=prkKey, info=keyInfo, L=32)
   const ikm = await hkdfExpand(prkKey, keyInfo, 32);
-
-  // PRK = HMAC-SHA-256(key=salt, data=ikm)
   const prk = await hmac256(salt, ikm);
 
-  // CEK = HKDF-Expand(PRK, info="Content-Encoding: aes128gcm\x00\x01", L=16)
   const cekLabel = enc.encode("Content-Encoding: aes128gcm");
   const cekInfo = new Uint8Array(cekLabel.length + 2);
   cekInfo.set(cekLabel); cekInfo[cekLabel.length] = 0x00; cekInfo[cekLabel.length + 1] = 0x01;
   const cek = await hkdfExpand(prk, cekInfo, 16);
 
-  // Nonce = HKDF-Expand(PRK, info="Content-Encoding: nonce\x00\x01", L=12)
   const nonceLabel = enc.encode("Content-Encoding: nonce");
   const nonceInfo = new Uint8Array(nonceLabel.length + 2);
   nonceInfo.set(nonceLabel); nonceInfo[nonceLabel.length] = 0x00; nonceInfo[nonceLabel.length + 1] = 0x01;
   const nonce = await hkdfExpand(prk, nonceInfo, 12);
 
-  // Pad: plaintext + 0x02 delimiter
   const ptBytes = enc.encode(plaintext);
   const padded = new Uint8Array(ptBytes.length + 1);
   padded.set(ptBytes); padded[ptBytes.length] = 0x02;
@@ -118,7 +119,6 @@ async function encryptPayload(
   const cekKey = await crypto.subtle.importKey("raw", cek, "AES-GCM", false, ["encrypt"]);
   const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, cekKey, padded);
 
-  // RFC 8291 header: salt(16) + rs(4) + idlen(1) + senderPub(65) + ciphertext
   const rs = 4096;
   const out = new Uint8Array(16 + 4 + 1 + 65 + ct.byteLength);
   out.set(salt, 0);
@@ -150,13 +150,13 @@ async function vapidJWT(audience: string, privateJwk: JsonWebKey): Promise<strin
   return `${sigInput}.${b64url(sig)}`;
 }
 
-// ── Send one push ─────────────────────────────────────────────────────────────
+// ── Send one push — returns status code ───────────────────────────────────────
 
 async function sendOne(
   sub: { endpoint: string; p256dh: string; auth: string },
   payload: string,
   privateJwk: JsonWebKey,
-): Promise<boolean> {
+): Promise<number> {
   const url = new URL(sub.endpoint);
   const audience = `${url.protocol}//${url.host}`;
   const jwt = await vapidJWT(audience, privateJwk);
@@ -173,7 +173,7 @@ async function sendOne(
     body,
   });
 
-  return res.ok || res.status === 201;
+  return res.status;
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -188,35 +188,104 @@ export const onRequestOptions = () =>
   });
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
+  // Rate limit by IP
+  const ip = request.headers.get("CF-Connecting-IP") ?? "unknown";
+  const maxPerMin = parseInt(env.PUSH_RATE_LIMIT ?? "20", 10);
+  if (!checkRateLimit(ip, maxPerMin)) {
+    return new Response(JSON.stringify({ error: "Rate limit exceeded" }), { status: 429 });
+  }
+
   try {
-    const { title = "Giseveral", body = "", url = "/" } =
-      await request.json() as { title?: string; body?: string; url?: string };
+    const {
+      title = "Giseveral",
+      body = "",
+      url = "/",
+      target = "all",     // "all" | "admins" | "students" | "user"
+      user_id,            // only used when target === "user"
+    } = await request.json() as {
+      title?: string; body?: string; url?: string;
+      target?: string; user_id?: string;
+    };
 
     const privateJwk: JsonWebKey = JSON.parse(env.VAPID_PRIVATE_KEY_JWK);
 
-    // Fetch all subscriptions
-    const sbRes = await fetch(
-      `${env.SUPABASE_URL}/rest/v1/push_subscriptions?select=endpoint,p256dh,auth`,
-      {
-        headers: {
-          apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-          Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-      }
-    );
+    // Build filter query based on target
+    let query = `${env.SUPABASE_URL}/rest/v1/push_subscriptions?select=endpoint,p256dh,auth`;
+    if (target === "admins") {
+      query += "&role=eq.admin";
+    } else if (target === "students") {
+      query += "&role=eq.student";
+    } else if (target === "user" && user_id) {
+      query += `&user_id=eq.${user_id}`;
+    }
+    // "all" — no filter
+
+    const sbRes = await fetch(query, {
+      headers: {
+        apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+    });
     if (!sbRes.ok) throw new Error("Cannot fetch subscriptions");
 
     const subs: Array<{ endpoint: string; p256dh: string; auth: string }> = await sbRes.json();
     const payload = JSON.stringify({ title, body, url });
 
-    const results = await Promise.allSettled(
-      subs.map((s) => sendOne(s, payload, privateJwk))
-    );
-    const sent = results.filter((r) => r.status === "fulfilled").length;
+    let sent = 0;
+    let failed = 0;
+    const staleEndpoints: string[] = [];
 
-    return new Response(JSON.stringify({ sent, total: subs.length }), {
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-    });
+    await Promise.allSettled(
+      subs.map(async (s) => {
+        const status = await sendOne(s, payload, privateJwk);
+        if (status === 200 || status === 201) {
+          sent++;
+        } else if (status === 410 || status === 404) {
+          // Browser unsubscribed or endpoint expired — remove it
+          staleEndpoints.push(s.endpoint);
+          failed++;
+        } else {
+          failed++;
+        }
+      })
+    );
+
+    // Clean up stale subscriptions
+    if (staleEndpoints.length > 0) {
+      await fetch(
+        `${env.SUPABASE_URL}/rest/v1/push_subscriptions?endpoint=in.(${staleEndpoints.map(e => `"${e}"`).join(",")})`,
+        {
+          method: "DELETE",
+          headers: {
+            apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+            Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+        }
+      );
+    }
+
+    // Log to push_notifications_log (best-effort)
+    fetch(`${env.SUPABASE_URL}/rest/v1/push_notifications_log`, {
+      method: "POST",
+      headers: {
+        apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title, body, url,
+        target_type: target,
+        target_user_id: user_id ?? null,
+        sent_count: sent,
+        failed_count: failed,
+        removed_count: staleEndpoints.length,
+      }),
+    }).catch(() => {});
+
+    return new Response(
+      JSON.stringify({ sent, failed, removed: staleEndpoints.length, total: subs.length }),
+      { headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" } }
+    );
   } catch (e) {
     return new Response(JSON.stringify({ error: String(e) }), { status: 500 });
   }

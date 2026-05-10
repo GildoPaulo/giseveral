@@ -1,9 +1,9 @@
-const CACHE = "giseveral-v1";
+const CACHE = "giseveral-v2";
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
     caches.open(CACHE)
-      .then((c) => c.addAll(["/", "/hub", "/loja", "/servicos", "/precos", "/manifest.webmanifest"]))
+      .then((c) => c.addAll(["/", "/hub", "/loja", "/servicos", "/precos"]))
       .then(() => self.skipWaiting())
   );
 });
@@ -36,7 +36,7 @@ self.addEventListener("fetch", (e) => {
 // ── Push Notifications ────────────────────────────────────────────────────────
 
 self.addEventListener("push", (e) => {
-  let data = { title: "Giseveral", body: "Tem uma nova notificação.", url: "/" };
+  let data = { title: "Giseveral", body: "Tens uma nova notificação.", url: "/" };
   try {
     if (e.data) data = { ...data, ...e.data.json() };
   } catch (_) {}
@@ -48,22 +48,28 @@ self.addEventListener("push", (e) => {
       badge: "/icon.jpeg",
       data: { url: data.url },
       vibrate: [200, 100, 200],
+      requireInteraction: false,
+      tag: "giseveral-push",         // collapse duplicate notifications
+      renotify: true,
     })
   );
 });
 
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
-  const url = e.notification.data?.url ?? "/";
+  const targetUrl = e.notification.data?.url ?? "/";
+  const origin = self.location.origin;
+
   e.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      // Try to focus an existing tab on the same origin
       for (const client of list) {
-        if (client.url.includes(self.location.origin) && "focus" in client) {
-          client.navigate(url);
-          return client.focus();
+        if (new URL(client.url).origin === origin && "focus" in client) {
+          return client.navigate(targetUrl).then(() => client.focus());
         }
       }
-      return clients.openWindow(url);
+      // No existing tab — open a new one
+      return clients.openWindow(targetUrl);
     })
   );
 });

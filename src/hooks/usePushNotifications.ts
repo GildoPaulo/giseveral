@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export const VAPID_PUBLIC_KEY =
   "BCRMoEH3RVWPg7NYPGtPnth4x4uL5ZOR7kIhEvadQdpNA4SbuqjJAUzWRXuVAS4ARe-kTo3HSCeM4Ml8p-RHK1Y";
@@ -10,22 +11,27 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
   return Uint8Array.from(raw, (c) => c.charCodeAt(0));
 }
 
-export function usePushNotifications() {
-  const [supported, setSupported] = useState(false);
+function detectSupport(): { ok: boolean; reason?: string } {
+  if (typeof window === "undefined") return { ok: false, reason: "ssr" };
+  if (!("serviceWorker" in navigator)) return { ok: false, reason: "O teu navegador não suporta Service Workers." };
+  if (!("PushManager" in window)) return { ok: false, reason: "O teu navegador não suporta Push Notifications." };
+  if (!("Notification" in window)) return { ok: false, reason: "O teu navegador não suporta Notificações." };
+  return { ok: true };
+}
+
+export function usePushNotifications(role = "user") {
+  const support = detectSupport();
+  const [supported] = useState(support.ok);
+  const [unsupportedReason] = useState(support.reason);
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [subscribed, setSubscribed] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const ok =
-      typeof window !== "undefined" &&
-      "serviceWorker" in navigator &&
-      "PushManager" in window &&
-      "Notification" in window;
-    setSupported(ok);
-    if (ok) setPermission(Notification.permission);
+    if (!support.ok) return;
+    setPermission(Notification.permission);
 
-    if (ok && Notification.permission === "granted") {
+    if (Notification.permission === "granted") {
       navigator.serviceWorker.ready.then((reg) =>
         reg.pushManager.getSubscription().then((sub) => setSubscribed(!!sub))
       );
@@ -33,13 +39,19 @@ export function usePushNotifications() {
   }, []);
 
   async function subscribe() {
-    if (!supported) return;
+    if (!supported) {
+      if (unsupportedReason) toast.error(unsupportedReason);
+      return;
+    }
     setLoading(true);
     try {
       const reg = await navigator.serviceWorker.ready;
       const perm = await Notification.requestPermission();
       setPermission(perm);
-      if (perm !== "granted") return;
+      if (perm !== "granted") {
+        toast.error("Permissão de notificações negada.");
+        return;
+      }
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -50,6 +62,8 @@ export function usePushNotifications() {
       const auth = sub.getKey("auth");
       if (!key || !auth) throw new Error("Missing push keys");
 
+      const deviceName = `${navigator.platform} — ${navigator.userAgent.split(")")[0].split("(")[1] ?? ""}`.trim();
+
       await fetch("/api/push-subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,11 +71,17 @@ export function usePushNotifications() {
           endpoint: sub.endpoint,
           p256dh: btoa(String.fromCharCode(...new Uint8Array(key))),
           auth: btoa(String.fromCharCode(...new Uint8Array(auth))),
+          role,
+          device_name: deviceName,
         }),
       });
       setSubscribed(true);
+      toast.success("Notificações activadas!", {
+        description: "Receberás alertas importantes de pedidos e novidades.",
+      });
     } catch (err) {
       console.error("Push subscribe error:", err);
+      toast.error("Erro ao activar notificações. Tenta de novo.");
     } finally {
       setLoading(false);
     }
@@ -81,12 +101,14 @@ export function usePushNotifications() {
         await sub.unsubscribe();
       }
       setSubscribed(false);
+      toast.info("Notificações desactivadas.");
     } catch (err) {
       console.error("Push unsubscribe error:", err);
+      toast.error("Erro ao desactivar notificações.");
     } finally {
       setLoading(false);
     }
   }
 
-  return { supported, permission, subscribed, loading, subscribe, unsubscribe };
+  return { supported, unsupportedReason, permission, subscribed, loading, subscribe, unsubscribe };
 }

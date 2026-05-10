@@ -17,8 +17,9 @@ export const onRequestOptions = () =>
 
 export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   try {
-    const { endpoint, p256dh, auth } = await request.json() as {
+    const { endpoint, p256dh, auth, role = "user", device_name } = await request.json() as {
       endpoint: string; p256dh: string; auth: string;
+      role?: string; device_name?: string;
     };
     if (!endpoint || !p256dh || !auth) {
       return new Response(JSON.stringify({ error: "Missing fields" }), { status: 400 });
@@ -34,7 +35,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
           "Content-Type": "application/json",
           Prefer: "resolution=merge-duplicates",
         },
-        body: JSON.stringify({ endpoint, p256dh, auth }),
+        body: JSON.stringify({ endpoint, p256dh, auth, role, device_name }),
       }
     );
 
