@@ -10,8 +10,9 @@ import {
 import {
   Sparkles, ChevronRight, ChevronLeft, Printer, RotateCcw,
   Copy, Check, Wand2, FileText, Star, Upload, X, Download,
-  AlertCircle, CheckCircle2, MessageCircle, FileDown,
+  AlertCircle, CheckCircle2, MessageCircle, FileDown, BrainCircuit, Loader2,
 } from "lucide-react";
+import { callGemini } from "@/services/gemini";
 
 export const Route = createFileRoute("/hub/cartas")({
   head: () => ({
@@ -59,6 +60,7 @@ function HubCartasPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
   const [improving, setImproving] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
   const [supportingDocs, setSupportingDocs] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
@@ -324,34 +326,41 @@ ${rtfLines}
     if (!generated.trim()) return;
     setImproving(true);
     try {
-      const { data, error } = await supabase.functions.invoke("improve-letter", {
-        body: {
-          content: generated,
-          letterType: method === "upload"
-            ? "personalizado"
-            : selectedType?.title ?? "profissional",
-        },
-      });
-
-      if (error) throw error;
-      if (data?.improved) {
-        setFormValues((prev) => ({ ...prev, "__improved__": data.improved as string }));
-        toast.success("Carta melhorada com IA!", { description: "Texto revisto e polido automaticamente." });
-      }
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      const isKeyMissing = msg.toLowerCase().includes("gemini_api_key") || msg.toLowerCase().includes("not configured");
-      toast.error(
-        isKeyMissing ? "Chave de API não configurada" : "Não foi possível melhorar a carta.",
-        {
-          description: isKeyMissing
-            ? "A chave GEMINI_API_KEY não está definida. Contacte o administrador ou defina-a em Supabase → Edge Functions → Secrets."
-            : msg,
-          duration: isKeyMissing ? 8000 : 4000,
-        }
-      );
+      const letterType = method === "upload"
+        ? "personalizado"
+        : (selectedType?.title ?? "profissional");
+      const prompt = `Melhora e poliza este texto de carta ${letterType}, mantendo a sua estrutura e intenção mas tornando-o mais profissional e elegante:\n\n${generated}`;
+      const improved = await callGemini("letter_generate", prompt);
+      setFormValues((prev) => ({ ...prev, "__improved__": improved }));
+      toast.success("Carta melhorada com IA!", { description: "Texto revisto e polido automaticamente." });
+    } catch {
+      toast.error("Não foi possível melhorar a carta.", { description: "Verifique a configuração da API." });
     } finally {
       setImproving(false);
+    }
+  }
+
+  async function handleAIGenerate() {
+    setAiGenerating(true);
+    try {
+      const letterTitle = method === "upload" && customTemplate
+        ? customTemplate.name.replace(/\.txt$/i, "")
+        : (selectedType?.title ?? "carta formal");
+
+      const fieldsSummary = activeFields
+        .map((f) => `${f.label}: ${formValues[f.key] ?? "(não preenchido)"}`)
+        .join("\n");
+
+      const prompt = `Gera uma ${letterTitle} profissional com os seguintes dados:\n\n${fieldsSummary}\n\nCria uma carta completa, formal e bem estruturada.`;
+
+      const text = await callGemini("letter_generate", prompt);
+      setFormValues((prev) => ({ ...prev, "__improved__": text }));
+      setStep("preview");
+      toast.success("Carta gerada com IA!", { description: "Reveja e exporte quando estiver pronto." });
+    } catch {
+      toast.error("Não foi possível gerar a carta com IA.");
+    } finally {
+      setAiGenerating(false);
     }
   }
 
@@ -725,19 +734,30 @@ Atentamente,
               )}
             </div>
 
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border">
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border gap-3">
               <button
                 onClick={() => setStep("method")}
-                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
               >
                 <ChevronLeft className="h-4 w-4" /> Voltar
               </button>
-              <button
-                onClick={handleGenerate}
-                className="inline-flex items-center gap-2 rounded-xl bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-brand-foreground shadow-card hover:shadow-glow transition-smooth"
-              >
-                <Wand2 className="h-4 w-4" /> Gerar carta
-              </button>
+              <div className="flex items-center gap-2 flex-wrap justify-end">
+                <button
+                  onClick={handleAIGenerate}
+                  disabled={aiGenerating}
+                  title="Gerar carta automaticamente com IA Gemini (sem preencher todos os campos)"
+                  className="inline-flex items-center gap-2 rounded-xl border border-gold/40 bg-gold/10 px-4 py-2.5 text-sm font-semibold text-gold hover:bg-gold/20 shadow-card transition-smooth disabled:opacity-50"
+                >
+                  {aiGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4" />}
+                  {aiGenerating ? "A gerar…" : "✨ IA Gemini"}
+                </button>
+                <button
+                  onClick={handleGenerate}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-brand-foreground shadow-card hover:shadow-glow transition-smooth"
+                >
+                  <Wand2 className="h-4 w-4" /> Gerar carta
+                </button>
+              </div>
             </div>
           </div>
         )}

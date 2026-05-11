@@ -1,7 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
 import { Layout, PageHero } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
-import { Printer, BookOpen, Palette, Laptop, Network, ArrowRight, MessageCircle, Map } from "lucide-react";
+import {
+  Printer, BookOpen, Palette, Laptop, Network, ArrowRight, MessageCircle, Map,
+  Wrench, Camera, Cpu, Phone, FileText, ShoppingBag, Monitor, Wifi, Globe, Settings,
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/servicos/")({
   head: () => ({
@@ -14,50 +19,62 @@ export const Route = createFileRoute("/servicos/")({
   component: ServicosPage,
 });
 
-const categorias = [
-  {
-    slug: "reprografia",
-    icon: Printer,
-    title: "Reprografia",
-    subtitle: "Impressão, fotocópias, digitalização e encadernação",
-    items: ["Impressão a cores e preto e branco", "Fotocópias rápidas", "Digitalização de documentos", "Encadernação e plastificação"],
-    badge: "Mais popular",
-  },
-  {
-    slug: "papelaria",
-    icon: BookOpen,
-    title: "Papelaria",
-    subtitle: "Material escolar e de escritório completo",
-    items: ["Material escolar e cadernos", "Material de escritório", "Pastas, canetas e estojos", "Resmas de papel e blocos"],
-    badge: null,
-  },
-  {
-    slug: "design-grafico",
-    icon: Palette,
-    title: "Design Gráfico",
-    subtitle: "Criamos a identidade visual da tua marca",
-    items: ["Flyers e panfletos", "Cartazes e banners", "Logos e identidade visual", "Convites personalizados"],
-    badge: null,
-  },
-  {
-    slug: "informatica",
-    icon: Laptop,
-    title: "Assistência Informática",
-    subtitle: "Formatação, Windows, vírus e reparação",
-    items: ["Formatação de computadores", "Instalação de Windows e programas", "Remoção de vírus e malware", "Optimização e upgrade"],
-    badge: null,
-  },
-  {
-    slug: "redes",
-    icon: Network,
-    title: "Redes e Tecnologia",
-    subtitle: "Internet, Wi-Fi, cabeamento e routers",
-    items: ["Instalação de Wi-Fi e LAN", "Configuração de routers", "Cabeamento estruturado", "Diagnóstico de rede"],
-    badge: null,
-  },
+type ServiceRow = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string;
+  icon_name: string;
+  price_from: string;
+  features: string[];
+  badge: string | null;
+  active: boolean;
+  sort_order: number;
+};
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  printer: Printer,
+  "book-open": BookOpen,
+  palette: Palette,
+  laptop: Laptop,
+  network: Network,
+  wrench: Wrench,
+  camera: Camera,
+  cpu: Cpu,
+  phone: Phone,
+  "file-text": FileText,
+  "shopping-bag": ShoppingBag,
+  monitor: Monitor,
+  wifi: Wifi,
+  globe: Globe,
+  settings: Settings,
+};
+
+// Fallback static data if Supabase returns nothing
+const FALLBACK: ServiceRow[] = [
+  { id: "1", slug: "reprografia", title: "Reprografia", subtitle: "Impressão, fotocópias e digitalização", icon_name: "printer", price_from: "3 MZN/pág", features: ["Impressão a cores e preto e branco", "Fotocópias rápidas", "Digitalização de documentos", "Encadernação e plastificação"], badge: "Mais popular", active: true, sort_order: 1 },
+  { id: "2", slug: "papelaria", title: "Papelaria", subtitle: "Material escolar e de escritório completo", icon_name: "book-open", price_from: "55 MZN", features: ["Material escolar e cadernos", "Material de escritório", "Pastas, canetas e estojos", "Resmas de papel e blocos"], badge: null, active: true, sort_order: 2 },
+  { id: "3", slug: "design-grafico", title: "Design Gráfico", subtitle: "Criamos a identidade visual da tua marca", icon_name: "palette", price_from: "400 MZN", features: ["Flyers e panfletos", "Cartazes e banners", "Logos e identidade visual", "Convites personalizados"], badge: null, active: true, sort_order: 3 },
+  { id: "4", slug: "informatica", title: "Assistência Informática", subtitle: "Formatação, Windows, vírus e reparação", icon_name: "laptop", price_from: "300 MZN", features: ["Formatação de computadores", "Instalação de Windows e programas", "Remoção de vírus e malware", "Optimização e upgrade"], badge: null, active: true, sort_order: 4 },
+  { id: "5", slug: "redes", title: "Redes e Tecnologia", subtitle: "Internet, Wi-Fi, cabeamento e routers", icon_name: "network", price_from: "400 MZN", features: ["Instalação de Wi-Fi e LAN", "Configuração de routers", "Cabeamento estruturado", "Diagnóstico de rede"], badge: null, active: true, sort_order: 5 },
 ];
 
 function ServicosPage() {
+  const [services, setServices] = useState<ServiceRow[]>(FALLBACK);
+
+  useEffect(() => {
+    supabase
+      .from("services" as never)
+      .select("id,slug,title,subtitle,icon_name,price_from,features,badge,active,sort_order")
+      .eq("active", true)
+      .order("sort_order")
+      .then(({ data }) => {
+        if (data && (data as ServiceRow[]).length > 0) {
+          setServices(data as ServiceRow[]);
+        }
+      });
+  }, []);
+
   return (
     <Layout>
       <PageHero
@@ -67,49 +84,55 @@ function ServicosPage() {
 
       <section className="container mx-auto px-4 py-16 max-w-5xl">
         <div className="grid md:grid-cols-2 gap-6">
-          {categorias.map((cat) => (
-            <Link
-              key={cat.slug}
-              to="/servicos/$slug"
-              params={{ slug: cat.slug }}
-              className="group relative rounded-2xl border border-border bg-card shadow-card overflow-hidden transition-smooth hover:shadow-elegant hover:-translate-y-1"
-            >
-              <div className="h-1 w-full bg-gradient-brand" />
+          {services.map((svc) => {
+            const Icon = ICON_MAP[svc.icon_name] ?? Wrench;
+            return (
+              <Link
+                key={svc.id}
+                to="/servicos/$slug"
+                params={{ slug: svc.slug }}
+                className="group relative rounded-2xl border border-border bg-card shadow-card overflow-hidden transition-smooth hover:shadow-elegant hover:-translate-y-1"
+              >
+                <div className="h-1 w-full bg-gradient-brand" />
 
-              {cat.badge && (
-                <span className="absolute top-5 right-4 rounded-full bg-gold text-gold-foreground text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide">
-                  {cat.badge}
-                </span>
-              )}
+                {svc.badge && (
+                  <span className="absolute top-5 right-4 rounded-full bg-gold text-gold-foreground text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide">
+                    {svc.badge}
+                  </span>
+                )}
 
-              <div className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-brand text-brand-foreground shadow-card transition-smooth group-hover:bg-gradient-gold group-hover:text-gold-foreground">
-                    <cat.icon className="h-6 w-6" />
+                <div className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-brand text-brand-foreground shadow-card transition-smooth group-hover:bg-gradient-gold group-hover:text-gold-foreground">
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl font-bold text-brand">{svc.title}</h3>
+                      <p className="text-sm text-muted-foreground mt-0.5">{svc.subtitle}</p>
+                      {svc.price_from && (
+                        <p className="text-xs font-semibold text-gold mt-1">a partir de {svc.price_from}</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-xl font-bold text-brand">{cat.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-0.5">{cat.subtitle}</p>
+
+                  <ul className="mt-5 space-y-2">
+                    {svc.features.slice(0, 4).map((item) => (
+                      <li key={item} className="flex items-center gap-2 text-sm text-foreground/80">
+                        <span className="h-1.5 w-1.5 rounded-full bg-gold flex-shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="mt-6">
+                    <div className="inline-flex items-center gap-2 rounded-lg bg-gradient-brand px-4 py-2.5 text-sm font-semibold text-brand-foreground shadow-card group-hover:bg-gradient-gold group-hover:shadow-glow transition-smooth">
+                      Ver detalhes e preços <ArrowRight className="h-3.5 w-3.5" />
+                    </div>
                   </div>
                 </div>
-
-                <ul className="mt-5 space-y-2">
-                  {cat.items.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm text-foreground/80">
-                      <span className="h-1.5 w-1.5 rounded-full bg-gold flex-shrink-0" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-6">
-                  <div className="inline-flex items-center gap-2 rounded-lg bg-gradient-brand px-4 py-2.5 text-sm font-semibold text-brand-foreground shadow-card group-hover:bg-gradient-gold group-hover:shadow-glow transition-smooth">
-                    Ver detalhes e preços <ArrowRight className="h-3.5 w-3.5" />
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
 
           <div className="rounded-2xl bg-gradient-hero text-brand-foreground p-6 flex flex-col justify-between shadow-elegant">
             <div>

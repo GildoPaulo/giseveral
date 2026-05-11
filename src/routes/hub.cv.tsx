@@ -16,6 +16,7 @@ import type { CvData, CvTemplate, CvDesign } from "@/components/cv-builder";
 import { PreviewAPI } from "@/components/cv-builder/editor/PreviewAPI";
 import { fetchAPITemplates, generateAPIPdf } from "@/services/reactiveApi";
 import type { APITemplate } from "@/services/reactiveApi";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/hub/cv")({
   component: CVBuilderPage,
@@ -113,6 +114,19 @@ function CVBuilderPage() {
   );
 }
 
+type DbTemplate = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  category: string;
+  preview_url: string | null;
+  is_premium: boolean;
+  is_active: boolean;
+  sort_order: number;
+  reactive_id: string | null;
+};
+
 interface GalleryProps {
   onSelectLocal: (t: CvTemplate) => void;
   onSelectAPI: (t: APITemplate) => void;
@@ -125,6 +139,8 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
   const [apiTemplates, setApiTemplates] = useState<APITemplate[]>([]);
   const [loadingAPI, setLoadingAPI] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [dbTemplates, setDbTemplates] = useState<DbTemplate[]>([]);
+  const [loadingDb, setLoadingDb] = useState(true);
 
   useEffect(() => {
     setLoadingAPI(true);
@@ -133,6 +149,32 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
       .catch(e => setApiError(String(e)))
       .finally(() => setLoadingAPI(false));
   }, []);
+
+  useEffect(() => {
+    supabase
+      .from("cv_templates" as any)
+      .select("id, name, slug, description, category, preview_url, is_premium, is_active, sort_order, reactive_id")
+      .eq("is_active", true)
+      .order("sort_order")
+      .then(({ data }) => {
+        if (data && data.length > 0) setDbTemplates(data as DbTemplate[]);
+        setLoadingDb(false);
+      })
+      .catch(() => setLoadingDb(false));
+  }, []);
+
+  function selectDbTemplate(t: DbTemplate) {
+    const localIds = TEMPLATE_META.map(m => m.id);
+    if (t.reactive_id) {
+      onSelectAPI({ id: t.reactive_id, name: t.name, description: t.description });
+    } else if (localIds.includes(t.slug as CvTemplate)) {
+      onSelectLocal(t.slug as CvTemplate);
+    } else if (t.reactive_id) {
+      onSelectAPI({ id: t.reactive_id, name: t.name, description: t.description });
+    } else {
+      onSelectLocal(t.slug as CvTemplate);
+    }
+  }
 
   return (
     <div className="bg-background">
@@ -149,23 +191,55 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-10 space-y-12">
-        {/* ── Local templates ── */}
+        {/* ── Managed / local templates ── */}
         <section>
-          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-6">Templates locais</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-            {TEMPLATE_META.map(t => (
-              <TemplateCard
-                key={t.id}
-                label={t.label}
-                desc={t.desc}
-                accent={t.accent}
-                preview={t.preview}
-                tag={t.tag}
-                selected={templateSource === "local" && selectedLocal === t.id}
-                onSelect={() => onSelectLocal(t.id)}
-              />
-            ))}
-          </div>
+          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-6">
+            {dbTemplates.length > 0 ? "Templates geridos" : "Templates locais"}
+          </h2>
+
+          {loadingDb && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
+              <Loader2 size={15} className="animate-spin" />
+              A carregar templates...
+            </div>
+          )}
+
+          {!loadingDb && dbTemplates.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+              {dbTemplates.map(t => (
+                <TemplateCard
+                  key={t.id}
+                  label={t.name}
+                  desc={t.description}
+                  accent="#1d4ed8"
+                  preview={t.preview_url ?? `/templates/${t.slug}.jpg`}
+                  tag={t.is_premium ? "Premium" : t.category}
+                  selected={
+                    (templateSource === "local" && selectedLocal === t.slug) ||
+                    (templateSource === "api" && selectedApiId === t.reactive_id)
+                  }
+                  onSelect={() => selectDbTemplate(t)}
+                />
+              ))}
+            </div>
+          )}
+
+          {!loadingDb && dbTemplates.length === 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+              {TEMPLATE_META.map(t => (
+                <TemplateCard
+                  key={t.id}
+                  label={t.label}
+                  desc={t.desc}
+                  accent={t.accent}
+                  preview={t.preview}
+                  tag={t.tag}
+                  selected={templateSource === "local" && selectedLocal === t.id}
+                  onSelect={() => onSelectLocal(t.id)}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* ── API templates ── */}

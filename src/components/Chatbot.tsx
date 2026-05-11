@@ -3,56 +3,44 @@ import { MessageSquare, X, Send, Bot, Sparkles, Loader2 } from "lucide-react";
 
 type Msg = { role: "bot" | "user"; text: string };
 
-/* ── Gemini config ───────────────────────────────────────── */
-const GEMINI_KEY = (typeof import.meta !== "undefined" ? (import.meta as { env?: Record<string, string> }).env?.VITE_GEMINI_KEY : undefined) ?? "";
-const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-
-const SYSTEM_PROMPT = `Você é o assistente virtual da Giseveral e Services, empresa em Beira, Moçambique.
-Responda SEMPRE em Português. Respostas curtas (máx 3 frases). Seja amigável e direto.
-
-EMPRESA: Beira, Esturro • Rua Alfredo Lawley · Tel/WhatsApp: 874 383 621 · Seg-Sáb 8h-17h
-
-PREÇOS:
-- Impressão P&B: 5 MZN/pág · Cores: 15 MZN/pág · Fotocópia: 3 MZN/pág (50+ pág: -10%, 100+ pág: -20%)
-- Digitalização: 5 MZN/pág · Encadernação: 50-150 MZN · Plastificação A4: 30 MZN
-- Formatação PC: 500 MZN · Windows: 700 MZN · Vírus: 400 MZN · Programas: 200 MZN
-- Router Wi-Fi: 1.500 MZN · Cabeamento/ponto: 200 MZN · Extensão Wi-Fi: 800 MZN
-- Logotipo: 1.500 MZN · Cartão visita: 300 MZN · Panfleto A5: 400 MZN
-
-Se quiserem pedir/orçamento: sugira WhatsApp 874 383 621 ou loja online.
-Trabalhos urgentes: +30% acréscimo.`;
-
-/* ── rule-based fallback ─────────────────────────────────── */
+/* ── rule-based fallback (no network needed) ─────────────────── */
 function ruleAnswer(input: string): string {
   const q = input.toLowerCase();
-  if (/(ola|olá|oi|bom dia|boa tarde|hello|hi)/.test(q))
-    return "Olá! 😊 Posso ajudar com informações sobre impressão, informática, redes, papelaria, preços ou localização.";
-  if (/(reprograf|imprim|impress|fotocop|cópia|copia|digitaliz|plastific|encaderna)/.test(q))
-    return "🖨️ Impressão P&B: 5 MZN/pág · Cores: 15 MZN/pág · Fotocópia: 3 MZN/pág. Descontos de volume a partir de 50 páginas! Quer fazer um pedido?";
-  if (/(format|window|vírus|virus|computador|pc|laptop|repara)/.test(q))
+  if (/(ol[aá]|oi|bom dia|boa tarde|hello|hi)/.test(q))
+    return "Olá! 😊 Posso ajudar com informações sobre reprografia, informática, redes, Hub académico, preços ou localização.";
+  if (/(reprograf|imprim|impress|fotocop|c[oó]pia|digitaliz|plastific|encaderna)/.test(q))
+    return "🖨️ Impressão P&B: 5 MZN/pág · Cores: 15 MZN/pág · Fotocópia: 3 MZN/pág. Descontos a partir de 50 páginas! Quer fazer um pedido?";
+  if (/(format|window|v[ií]rus|computador|pc|laptop|repara)/.test(q))
     return "💻 Formatação: 500 MZN · Windows: 700 MZN · Remoção de vírus: 400 MZN. Quer agendar? Ligue: 874 383 621.";
   if (/(rede|wifi|wi-fi|router|internet|cabo|lan)/.test(q))
-    return "🌐 Router/Wi-Fi: 1.500 MZN · Cabeamento por ponto: 200 MZN · Extensão Wi-Fi: 800 MZN. Para redes empresariais pedimos orçamento.";
-  if (/(design|gráfic|logo|cartão|flyer|banner)/.test(q))
+    return "🌐 Router/Wi-Fi: 1.500 MZN · Cabeamento/ponto: 200 MZN. Para redes empresariais, pedimos orçamento.";
+  if (/(design|gr[aá]fic|logo|cart[aã]o|flyer|banner)/.test(q))
     return "🎨 Logotipo: 1.500 MZN · Cartão de visita: 300 MZN · Panfleto A5: 400 MZN. Quer saber mais?";
-  if (/(localiza|onde|endereco|endereço|beira)/.test(q))
-    return "📍 Estamos na Beira, Esturro • Rua Alfredo Lawley, Moçambique. Atendemos Seg–Sáb, 8h–17h.";
+  if (/(bolsa|scholarship|study|estudar|exterior|externo)/.test(q))
+    return "🎓 Temos um Hub de Bolsas com dezenas de oportunidades internacionais! Visita /hub/bolsas para explorar.";
+  if (/(cv|currículo|curriculo|curriculum)/.test(q))
+    return "📄 O nosso CV Builder permite criar CVs profissionais em minutos! Acede em /hub/cv.";
+  if (/(carta|motiva|candidatur)/.test(q))
+    return "✉️ Temos templates de cartas formais e de motivação em /hub/cartas. Gera a tua carta em segundos!";
+  if (/(document|exame|apostil|sebenta|livro|hub)/.test(q))
+    return "📚 O Hub académico tem documentos, exames e sebentas partilhados por estudantes! Visita /hub/explorar.";
+  if (/(localiz|onde|endere[cç]o|beira)/.test(q))
+    return "📍 Estamos na Beira, Esturro • Rua Alfredo Lawley, Moçambique. Seg–Sáb, 8h–17h.";
   if (/(contact|telefon|whats|email)/.test(q))
     return "📞 WhatsApp/Tel: 874 383 621\n📧 geral@giseveral.com";
-  if (/(preco|preço|quanto|custa|valor|orcament)/.test(q))
-    return "💰 Diga-me qual serviço precisa e dou o preço exacto! Ou consulte a página Preços do site.";
-  if (/(horari|aberto|funciona)/.test(q))
-    return "🕒 Seg–Sáb, 8h–17h. Para urgências, contacte pelo WhatsApp: 874 383 621.";
-  if (/(pedido|encomendar|comprar|fazer pedido)/.test(q))
-    return "🛒 Pode fazer o pedido pela loja online do site ou via WhatsApp: 874 383 621. Qual prefere?";
+  if (/(pre[cç]o|quanto|custa|valor|or[cç]ament)/.test(q))
+    return "💰 Diga-me qual serviço precisa e dou o preço exacto! Ou consulte a página /precos.";
+  if (/(hor[aá]ri|aberto|funciona)/.test(q))
+    return "🕒 Seg–Sáb, 8h–17h. Para urgências: WhatsApp 874 383 621.";
+  if (/(pedido|encomendar|comprar|loja)/.test(q))
+    return "🛒 Pode fazer o pedido pela loja online (/loja) ou via WhatsApp: 874 383 621.";
   if (/(obrigad|valeu|thanks)/.test(q))
     return "De nada! 🙏 Estamos sempre disponíveis para ajudar.";
-  return "Posso ajudar com: 🖨️ Reprografia, 💻 Informática, 🌐 Redes, 📚 Papelaria, 🎨 Design, 📍 Localização ou 💰 Preços. Sobre o que precisa de informação?";
+  return "Posso ajudar com: 🖨️ Reprografia · 💻 Informática · 🌐 Redes · 📚 Hub académico · 🎓 Bolsas · 📄 CVs · ✉️ Cartas · 💰 Preços. Sobre o que precisa?";
 }
 
-/* ── Gemini call ─────────────────────────────────────────── */
+/* ── server proxy call (API key never leaves server) ─────────── */
 async function getReply(history: Msg[], userText: string): Promise<string> {
-  if (!GEMINI_KEY) return ruleAnswer(userText);
   try {
     const contents = [
       ...history.map((m) => ({
@@ -61,32 +49,39 @@ async function getReply(history: Msg[], userText: string): Promise<string> {
       })),
       { role: "user", parts: [{ text: userText }] },
     ];
-    const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
+
+    const resp = await fetch("/api/gemini", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-        contents,
-        generationConfig: { temperature: 0.6, maxOutputTokens: 200 },
+        task: "chat",
+        prompt: userText,
+        context: history.length > 1
+          ? history.slice(-4).map((m) => `${m.role === "bot" ? "Bot" : "User"}: ${m.text}`).join("\n")
+          : undefined,
       }),
     });
-    if (!res.ok) return ruleAnswer(userText);
-    const data = await res.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? ruleAnswer(userText);
+
+    if (!resp.ok) return ruleAnswer(userText);
+    const data = await resp.json() as { text?: string };
+    return data.text?.trim() || ruleAnswer(userText);
   } catch {
     return ruleAnswer(userText);
   }
 }
 
-/* ── quick replies ───────────────────────────────────────── */
-const QUICK = ["💰 Preços", "🖨️ Impressão", "💻 Informática", "🌐 Redes", "📍 Localização", "🛒 Fazer pedido"];
+/* ── quick replies ───────────────────────────────────────────── */
+const QUICK = [
+  "💰 Preços", "🖨️ Impressão", "💻 Informática",
+  "🎓 Bolsas", "📄 Fazer CV", "📍 Localização",
+];
 
 const WELCOME: Msg = {
   role: "bot",
-  text: "Olá! 👋 Sou o assistente da Giseveral. Como posso ajudar hoje?",
+  text: "Olá! 👋 Sou o assistente da Giseveral com IA Gemini. Posso ajudar com reprografia, informática, bolsas, CVs, cartas e muito mais!",
 };
 
-/* ── component ───────────────────────────────────────────── */
+/* ── component ───────────────────────────────────────────────── */
 export function Chatbot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([WELCOME]);
@@ -115,15 +110,13 @@ export function Chatbot() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          aria-label="Abrir assistente"
+          aria-label="Abrir assistente IA"
           className="fixed bottom-24 right-4 sm:right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-brand text-brand-foreground shadow-elegant transition-smooth hover:scale-110 hover:shadow-glow"
         >
           <MessageSquare className="h-6 w-6" />
-          {GEMINI_KEY && (
-            <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[8px] font-bold text-gold-foreground">
-              AI
-            </span>
-          )}
+          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[8px] font-bold text-gold-foreground">
+            AI
+          </span>
         </button>
       )}
 
@@ -134,13 +127,11 @@ export function Chatbot() {
           <div className="flex items-center justify-between bg-gradient-hero px-4 py-3 text-brand-foreground">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-gold text-gold-foreground">
-                {GEMINI_KEY ? <Sparkles className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+                <Sparkles className="h-4 w-4" />
               </div>
               <div className="leading-tight">
-                <div className="text-sm font-bold">Giseveral Assistente</div>
-                <div className="text-[11px] text-brand-foreground/70">
-                  {GEMINI_KEY ? "IA Gemini • responde já" : "Assistente • responde já"}
-                </div>
+                <div className="text-sm font-bold">Giseveral AI</div>
+                <div className="text-[11px] text-brand-foreground/70">Gemini • responde já</div>
               </div>
             </div>
             <button onClick={() => setOpen(false)} aria-label="Fechar" className="rounded-md p-1.5 hover:bg-white/15 transition-colors">

@@ -55,6 +55,9 @@ import { Route as BalcaoHubRouteImport } from './routes/balcao.hub'
 import { Route as BalcaoGaleriaRouteImport } from './routes/balcao.galeria'
 import { Route as BalcaoExamesRouteImport } from './routes/balcao.exames'
 import { Route as BalcaoEntregasRouteImport } from './routes/balcao.entregas'
+import { Route as BalcaoCvTemplatesRouteImport } from './routes/balcao.cv-templates'
+import { Route as BalcaoCvRouteImport } from './routes/balcao.cv'
+import { Route as BalcaoCreditosRouteImport } from './routes/balcao.creditos'
 import { Route as BalcaoCartasRouteImport } from './routes/balcao.cartas'
 import { Route as BalcaoCampanhasRouteImport } from './routes/balcao.campanhas'
 import { Route as BalcaoBolsasRouteImport } from './routes/balcao.bolsas'
@@ -299,6 +302,21 @@ const BalcaoEntregasRoute = BalcaoEntregasRouteImport.update({
   path: '/entregas',
   getParentRoute: () => BalcaoRoute,
 } as any)
+const BalcaoCvTemplatesRoute = BalcaoCvTemplatesRouteImport.update({
+  id: '/cv-templates',
+  path: '/cv-templates',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoCvRoute = BalcaoCvRouteImport.update({
+  id: '/cv',
+  path: '/cv',
+  getParentRoute: () => BalcaoRoute,
+} as any)
+const BalcaoCreditosRoute = BalcaoCreditosRouteImport.update({
+  id: '/creditos',
+  path: '/creditos',
+  getParentRoute: () => BalcaoRoute,
+} as any)
 const BalcaoCartasRoute = BalcaoCartasRouteImport.update({
   id: '/cartas',
   path: '/cartas',
@@ -386,6 +404,9 @@ export interface FileRoutesByFullPath {
   '/balcao/bolsas': typeof BalcaoBolsasRoute
   '/balcao/campanhas': typeof BalcaoCampanhasRoute
   '/balcao/cartas': typeof BalcaoCartasRoute
+  '/balcao/creditos': typeof BalcaoCreditosRoute
+  '/balcao/cv': typeof BalcaoCvRoute
+  '/balcao/cv-templates': typeof BalcaoCvTemplatesRoute
   '/balcao/entregas': typeof BalcaoEntregasRoute
   '/balcao/exames': typeof BalcaoExamesRoute
   '/balcao/galeria': typeof BalcaoGaleriaRoute
@@ -445,6 +466,9 @@ export interface FileRoutesByTo {
   '/balcao/bolsas': typeof BalcaoBolsasRoute
   '/balcao/campanhas': typeof BalcaoCampanhasRoute
   '/balcao/cartas': typeof BalcaoCartasRoute
+  '/balcao/creditos': typeof BalcaoCreditosRoute
+  '/balcao/cv': typeof BalcaoCvRoute
+  '/balcao/cv-templates': typeof BalcaoCvTemplatesRoute
   '/balcao/entregas': typeof BalcaoEntregasRoute
   '/balcao/exames': typeof BalcaoExamesRoute
   '/balcao/galeria': typeof BalcaoGaleriaRoute
@@ -505,6 +529,9 @@ export interface FileRoutesById {
   '/balcao/bolsas': typeof BalcaoBolsasRoute
   '/balcao/campanhas': typeof BalcaoCampanhasRoute
   '/balcao/cartas': typeof BalcaoCartasRoute
+  '/balcao/creditos': typeof BalcaoCreditosRoute
+  '/balcao/cv': typeof BalcaoCvRoute
+  '/balcao/cv-templates': typeof BalcaoCvTemplatesRoute
   '/balcao/entregas': typeof BalcaoEntregasRoute
   '/balcao/exames': typeof BalcaoExamesRoute
   '/balcao/galeria': typeof BalcaoGaleriaRoute
@@ -568,6 +595,9 @@ export interface FileRouteTypes {
     | '/balcao/bolsas'
     | '/balcao/campanhas'
     | '/balcao/cartas'
+    | '/balcao/creditos'
+    | '/balcao/cv'
+    | '/balcao/cv-templates'
     | '/balcao/entregas'
     | '/balcao/exames'
     | '/balcao/galeria'
@@ -627,6 +657,9 @@ export interface FileRouteTypes {
     | '/balcao/bolsas'
     | '/balcao/campanhas'
     | '/balcao/cartas'
+    | '/balcao/creditos'
+    | '/balcao/cv'
+    | '/balcao/cv-templates'
     | '/balcao/entregas'
     | '/balcao/exames'
     | '/balcao/galeria'
@@ -686,6 +719,9 @@ export interface FileRouteTypes {
     | '/balcao/bolsas'
     | '/balcao/campanhas'
     | '/balcao/cartas'
+    | '/balcao/creditos'
+    | '/balcao/cv'
+    | '/balcao/cv-templates'
     | '/balcao/entregas'
     | '/balcao/exames'
     | '/balcao/galeria'
@@ -1088,6 +1124,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoEntregasRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/cv-templates': {
+      id: '/balcao/cv-templates'
+      path: '/cv-templates'
+      fullPath: '/balcao/cv-templates'
+      preLoaderRoute: typeof BalcaoCvTemplatesRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/cv': {
+      id: '/balcao/cv'
+      path: '/cv'
+      fullPath: '/balcao/cv'
+      preLoaderRoute: typeof BalcaoCvRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
+    '/balcao/creditos': {
+      id: '/balcao/creditos'
+      path: '/creditos'
+      fullPath: '/balcao/creditos'
+      preLoaderRoute: typeof BalcaoCreditosRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
     '/balcao/cartas': {
       id: '/balcao/cartas'
       path: '/cartas'
@@ -1188,6 +1245,9 @@ interface BalcaoRouteChildren {
   BalcaoBolsasRoute: typeof BalcaoBolsasRoute
   BalcaoCampanhasRoute: typeof BalcaoCampanhasRoute
   BalcaoCartasRoute: typeof BalcaoCartasRoute
+  BalcaoCreditosRoute: typeof BalcaoCreditosRoute
+  BalcaoCvRoute: typeof BalcaoCvRoute
+  BalcaoCvTemplatesRoute: typeof BalcaoCvTemplatesRoute
   BalcaoEntregasRoute: typeof BalcaoEntregasRoute
   BalcaoExamesRoute: typeof BalcaoExamesRoute
   BalcaoGaleriaRoute: typeof BalcaoGaleriaRoute
@@ -1209,6 +1269,9 @@ const BalcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoBolsasRoute: BalcaoBolsasRoute,
   BalcaoCampanhasRoute: BalcaoCampanhasRoute,
   BalcaoCartasRoute: BalcaoCartasRoute,
+  BalcaoCreditosRoute: BalcaoCreditosRoute,
+  BalcaoCvRoute: BalcaoCvRoute,
+  BalcaoCvTemplatesRoute: BalcaoCvTemplatesRoute,
   BalcaoEntregasRoute: BalcaoEntregasRoute,
   BalcaoExamesRoute: BalcaoExamesRoute,
   BalcaoGaleriaRoute: BalcaoGaleriaRoute,

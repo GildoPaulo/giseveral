@@ -6,6 +6,7 @@ import {
   LogOut, Menu, X, ChevronRight, BoxesIcon, BookOpen,
   Wrench, Images, Megaphone, GraduationCap, Award,
   FileText, Newspaper, Mail, DollarSign, Bell, TrendingUp, SendHorizonal,
+  LayoutTemplate, Coins, Layers,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,6 +37,9 @@ const navItems = [
   { to: "/balcao/exames", label: "Exames Hub", icon: FileText },
   { to: "/balcao/noticias", label: "Notícias Hub", icon: Newspaper },
   { to: "/balcao/cartas", label: "Cartas Templates", icon: Mail },
+  { to: "/balcao/cv", label: "CV Builder", icon: LayoutTemplate },
+  { to: "/balcao/cv-templates", label: "Templates CV", icon: Layers },
+  { to: "/balcao/creditos", label: "Créditos & Premium", icon: Coins },
   { to: "/balcao/precos", label: "Preços", icon: DollarSign },
 ] as const;
 

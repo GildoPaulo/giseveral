@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -7,7 +7,10 @@ import {
   Eye,
   EyeOff,
   GripVertical,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
+import { callGemini } from "@/services/gemini";
 import type {
   CvData,
   CvEducacao,
@@ -44,6 +47,36 @@ export function Sidebar({ data, onChange }: Props) {
   });
 
   const toggle = (key: string) => setOpen(p => ({ ...p, [key]: !p[key] }));
+
+  const [aiLoading, setAiLoading] = useState<Set<string>>(new Set());
+  const setAI = (key: string, on: boolean) =>
+    setAiLoading(prev => { const s = new Set(prev); on ? s.add(key) : s.delete(key); return s; });
+
+  const suggestObjetivo = useCallback(async () => {
+    setAI("objetivo", true);
+    try {
+      const context = [
+        data.personal.nome && `Nome: ${data.personal.nome}`,
+        data.personal.titulo && `Cargo desejado: ${data.personal.titulo}`,
+        data.experiencia.length > 0 && `Experiência mais recente: ${data.experiencia[0].cargo} na ${data.experiencia[0].empresa}`,
+        data.educacao.length > 0 && `Formação: ${data.educacao[0].curso} em ${data.educacao[0].instituicao}`,
+      ].filter(Boolean).join(". ");
+      const text = await callGemini("cv_suggest", "Escreve um resumo/objectivo profissional conciso (3-4 frases) para o CV.", context || undefined);
+      setObjetivo(text.trim());
+    } catch { /* silently fail */ }
+    setAI("objetivo", false);
+  }, [data]);
+
+  const suggestExpDescricao = useCallback(async (i: number, cargo: string, empresa: string, existing: string) => {
+    const key = `exp-${i}`;
+    setAI(key, true);
+    try {
+      const prompt = `Escreve 3-4 bullet points de realizações e responsabilidades profissionais para o cargo de "${cargo || "Profissional"}" na empresa "${empresa || "empresa"}"${existing ? `. Contexto adicional: ${existing}` : ""}. Formato: uma frase por linha, começando por verbo de acção.`;
+      const text = await callGemini("cv_suggest", prompt);
+      setExp(i, "descricao", text.trim());
+    } catch { /* silently fail */ }
+    setAI(key, false);
+  }, [data]);
 
   const up = <T,>(arr: T[], i: number) => {
     if (i === 0) return arr;
@@ -156,6 +189,15 @@ export function Sidebar({ data, onChange }: Props) {
       {/* Objetivo */}
       <Panel label="Resumo / Objetivo" open={open.objetivo} onToggle={() => toggle("objetivo")}>
         <TextareaField value={data.objetivo} onChange={setObjetivo} rows={4} />
+        <button
+          type="button"
+          onClick={suggestObjetivo}
+          disabled={aiLoading.has("objetivo")}
+          className="flex items-center gap-1.5 rounded-md border border-gold/40 bg-gold/10 px-2.5 py-1.5 text-[10px] font-semibold text-gold hover:bg-gold/20 transition-colors disabled:opacity-50 w-full justify-center"
+        >
+          {aiLoading.has("objetivo") ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
+          {aiLoading.has("objetivo") ? "A gerar…" : "✨ Sugerir com IA"}
+        </button>
       </Panel>
 
       {/* Experiência */}
@@ -190,6 +232,15 @@ export function Sidebar({ data, onChange }: Props) {
               Emprego atual
             </label>
             <TextareaField label="Descrição" value={exp.descricao} onChange={v => setExp(i, "descricao", v)} rows={3} />
+            <button
+              type="button"
+              onClick={() => suggestExpDescricao(i, exp.cargo, exp.empresa, exp.descricao)}
+              disabled={aiLoading.has(`exp-${i}`)}
+              className="flex items-center gap-1.5 rounded-md border border-gold/40 bg-gold/10 px-2.5 py-1.5 text-[10px] font-semibold text-gold hover:bg-gold/20 transition-colors disabled:opacity-50 w-full justify-center"
+            >
+              {aiLoading.has(`exp-${i}`) ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
+              {aiLoading.has(`exp-${i}`) ? "A gerar…" : "✨ Sugerir descrição com IA"}
+            </button>
           </ItemCard>
         ))}
       </Panel>
