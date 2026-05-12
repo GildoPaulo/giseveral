@@ -333,8 +333,11 @@ ${rtfLines}
       const improved = await callGemini("letter_generate", prompt);
       setFormValues((prev) => ({ ...prev, "__improved__": improved }));
       toast.success("Carta melhorada com IA!", { description: "Texto revisto e polido automaticamente." });
-    } catch {
-      toast.error("Não foi possível melhorar a carta.", { description: "Verifique a configuração da API." });
+    } catch (error) {
+      const description = error instanceof Error ? error.message : String(error);
+      toast.error("Não foi possível melhorar a carta.", {
+        description: description || "Verifique a configuração da API.",
+      });
     } finally {
       setImproving(false);
     }
@@ -357,8 +360,11 @@ ${rtfLines}
       setFormValues((prev) => ({ ...prev, "__improved__": text }));
       setStep("preview");
       toast.success("Carta gerada com IA!", { description: "Reveja e exporte quando estiver pronto." });
-    } catch {
-      toast.error("Não foi possível gerar a carta com IA.");
+    } catch (error) {
+      const description = error instanceof Error ? error.message : String(error);
+      toast.error("Não foi possível gerar a carta com IA.", {
+        description: description || "Verifique a configuração da API.",
+      });
     } finally {
       setAiGenerating(false);
     }

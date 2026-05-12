@@ -52,7 +52,10 @@ export async function generateAPIPreview(data: CvData, templateId: string): Prom
       },
     }),
   });
-  if (!res.ok) throw new Error(`API retornou ${res.status}`);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API retornou ${res.status}${text ? `: ${text}` : ""}`);
+  }
   return res.text();
 }
 
@@ -68,7 +71,10 @@ export async function generateAPIPdf(data: CvData, templateId: string): Promise<
       },
     }),
   });
-  if (!res.ok) throw new Error(`API retornou ${res.status}`);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`API retornou ${res.status}${text ? `: ${text}` : ""}`);
+  }
   return res.blob();
 }
 

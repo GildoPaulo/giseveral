@@ -24,6 +24,24 @@ export const Route = createFileRoute("/hub/cv")({
 
 type TemplateSource = "local" | "api";
 
+const API_TEMPLATE_TO_LOCAL: Record<string, CvTemplate> = {
+  azurill: "azurill",
+  bronzor: "bronzor",
+  onyx: "onyx",
+  ditto: "ditto",
+  pikachu: "pikachu",
+  kakuna: "modern",
+  slategray: "modern",
+  chikorita: "modern",
+  elegant: "azurill",
+  gengar: "onyx",
+  glalie: "onyx",
+  leafish: "azurill",
+  nosepass: "bronzor",
+  porcelain: "azurill",
+  rhyhorn: "bronzor",
+};
+
 function CVBuilderPage() {
   const [view, setView] = useState<"gallery" | "editor">("gallery");
   const [template, setTemplate] = useState<CvTemplate>("azurill");
@@ -44,6 +62,12 @@ function CVBuilderPage() {
   }
 
   function selectAPITemplate(t: APITemplate) {
+    const mapped = API_TEMPLATE_TO_LOCAL[t.id];
+    if (mapped) {
+      selectLocalTemplate(mapped);
+      return;
+    }
+
     setApiTemplateId(t.id);
     setTemplateSource("api");
     setView("editor");
@@ -166,13 +190,19 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
   function selectDbTemplate(t: DbTemplate) {
     const localIds = TEMPLATE_META.map(m => m.id);
     if (t.reactive_id) {
+      const mapped = API_TEMPLATE_TO_LOCAL[t.reactive_id];
+      if (mapped) {
+        onSelectLocal(mapped);
+        return;
+      }
       onSelectAPI({ id: t.reactive_id, name: t.name, description: t.description });
-    } else if (localIds.includes(t.slug as CvTemplate)) {
+      return;
+    }
+
+    if (localIds.includes(t.slug as CvTemplate)) {
       onSelectLocal(t.slug as CvTemplate);
-    } else if (t.reactive_id) {
-      onSelectAPI({ id: t.reactive_id, name: t.name, description: t.description });
     } else {
-      onSelectLocal(t.slug as CvTemplate);
+      onSelectLocal("azurill");
     }
   }
 
@@ -279,18 +309,27 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
 
           {!loadingAPI && !apiError && apiTemplates.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-              {apiTemplates.map(t => (
-                <TemplateCard
-                  key={t.id}
-                  label={t.name}
-                  desc={t.description ?? "Template via Reactive Resume API"}
-                  accent="#6366f1"
-                  preview={t.preview ?? `/templates/${t.id}.jpg`}
-                  tag="API"
-                  selected={templateSource === "api" && selectedApiId === t.id}
-                  onSelect={() => onSelectAPI(t)}
-                />
-              ))}
+              {apiTemplates.map(t => {
+                const mapped = API_TEMPLATE_TO_LOCAL[t.id];
+                return (
+                  <TemplateCard
+                    key={t.id}
+                    label={t.name}
+                    desc={t.description ?? "Template via Reactive Resume API"}
+                    accent="#6366f1"
+                    preview={t.preview ?? `/templates/${t.id}.jpg`}
+                    tag={mapped ? "Local" : "API"}
+                    selected={
+                      mapped
+                        ? templateSource === "local" && selectedLocal === mapped
+                        : templateSource === "api" && selectedApiId === t.id
+                    }
+                    onSelect={() => selectAPITemplate(t)}
+                  />
+                );
+              })}
+            </div>
+          )}
             </div>
           )}
 
