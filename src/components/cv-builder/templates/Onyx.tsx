@@ -1,5 +1,6 @@
 import type { CvData } from "../types";
 import { SKILL_PCT } from "../types";
+import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -21,8 +22,7 @@ export function OnyxPreview({ data }: Props) {
   return (
     <div
       style={{
-        width: 794,
-        minHeight: 1123,
+        ...a4PageStyle,
         background: design.backgroundColor,
         color: design.textColor,
         fontFamily: `${design.fontFamily}, sans-serif`,
@@ -32,7 +32,7 @@ export function OnyxPreview({ data }: Props) {
       }}
     >
       {/* ── SIDEBAR ── */}
-      <div style={{ width: "34%", background: sidebarBg, color: sidebarFg, padding: "40px 24px", display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ width: "34%", background: sidebarBg, color: sidebarFg, padding: "40px 24px", display: "flex", flexDirection: "column", gap: 24, ...flexColumnStyle }}>
         {personal.foto && (
           <img
             src={personal.foto}
@@ -41,7 +41,7 @@ export function OnyxPreview({ data }: Props) {
           />
         )}
         <div>
-          <div style={{ fontSize: s(20), fontWeight: 800, lineHeight: 1.2, letterSpacing: "-0.3px" }}>{personal.nome || "Seu Nome"}</div>
+          <div style={{ fontSize: s(20), fontWeight: 800, lineHeight: 1.2, letterSpacing: "-0.3px", ...longTextStyle }}>{personal.nome || "Seu Nome"}</div>
           {personal.titulo && (
             <div style={{ fontSize: s(11), color: P, fontWeight: 600, marginTop: 4 }}>{personal.titulo}</div>
           )}
@@ -63,7 +63,7 @@ export function OnyxPreview({ data }: Props) {
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 6 }}>
               {skills.map(sk => (
                 <div key={sk.id}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: s(10), marginBottom: 2 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: s(10), marginBottom: 2, gap: 8, ...flexColumnStyle }}>
                     <span>{sk.nome}</span>
                     <span style={{ color: sidebarMuted, fontSize: s(9) }}>{sk.nivel}</span>
                   </div>
@@ -107,11 +107,11 @@ export function OnyxPreview({ data }: Props) {
       </div>
 
       {/* ── MAIN ── */}
-      <div style={{ flex: 1, padding: "40px 40px", display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ flex: 1, padding: "40px 40px", display: "flex", flexDirection: "column", gap: 24, ...flexColumnStyle }}>
         {objetivo && (
           <div>
             <MainHead label="Perfil" color={P} />
-            <p style={{ fontSize: s(10.5), lineHeight: 1.7, opacity: 0.75 }}>{objetivo}</p>
+            <p style={{ fontSize: s(10.5), lineHeight: 1.7, opacity: 0.75, ...longTextStyle }}>{objetivo}</p>
           </div>
         )}
 
@@ -121,8 +121,8 @@ export function OnyxPreview({ data }: Props) {
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {experiencia.map(exp => (
                 <div key={exp.id}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, ...flexColumnStyle }}>
+                    <div style={flexColumnStyle}>
                       <div style={{ fontWeight: 700, fontSize: s(12) }}>{exp.cargo}</div>
                       <div style={{ color: P, fontSize: s(10.5), fontWeight: 500 }}>{exp.empresa}</div>
                       {exp.localizacao && <div style={{ fontSize: s(9), opacity: 0.5 }}>{exp.localizacao}</div>}
@@ -131,7 +131,7 @@ export function OnyxPreview({ data }: Props) {
                       {exp.inicio}<br />{exp.atual ? "Presente" : exp.fim}
                     </div>
                   </div>
-                  {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.65, marginTop: 5, opacity: 0.7 }}>{exp.descricao}</p>}
+                  {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.65, marginTop: 5, opacity: 0.7, ...longTextStyle }}>{exp.descricao}</p>}
                 </div>
               ))}
             </div>
@@ -143,8 +143,8 @@ export function OnyxPreview({ data }: Props) {
             <MainHead label={sections.educacao.title} color={P} />
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {educacao.map(e => (
-                <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div>
+                <div key={e.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, ...flexColumnStyle }}>
+                  <div style={flexColumnStyle}>
                     <div style={{ fontWeight: 700, fontSize: s(11) }}>{e.grau}</div>
                     <div style={{ color: P, fontSize: s(10), fontWeight: 500 }}>{e.instituicao}</div>
                     {e.curso && <div style={{ fontSize: s(9.5), opacity: 0.6 }}>{e.curso}</div>}
@@ -165,12 +165,12 @@ export function OnyxPreview({ data }: Props) {
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {projetos.map(proj => (
                 <div key={proj.id}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, ...flexColumnStyle }}>
                     <span style={{ fontWeight: 700, fontSize: s(11) }}>{proj.nome}</span>
                     {proj.url && <a href={proj.url} style={{ fontSize: s(9), color: P }}>{proj.url}</a>}
                   </div>
                   {proj.tecnologias && <div style={{ fontSize: s(9), opacity: 0.5, marginTop: 1 }}>{proj.tecnologias}</div>}
-                  {proj.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 3, opacity: 0.7 }}>{proj.descricao}</p>}
+                  {proj.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 3, opacity: 0.7, ...longTextStyle }}>{proj.descricao}</p>}
                 </div>
               ))}
             </div>

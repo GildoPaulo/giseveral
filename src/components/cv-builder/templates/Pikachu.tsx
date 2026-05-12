@@ -1,5 +1,6 @@
 import type { CvData } from "../types";
 import { SKILL_PCT } from "../types";
+import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -18,8 +19,7 @@ export function PikachuPreview({ data }: Props) {
   return (
     <div
       style={{
-        width: 794,
-        minHeight: 1123,
+        ...a4PageStyle,
         background: design.backgroundColor,
         color: design.textColor,
         fontFamily: `${design.fontFamily}, sans-serif`,
@@ -45,7 +45,7 @@ export function PikachuPreview({ data }: Props) {
             style={{ width: 88, height: 88, borderRadius: "50%", objectFit: "cover", border: "3px solid rgba(255,255,255,0.3)", flexShrink: 0 }}
           />
         )}
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, ...flexColumnStyle }}>
           <div style={{ fontSize: s(28), fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1.1 }}>{personal.nome || "Seu Nome"}</div>
           {personal.titulo && (
             <div style={{ fontSize: s(13), marginTop: 5, opacity: 0.85, fontWeight: 500 }}>{personal.titulo}</div>
@@ -61,13 +61,13 @@ export function PikachuPreview({ data }: Props) {
       </div>
 
       {/* ── BODY ── */}
-      <div style={{ display: "flex" }}>
+      <div style={{ display: "flex", minHeight: 903, ...flexColumnStyle }}>
         {/* Main (left, 62%) */}
-        <div style={{ width: "62%", padding: "32px 36px", borderRight: "1px solid #e5e7eb", display: "flex", flexDirection: "column", gap: 22 }}>
+        <div style={{ width: "62%", padding: "32px 36px", borderRight: "1px solid #e5e7eb", display: "flex", flexDirection: "column", gap: 22, ...flexColumnStyle }}>
           {objetivo && (
             <div>
               <Head label="Perfil" color={P} />
-              <p style={{ fontSize: s(10.5), lineHeight: 1.7, opacity: 0.75 }}>{objetivo}</p>
+              <p style={{ fontSize: s(10.5), lineHeight: 1.7, opacity: 0.75, ...longTextStyle }}>{objetivo}</p>
             </div>
           )}
 
@@ -77,8 +77,8 @@ export function PikachuPreview({ data }: Props) {
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                 {experiencia.map(exp => (
                   <div key={exp.id}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, ...flexColumnStyle }}>
+                      <div style={flexColumnStyle}>
                         <div style={{ fontWeight: 700, fontSize: s(12) }}>{exp.cargo}</div>
                         <div style={{ color: P, fontSize: s(10.5), fontWeight: 600 }}>{exp.empresa}</div>
                         {exp.localizacao && <div style={{ fontSize: s(9), opacity: 0.5 }}>{exp.localizacao}</div>}
@@ -87,7 +87,7 @@ export function PikachuPreview({ data }: Props) {
                         {exp.inicio} — {exp.atual ? "Presente" : exp.fim}
                       </div>
                     </div>
-                    {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.65, marginTop: 4, opacity: 0.7 }}>{exp.descricao}</p>}
+                    {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.65, marginTop: 4, opacity: 0.7, ...longTextStyle }}>{exp.descricao}</p>}
                   </div>
                 ))}
               </div>
@@ -100,12 +100,12 @@ export function PikachuPreview({ data }: Props) {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {projetos.map(proj => (
                   <div key={proj.id}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, ...flexColumnStyle }}>
                       <span style={{ fontWeight: 700, fontSize: s(11) }}>{proj.nome}</span>
                       {proj.url && <a href={proj.url} style={{ fontSize: s(9), color: P }}>{proj.url}</a>}
                     </div>
                     {proj.tecnologias && <div style={{ fontSize: s(9), opacity: 0.5, marginTop: 1 }}>{proj.tecnologias}</div>}
-                    {proj.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 3, opacity: 0.7 }}>{proj.descricao}</p>}
+                    {proj.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 3, opacity: 0.7, ...longTextStyle }}>{proj.descricao}</p>}
                   </div>
                 ))}
               </div>
@@ -114,14 +114,14 @@ export function PikachuPreview({ data }: Props) {
         </div>
 
         {/* Sidebar (right, 38%) */}
-        <div style={{ flex: 1, padding: "32px 28px", display: "flex", flexDirection: "column", gap: 20, background: "#fafafa" }}>
+        <div style={{ flex: 1, padding: "32px 28px", display: "flex", flexDirection: "column", gap: 20, background: "#fafafa", ...flexColumnStyle }}>
           {sections.skills.visible && skills.length > 0 && (
             <div>
               <Head label={sections.skills.title} color={P} />
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {skills.map(sk => (
                   <div key={sk.id}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: s(10), marginBottom: 2 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: s(10), marginBottom: 2, gap: 8, ...flexColumnStyle }}>
                       <span style={{ fontWeight: 500 }}>{sk.nome}</span>
                       <span style={{ opacity: 0.4, fontSize: s(9) }}>{sk.nivel}</span>
                     </div>

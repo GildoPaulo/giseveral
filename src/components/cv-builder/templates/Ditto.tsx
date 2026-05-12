@@ -1,4 +1,5 @@
 import type { CvData } from "../types";
+import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -17,8 +18,7 @@ export function DittoPreview({ data }: Props) {
   return (
     <div
       style={{
-        width: 794,
-        minHeight: 1123,
+        ...a4PageStyle,
         background: design.backgroundColor,
         color: design.textColor,
         fontFamily: `${design.fontFamily}, sans-serif`,
@@ -38,7 +38,7 @@ export function DittoPreview({ data }: Props) {
               style={{ width: 64, height: 64, borderRadius: 4, objectFit: "cover", flexShrink: 0, marginTop: 4 }}
             />
           )}
-          <div>
+          <div style={flexColumnStyle}>
             <div style={{ fontSize: s(26), fontWeight: 800, letterSpacing: "-0.4px", lineHeight: 1.1 }}>{personal.nome || "Seu Nome"}</div>
             {personal.titulo && (
               <div style={{ fontSize: s(13), color: P, fontWeight: 600, marginTop: 3 }}>{personal.titulo}</div>
@@ -60,7 +60,7 @@ export function DittoPreview({ data }: Props) {
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {objetivo && (
           <Section title="Resumo Profissional" color={design.textColor}>
-            <p style={{ fontSize: s(10.5), lineHeight: 1.7 }}>{objetivo}</p>
+            <p style={{ fontSize: s(10.5), lineHeight: 1.7, ...longTextStyle }}>{objetivo}</p>
           </Section>
         )}
 
@@ -68,14 +68,14 @@ export function DittoPreview({ data }: Props) {
           <Section title={sections.experiencia.title} color={design.textColor}>
             {experiencia.map((exp, i) => (
               <div key={exp.id} style={{ marginBottom: i < experiencia.length - 1 ? 12 : 0 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, ...flexColumnStyle }}>
                   <span style={{ fontWeight: 700, fontSize: s(11.5) }}>{exp.cargo}</span>
                   <span style={{ fontSize: s(9.5), opacity: 0.55, flexShrink: 0, marginLeft: 8 }}>
                     {exp.inicio} – {exp.atual ? "Presente" : exp.fim}
                   </span>
                 </div>
                 <div style={{ fontSize: s(10.5), fontWeight: 600, color: P }}>{exp.empresa}{exp.localizacao ? ` · ${exp.localizacao}` : ""}</div>
-                {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.65, marginTop: 3, opacity: 0.7 }}>{exp.descricao}</p>}
+                {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.65, marginTop: 3, opacity: 0.7, ...longTextStyle }}>{exp.descricao}</p>}
               </div>
             ))}
           </Section>
@@ -85,7 +85,7 @@ export function DittoPreview({ data }: Props) {
           <Section title={sections.educacao.title} color={design.textColor}>
             {educacao.map((e, i) => (
               <div key={e.id} style={{ marginBottom: i < educacao.length - 1 ? 10 : 0 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, ...flexColumnStyle }}>
                   <span style={{ fontWeight: 700, fontSize: s(11) }}>{e.grau}{e.curso ? ` em ${e.curso}` : ""}</span>
                   <span style={{ fontSize: s(9.5), opacity: 0.55, flexShrink: 0, marginLeft: 8 }}>
                     {e.anoInicio} – {e.anoFim || "Presente"}
@@ -100,9 +100,9 @@ export function DittoPreview({ data }: Props) {
 
         {/* Two columns for skills + languages */}
         {((sections.skills.visible && skills.length > 0) || (sections.idiomas.visible && idiomas.length > 0)) && (
-          <div style={{ display: "flex", gap: 40 }}>
+          <div style={{ display: "flex", gap: 40, ...flexColumnStyle }}>
             {sections.skills.visible && skills.length > 0 && (
-              <div style={{ flex: 2 }}>
+              <div style={{ flex: 2, ...flexColumnStyle }}>
                 <Section title={sections.skills.title} color={design.textColor}>
                   <p style={{ fontSize: s(10.5), lineHeight: 1.9 }}>
                     {skills.map((sk, i) => (
@@ -116,7 +116,7 @@ export function DittoPreview({ data }: Props) {
               </div>
             )}
             {sections.idiomas.visible && idiomas.length > 0 && (
-              <div style={{ flex: 1 }}>
+              <div style={{ flex: 1, ...flexColumnStyle }}>
                 <Section title={sections.idiomas.title} color={design.textColor}>
                   {idiomas.map(id => (
                     <div key={id.id} style={{ fontSize: s(10.5), marginBottom: 3 }}>
@@ -134,12 +134,12 @@ export function DittoPreview({ data }: Props) {
           <Section title={sections.projetos.title} color={design.textColor}>
             {projetos.map((proj, i) => (
               <div key={proj.id} style={{ marginBottom: i < projetos.length - 1 ? 10 : 0 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 10, ...flexColumnStyle }}>
                   <span style={{ fontWeight: 700, fontSize: s(11) }}>{proj.nome}</span>
                   {proj.url && <a href={proj.url} style={{ fontSize: s(9.5), color: P }}>{proj.url}</a>}
                 </div>
                 {proj.tecnologias && <div style={{ fontSize: s(9.5), opacity: 0.5, marginTop: 1 }}>{proj.tecnologias}</div>}
-                {proj.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 3, opacity: 0.7 }}>{proj.descricao}</p>}
+                {proj.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 3, opacity: 0.7, ...longTextStyle }}>{proj.descricao}</p>}
               </div>
             ))}
           </Section>
@@ -148,7 +148,7 @@ export function DittoPreview({ data }: Props) {
         {sections.certificacoes.visible && certificacoes.length > 0 && (
           <Section title={sections.certificacoes.title} color={design.textColor}>
             {certificacoes.map((cert, i) => (
-              <div key={cert.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: i < certificacoes.length - 1 ? 6 : 0 }}>
+              <div key={cert.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: i < certificacoes.length - 1 ? 6 : 0, gap: 10, ...flexColumnStyle }}>
                 <span>
                   <span style={{ fontWeight: 700, fontSize: s(11) }}>{cert.nome}</span>
                   {cert.emissor && <span style={{ opacity: 0.55, marginLeft: 6, fontSize: s(10) }}>· {cert.emissor}</span>}

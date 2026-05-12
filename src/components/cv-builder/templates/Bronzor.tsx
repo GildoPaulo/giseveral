@@ -1,5 +1,6 @@
 import type { CvData } from "../types";
 import { SKILL_PCT } from "../types";
+import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -18,8 +19,7 @@ export function BronzorPreview({ data }: Props) {
   return (
     <div
       style={{
-        width: 794,
-        minHeight: 1123,
+        ...a4PageStyle,
         background: design.backgroundColor,
         color: design.textColor,
         fontFamily: `${design.fontFamily}, sans-serif`,
@@ -57,7 +57,7 @@ export function BronzorPreview({ data }: Props) {
       <div className="flex flex-col gap-6">
         {objetivo && (
           <div style={{ paddingLeft: 12, borderLeft: `3px solid ${P}` }}>
-            <p style={{ fontSize: s(11), lineHeight: 1.7, opacity: 0.75 }}>{objetivo}</p>
+            <p style={{ fontSize: s(11), lineHeight: 1.7, opacity: 0.75, ...longTextStyle }}>{objetivo}</p>
           </div>
         )}
 
@@ -65,8 +65,8 @@ export function BronzorPreview({ data }: Props) {
           <Section title={sections.experiencia.title} color={P}>
             {experiencia.map(exp => (
               <div key={exp.id} style={{ marginBottom: 14 }}>
-                <div className="flex justify-between items-start">
-                  <div>
+                <div className="flex justify-between items-start" style={{ gap: 10, ...flexColumnStyle }}>
+                  <div style={flexColumnStyle}>
                     <span style={{ fontWeight: 700, fontSize: s(12) }}>{exp.cargo}</span>
                     <span style={{ opacity: 0.45, fontSize: s(10), margin: "0 6px" }}>·</span>
                     <span style={{ color: P, fontWeight: 600, fontSize: s(11) }}>{exp.empresa}</span>
@@ -76,7 +76,7 @@ export function BronzorPreview({ data }: Props) {
                     {exp.inicio} — {exp.atual ? "Presente" : exp.fim}
                   </span>
                 </div>
-                {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.65, marginTop: 4, opacity: 0.7 }}>{exp.descricao}</p>}
+                {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.65, marginTop: 4, opacity: 0.7, ...longTextStyle }}>{exp.descricao}</p>}
               </div>
             ))}
           </Section>
@@ -86,21 +86,21 @@ export function BronzorPreview({ data }: Props) {
           <Section title={sections.projetos.title} color={P}>
             {projetos.map(proj => (
               <div key={proj.id} style={{ marginBottom: 12 }}>
-                <div className="flex justify-between items-baseline">
+                <div className="flex justify-between items-baseline" style={{ gap: 10, ...flexColumnStyle }}>
                   <span style={{ fontWeight: 700, fontSize: s(11) }}>{proj.nome}</span>
                   {proj.url && <a href={proj.url} style={{ fontSize: s(9), color: P }}>{proj.url}</a>}
                 </div>
                 {proj.tecnologias && <span style={{ fontSize: s(9), opacity: 0.5, display: "block", marginTop: 1 }}>{proj.tecnologias}</span>}
-                {proj.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 3, opacity: 0.7 }}>{proj.descricao}</p>}
+                {proj.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 3, opacity: 0.7, ...longTextStyle }}>{proj.descricao}</p>}
               </div>
             ))}
           </Section>
         )}
 
         {/* Two-column: Education + Languages */}
-        <div className="flex gap-8">
+        <div className="flex gap-8" style={flexColumnStyle}>
           {sections.educacao.visible && educacao.length > 0 && (
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, ...flexColumnStyle }}>
               <Section title={sections.educacao.title} color={P}>
                 {educacao.map(e => (
                   <div key={e.id} style={{ marginBottom: 10 }}>
@@ -117,7 +117,7 @@ export function BronzorPreview({ data }: Props) {
             </div>
           )}
           {sections.idiomas.visible && idiomas.length > 0 && (
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, ...flexColumnStyle }}>
               <Section title={sections.idiomas.title} color={P}>
                 {idiomas.map(id => (
                   <div key={id.id} className="flex justify-between" style={{ marginBottom: 6, fontSize: s(10) }}>
@@ -135,9 +135,9 @@ export function BronzorPreview({ data }: Props) {
           <Section title={sections.skills.title} color={P}>
             <div className="flex flex-col gap-2">
               {skills.map(sk => (
-                <div key={sk.id} className="flex items-center gap-3">
+                <div key={sk.id} className="flex items-center gap-3" style={flexColumnStyle}>
                   <span style={{ width: 120, fontSize: s(10), fontWeight: 500, flexShrink: 0 }}>{sk.nome}</span>
-                  <div style={{ flex: 1, height: 5, background: "#e5e7eb", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ flex: 1, minWidth: 0, height: 5, background: "#e5e7eb", borderRadius: 3, overflow: "hidden" }}>
                     <div style={{ width: `${SKILL_PCT[sk.nivel]}%`, height: "100%", background: P, borderRadius: 3 }} />
                   </div>
                   <span style={{ fontSize: s(9), opacity: 0.45, width: 56, textAlign: "right", flexShrink: 0 }}>{sk.nivel}</span>
@@ -150,8 +150,8 @@ export function BronzorPreview({ data }: Props) {
         {sections.certificacoes.visible && certificacoes.length > 0 && (
           <Section title={sections.certificacoes.title} color={P}>
             {certificacoes.map(cert => (
-              <div key={cert.id} className="flex justify-between items-start" style={{ marginBottom: 8 }}>
-                <div>
+              <div key={cert.id} className="flex justify-between items-start" style={{ marginBottom: 8, gap: 10, ...flexColumnStyle }}>
+                <div style={flexColumnStyle}>
                   <div style={{ fontWeight: 600, fontSize: s(11) }}>{cert.nome}</div>
                   <div style={{ fontSize: s(10), opacity: 0.55 }}>{cert.emissor}</div>
                 </div>

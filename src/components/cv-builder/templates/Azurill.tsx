@@ -1,5 +1,6 @@
 import type { CvData } from "../types";
 import { SKILL_PCT } from "../types";
+import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -32,8 +33,7 @@ export function AzurillPreview({ data }: Props) {
     <div
       className="relative overflow-hidden"
       style={{
-        width: 794,
-        minHeight: 1123,
+        ...a4PageStyle,
         background: design.backgroundColor,
         color: design.textColor,
         fontFamily: `${design.fontFamily}, sans-serif`,
@@ -66,11 +66,11 @@ export function AzurillPreview({ data }: Props) {
       {/* ── BODY ── */}
       <div className="flex" style={{ minHeight: 900 }}>
         {/* Sidebar */}
-        <div className="flex flex-col gap-6 px-7 py-7" style={{ width: "38%", background: "#f8f9fb", borderRight: "1px solid #e5e7eb" }}>
+        <div className="flex flex-col gap-6 px-7 py-7" style={{ ...flexColumnStyle, width: "38%", background: "#f8f9fb", borderRight: "1px solid #e5e7eb" }}>
           {objetivo && (
             <div>
               <SectionHead label="Perfil" color={P} />
-              <p style={{ fontSize: s(10), lineHeight: 1.6, opacity: 0.75 }}>{objetivo}</p>
+              <p style={{ fontSize: s(10), lineHeight: 1.6, opacity: 0.75, ...longTextStyle }}>{objetivo}</p>
             </div>
           )}
           {sections.educacao.visible && educacao.length > 0 && (
@@ -97,7 +97,7 @@ export function AzurillPreview({ data }: Props) {
               <div className="flex flex-col gap-2">
                 {skills.map(sk => (
                   <div key={sk.id}>
-                    <div className="flex justify-between" style={{ fontSize: s(10), marginBottom: 2 }}>
+                    <div className="flex justify-between" style={{ fontSize: s(10), marginBottom: 2, gap: 8, ...flexColumnStyle }}>
                       <span>{sk.nome}</span>
                       <span style={{ opacity: 0.4, fontSize: s(9) }}>{sk.nivel}</span>
                     </div>
@@ -125,7 +125,7 @@ export function AzurillPreview({ data }: Props) {
         </div>
 
         {/* Main */}
-        <div className="flex flex-col gap-7 px-8 py-7 flex-1">
+        <div className="flex flex-col gap-7 px-8 py-7 flex-1" style={flexColumnStyle}>
           {sections.experiencia.visible && experiencia.length > 0 && (
             <div>
               <SectionHead label={sections.experiencia.title} color={P} />
@@ -135,8 +135,8 @@ export function AzurillPreview({ data }: Props) {
                   {experiencia.map(exp => (
                     <div key={exp.id} style={{ position: "relative" }}>
                       <div style={{ position: "absolute", left: -21, top: 5, width: 9, height: 9, borderRadius: "50%", border: `2px solid ${P}`, background: design.backgroundColor }} />
-                      <div className="flex justify-between items-start">
-                        <div>
+                      <div className="flex justify-between items-start" style={{ gap: 10, ...flexColumnStyle }}>
+                        <div style={flexColumnStyle}>
                           <div style={{ fontWeight: 700, fontSize: s(11) }}>{exp.cargo}</div>
                           <div style={{ fontSize: s(10), color: P, fontWeight: 500 }}>{exp.empresa}</div>
                           {exp.localizacao && <div style={{ fontSize: s(9), opacity: 0.5 }}>{exp.localizacao}</div>}
@@ -145,7 +145,7 @@ export function AzurillPreview({ data }: Props) {
                           {exp.inicio} — {exp.atual ? "Presente" : exp.fim}
                         </div>
                       </div>
-                      {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 4, opacity: 0.75 }}>{exp.descricao}</p>}
+                      {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 4, opacity: 0.75, ...longTextStyle }}>{exp.descricao}</p>}
                     </div>
                   ))}
                 </div>
@@ -158,12 +158,12 @@ export function AzurillPreview({ data }: Props) {
               <div className="flex flex-col gap-3">
                 {projetos.map(proj => (
                   <div key={proj.id}>
-                    <div className="flex justify-between items-baseline">
+                    <div className="flex justify-between items-baseline" style={{ gap: 10, ...flexColumnStyle }}>
                       <span style={{ fontWeight: 600, fontSize: s(11) }}>{proj.nome}</span>
                       {proj.url && <a href={proj.url} style={{ fontSize: s(9), color: P }}>{proj.url}</a>}
                     </div>
                     {proj.tecnologias && <div style={{ fontSize: s(9), opacity: 0.5, marginTop: 1 }}>{proj.tecnologias}</div>}
-                    {proj.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 3, opacity: 0.75 }}>{proj.descricao}</p>}
+                    {proj.descricao && <p style={{ fontSize: s(10), lineHeight: 1.6, marginTop: 3, opacity: 0.75, ...longTextStyle }}>{proj.descricao}</p>}
                   </div>
                 ))}
               </div>
@@ -174,8 +174,8 @@ export function AzurillPreview({ data }: Props) {
               <SectionHead label={sections.certificacoes.title} color={P} />
               <div className="flex flex-col gap-2">
                 {certificacoes.map(cert => (
-                  <div key={cert.id} className="flex justify-between items-start">
-                    <div>
+                  <div key={cert.id} className="flex justify-between items-start" style={{ gap: 10, ...flexColumnStyle }}>
+                    <div style={flexColumnStyle}>
                       <div style={{ fontWeight: 600, fontSize: s(11) }}>{cert.nome}</div>
                       <div style={{ fontSize: s(10), opacity: 0.55 }}>{cert.emissor}</div>
                     </div>

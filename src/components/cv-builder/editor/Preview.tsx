@@ -7,6 +7,7 @@ import { OnyxPreview } from "../templates/Onyx";
 import { DittoPreview } from "../templates/Ditto";
 import { PikachuPreview } from "../templates/Pikachu";
 import { ModernPreview } from "../templates/Modern";
+import { A4_HEIGHT } from "../templates/templateStyles";
 
 interface Props {
   template: CvTemplate;
@@ -79,6 +80,7 @@ export function Preview({ template, data }: Props) {
       <div
         style={{
           width: A4_WIDTH,
+          minHeight: A4_HEIGHT,
           transformOrigin: "top center",
           transform: `scale(${scale})`,
           // Compensate scaled height so following layout doesn't get pushed.
