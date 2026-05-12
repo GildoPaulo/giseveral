@@ -3,9 +3,9 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { unzip } from "fflate";
 import {
-  Plus, Pencil, Trash2, Eye, EyeOff, Star, Save, Upload,
+  Plus, Pencil, Trash2, Eye, EyeOff, Star, Save,
   Loader2, AlertTriangle, Info, X, FileArchive, LayoutTemplate,
-  ChevronUp, ChevronDown, TrendingDown, BarChart3, Crown,
+  ChevronUp, ChevronDown, TrendingDown, BarChart3, Crown, RefreshCw,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ImageUpload } from "@/components/admin/ImageUpload";
@@ -72,6 +72,16 @@ const BLANK: FormState = {
   is_premium: false, is_featured: false, is_active: true,
 };
 
+// Templates base do CV Builder (TEMPLATE_META em types.ts)
+const BASE_TEMPLATES = [
+  { name: "Azurill",   slug: "azurill", description: "Header centrado, duas colunas elegantes", category: "profissional", preview_url: "/templates/azurill.jpg",  reactive_id: "azurill", is_featured: true,  sort_order: 0 },
+  { name: "Bronzor",   slug: "bronzor", description: "Layout limpo, secções fluidas",           category: "moderno",      preview_url: "/templates/bronzor.jpg",  reactive_id: "bronzor", is_featured: false, sort_order: 1 },
+  { name: "Onyx",      slug: "onyx",    description: "Sidebar escura, estilo executivo",         category: "profissional", preview_url: "/templates/onyx.jpg",     reactive_id: "onyx",    is_featured: false, sort_order: 2 },
+  { name: "Pikachu",   slug: "pikachu", description: "Header colorido, impacto visual",          category: "criativo",     preview_url: "/templates/pikachu.jpg",  reactive_id: "pikachu", is_featured: false, sort_order: 3 },
+  { name: "Ditto ATS", slug: "ditto",   description: "Coluna única, ATS-friendly",               category: "simples",      preview_url: "/templates/ditto.jpg",    reactive_id: "ditto",   is_featured: false, sort_order: 4 },
+  { name: "Modern",    slug: "modern",  description: "Contemporâneo, barras de skills",          category: "moderno",      preview_url: "/templates/kakuna.jpg",   reactive_id: "modern",  is_featured: false, sort_order: 5 },
+];
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 function slugify(s: string) {
@@ -120,6 +130,7 @@ function BalcaoCvTemplates() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(BLANK);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [showHtml, setShowHtml] = useState(false);
   const [showCss, setShowCss] = useState(false);
   const [importing, setImporting] = useState(false);
@@ -144,6 +155,23 @@ function BalcaoCvTemplates() {
       setTableError(false);
     }
     setLoading(false);
+  }
+
+  async function syncBaseTemplates() {
+    setSyncing(true);
+    let created = 0;
+    for (const tpl of BASE_TEMPLATES) {
+      const { error } = await (supabase as any)
+        .from("cv_templates")
+        .upsert(
+          { ...tpl, is_premium: false, is_active: true, downloads: 0 },
+          { onConflict: "slug", ignoreDuplicates: true }
+        );
+      if (!error) created++;
+    }
+    toast.success(`${created} template(s) sincronizados!`);
+    await load();
+    setSyncing(false);
   }
 
   // ── Derived stats ──────────────────────────────────────────────────────────
@@ -299,6 +327,15 @@ function BalcaoCvTemplates() {
         <div className="flex items-center gap-2">
           <input ref={zipRef} type="file" accept=".zip" className="hidden" onChange={handleZip} />
           <button
+            onClick={syncBaseTemplates}
+            disabled={syncing}
+            title="Importa os 6 templates padrão do CV Builder para a base de dados"
+            className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-smooth disabled:opacity-50"
+          >
+            {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+            Sync templates base
+          </button>
+          <button
             onClick={() => zipRef.current?.click()}
             disabled={importing}
             className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-muted transition-smooth disabled:opacity-50"
@@ -398,10 +435,24 @@ function BalcaoCvTemplates() {
           ) : filtered.length === 0 ? (
             <div className="rounded-2xl border-2 border-dashed border-border py-16 text-center">
               <LayoutTemplate className="h-12 w-12 mx-auto mb-3 text-muted-foreground/20" />
-              <p className="text-sm font-medium text-muted-foreground">Nenhum template encontrado</p>
-              <button onClick={openNew} className="mt-4 text-sm text-brand hover:underline">
-                + Criar primeiro template
-              </button>
+              <p className="text-sm font-medium text-muted-foreground">
+                {templates.length === 0 ? "Nenhum template na base de dados" : "Nenhum template corresponde ao filtro"}
+              </p>
+              {templates.length === 0 && (
+                <div className="mt-4 flex flex-col items-center gap-2">
+                  <button
+                    onClick={syncBaseTemplates}
+                    disabled={syncing}
+                    className="inline-flex items-center gap-2 rounded-xl bg-gradient-brand px-5 py-2.5 text-sm font-bold text-brand-foreground shadow-card disabled:opacity-50"
+                  >
+                    {syncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+                    Importar templates padrão (azurill, bronzor, onyx…)
+                  </button>
+                  <button onClick={openNew} className="text-xs text-muted-foreground hover:text-brand">
+                    ou criar template manualmente
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
