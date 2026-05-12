@@ -330,8 +330,6 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
               })}
             </div>
           )}
-            </div>
-          )}
 
           {!loadingAPI && !apiError && apiTemplates.length === 0 && (
             <p className="text-sm text-muted-foreground py-4">Nenhum template da API encontrado.</p>
