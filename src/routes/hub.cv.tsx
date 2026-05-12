@@ -13,7 +13,6 @@ import {
   Preview,
 } from "@/components/cv-builder";
 import type { CvData, CvTemplate, CvDesign } from "@/components/cv-builder";
-import { PreviewAPI } from "@/components/cv-builder/editor/PreviewAPI";
 import { fetchAPITemplates, generateAPIPdf } from "@/services/reactiveApi";
 import type { APITemplate } from "@/services/reactiveApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,11 +114,7 @@ function CVBuilderPage() {
         />
         <div className="flex flex-1 overflow-hidden">
           <Sidebar data={cvData} onChange={setCvData} />
-          {templateSource === "api" && apiTemplateId ? (
-            <PreviewAPI templateId={apiTemplateId} data={cvData} />
-          ) : (
-            <Preview template={template} data={cvData} />
-          )}
+          <Preview template={template} data={cvData} />
         </div>
       </div>
     );
