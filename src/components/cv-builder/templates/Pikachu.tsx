@@ -1,6 +1,7 @@
 import type { CvData } from "../types";
 import { SKILL_PCT } from "../types";
 import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
+import { TemplateFooter } from "./TemplateFooter";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -25,6 +26,8 @@ export function PikachuPreview({ data }: Props) {
         fontFamily: `${design.fontFamily}, sans-serif`,
         fontSize: s(11),
         lineHeight: 1.5,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* ── HEADER ── */}
@@ -61,7 +64,7 @@ export function PikachuPreview({ data }: Props) {
       </div>
 
       {/* ── BODY ── */}
-      <div style={{ display: "flex", minHeight: 903, ...flexColumnStyle }}>
+      <div style={{ display: "flex", flex: 1, minHeight: 0, ...flexColumnStyle }}>
         {/* Main (left, 62%) */}
         <div style={{ width: "62%", padding: "32px 36px", borderRight: "1px solid #e5e7eb", display: "flex", flexDirection: "column", gap: 22, ...flexColumnStyle }}>
           {objetivo && (
@@ -181,6 +184,8 @@ export function PikachuPreview({ data }: Props) {
               </div>
             </div>
           )}
+          <div className="flex-1" />
+          <TemplateFooter data={data} />
         </div>
       </div>
     </div>

@@ -338,6 +338,7 @@ function BalcaoBlog() {
   const [showList, setShowList] = useState(true);
   const [previewMode, setPreviewMode] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [generatingNews, setGeneratingNews] = useState(false);
 
   useEffect(() => {
     supabase
@@ -440,6 +441,40 @@ function BalcaoBlog() {
       excerpt: s.description || prev.excerpt,
       keyword: s.keywords[0] || prev.keyword,
     }));
+  }
+
+  async function generateNewsWithAi() {
+    const topic = window.prompt("Tema da notícia/artigo:");
+    if (!topic?.trim()) return;
+    setGeneratingNews(true);
+    try {
+      const res = await fetch("/api/news/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic, category: editing.category }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar notícia");
+
+      setEditing((prev) => ({
+        ...prev,
+        id: prev.id || crypto.randomUUID(),
+        title: data.title || prev.title,
+        excerpt: data.excerpt || prev.excerpt,
+        content: data.content || prev.content,
+        keyword: data.keyword || prev.keyword,
+      }));
+      toast.success("Notícia gerada com IA. Revê o texto antes de publicar.");
+      if (data.imagePrompt || data.youtubeQuery) {
+        toast.message("Sugestões IA", {
+          description: [data.imagePrompt && `Imagem: ${data.imagePrompt}`, data.youtubeQuery && `YouTube: ${data.youtubeQuery}`].filter(Boolean).join(" · "),
+        });
+      }
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao gerar notícia");
+    } finally {
+      setGeneratingNews(false);
+    }
   }
 
   function stripHtml(html: string) {
@@ -557,6 +592,14 @@ function BalcaoBlog() {
           className="flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-xs font-medium hover:bg-accent transition-colors"
         >
           <Eye className="h-3.5 w-3.5" /> {previewMode ? "Editar" : "Preview"}
+        </button>
+        <button
+          onClick={generateNewsWithAi}
+          disabled={generatingNews}
+          className="flex items-center gap-1.5 rounded-lg border border-brand/30 px-4 py-2 text-xs font-bold text-brand hover:bg-brand/5 transition-colors disabled:opacity-50"
+        >
+          {generatingNews ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          Gerar com IA
         </button>
         <button
           onClick={save}

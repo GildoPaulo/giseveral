@@ -1,6 +1,7 @@
 import type { CvData } from "../types";
 import { SKILL_PCT } from "../types";
 import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
+import { TemplateFooter } from "./TemplateFooter";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -26,7 +27,8 @@ export function BronzorPreview({ data }: Props) {
         fontSize: s(11),
         lineHeight: 1.5,
         padding: "48px 56px",
-        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* ── HEADER ── */}
@@ -54,7 +56,7 @@ export function BronzorPreview({ data }: Props) {
       </div>
 
       {/* ── BODY ── */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6" style={{ flex: 1, ...flexColumnStyle }}>
         {objetivo && (
           <div style={{ paddingLeft: 12, borderLeft: `3px solid ${P}` }}>
             <p style={{ fontSize: s(11), lineHeight: 1.7, opacity: 0.75, ...longTextStyle }}>{objetivo}</p>
@@ -160,6 +162,8 @@ export function BronzorPreview({ data }: Props) {
             ))}
           </Section>
         )}
+        <div className="flex-1" />
+        <TemplateFooter data={data} />
       </div>
     </div>
   );

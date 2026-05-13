@@ -1,6 +1,7 @@
 import type { CvData } from "../types";
 import { SKILL_PCT } from "../types";
 import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
+import { TemplateFooter } from "./TemplateFooter";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -39,6 +40,8 @@ export function AzurillPreview({ data }: Props) {
         fontFamily: `${design.fontFamily}, sans-serif`,
         fontSize: s(11),
         lineHeight: 1.5,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* ── HEADER ── */}
@@ -64,7 +67,7 @@ export function AzurillPreview({ data }: Props) {
       </div>
 
       {/* ── BODY ── */}
-      <div className="flex" style={{ minHeight: 900 }}>
+      <div className="flex" style={{ flex: 1, minHeight: 0 }}>
         {/* Sidebar */}
         <div className="flex flex-col gap-6 px-7 py-7" style={{ ...flexColumnStyle, width: "38%", background: "#f8f9fb", borderRight: "1px solid #e5e7eb" }}>
           {objetivo && (
@@ -185,6 +188,8 @@ export function AzurillPreview({ data }: Props) {
               </div>
             </div>
           )}
+          <div className="flex-1" />
+          <TemplateFooter data={data} />
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import type { CvData } from "../types";
 import { SKILL_PCT } from "../types";
 import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
+import { TemplateFooter } from "./TemplateFooter";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -176,6 +177,8 @@ export function OnyxPreview({ data }: Props) {
             </div>
           </div>
         )}
+        <div className="flex-1" />
+        <TemplateFooter data={data} />
       </div>
     </div>
   );

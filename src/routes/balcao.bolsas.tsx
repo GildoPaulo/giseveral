@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   GraduationCap, Plus, Pencil, Trash2, Star, Globe,
-  Loader2, Save, X, Check,
+  Loader2, Save, X, Check, Bot,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -169,6 +169,7 @@ function BalcaoBolsas() {
   const [editing, setEditing] = useState<ScholarshipRow | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [importingPdf, setImportingPdf] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -222,8 +223,8 @@ function BalcaoBolsas() {
   }
 
   async function handleSave(form: ScholarshipRow) {
-    if (!form.title.trim() || !form.country.trim()) {
-      toast.error("Título e País são obrigatórios.");
+    if (!form.title.trim() || !form.country.trim() || !form.apply_url.trim()) {
+      toast.error("Título, País e URL oficial de candidatura são obrigatórios.");
       return;
     }
     setSaving(true);
@@ -271,6 +272,42 @@ function BalcaoBolsas() {
     setEditing((prev) => prev ? fn(prev) : prev);
   }
 
+  async function importScholarshipPdf(file: File) {
+    setImportingPdf(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/scholarship/import-pdf", { method: "POST", body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro ao importar PDF");
+
+      upd((p) => ({
+        ...p,
+        title: data.title || p.title,
+        country: data.country || p.country,
+        flag: data.flag || p.flag,
+        level: data.level || p.level,
+        area: data.area || p.area,
+        coverage: data.coverage || p.coverage,
+        language: data.language || p.language,
+        deadline: data.deadline || p.deadline,
+        institution: data.institution || p.institution,
+        description: data.description || p.description,
+        apply_url: data.apply_url || p.apply_url,
+        benefits: Array.isArray(data.benefits) && data.benefits.length ? data.benefits : p.benefits,
+        requirements: Array.isArray(data.requirements) && data.requirements.length ? data.requirements : p.requirements,
+        process_steps: Array.isArray(data.process_steps) && data.process_steps.length ? data.process_steps : p.process_steps,
+        documents: Array.isArray(data.documents) && data.documents.length ? data.documents : p.documents,
+        tips: Array.isArray(data.tips) && data.tips.length ? data.tips : p.tips,
+      }));
+      toast.success("Edital importado com IA. Revê os campos antes de guardar.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao importar PDF");
+    } finally {
+      setImportingPdf(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -304,6 +341,27 @@ function BalcaoBolsas() {
 
         {/* Main fields */}
         <div className="rounded-2xl border border-border bg-card p-5 shadow-card space-y-4">
+          <div className="rounded-xl border border-brand/20 bg-brand/5 p-4">
+            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-brand/40 bg-background px-4 py-3 text-sm font-bold text-brand hover:bg-brand/5 transition-colors">
+              {importingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
+              {importingPdf ? "A importar edital..." : "Importar PDF com IA"}
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                className="sr-only"
+                disabled={importingPdf}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.currentTarget.value = "";
+                  if (file) importScholarshipPdf(file);
+                }}
+              />
+            </label>
+            <p className="mt-2 text-xs text-muted-foreground text-center">
+              Envia o edital oficial em PDF para pré-preencher título, prazo, requisitos, benefícios e link oficial.
+            </p>
+          </div>
+
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Título *</label>
@@ -360,7 +418,7 @@ function BalcaoBolsas() {
                 className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
             </div>
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL de candidatura</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">URL oficial de candidatura *</label>
               <input value={f.apply_url} onChange={(e) => upd((p) => ({ ...p, apply_url: e.target.value }))} placeholder="https://..."
                 className="mt-1.5 w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
             </div>

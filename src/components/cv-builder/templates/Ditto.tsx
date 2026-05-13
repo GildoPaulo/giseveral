@@ -1,5 +1,6 @@
 import type { CvData } from "../types";
 import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
+import { TemplateFooter } from "./TemplateFooter";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -25,7 +26,8 @@ export function DittoPreview({ data }: Props) {
         fontSize: s(11),
         lineHeight: 1.5,
         padding: "52px 64px",
-        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {/* ── HEADER ── */}
@@ -57,7 +59,7 @@ export function DittoPreview({ data }: Props) {
       </div>
 
       {/* ── SECTIONS ── */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 20, flex: 1, ...flexColumnStyle }}>
         {objetivo && (
           <Section title="Resumo Profissional" color={design.textColor}>
             <p style={{ fontSize: s(10.5), lineHeight: 1.7, ...longTextStyle }}>{objetivo}</p>
@@ -158,6 +160,8 @@ export function DittoPreview({ data }: Props) {
             ))}
           </Section>
         )}
+        <div className="flex-1" />
+        <TemplateFooter data={data} />
       </div>
     </div>
   );
