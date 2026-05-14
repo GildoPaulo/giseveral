@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import { StatCounter } from "@/components/StatCounter";
 import { fetchHubNews } from "@/lib/hub";
 import { HUB_NEWS, type NewsItem } from "@/data/hub-bolsas";
+import { GALLERY_CATEGORIES, categoryLabel } from "@/data/gallery-categories";
 import {
   Printer, Laptop, Network, BookOpen, ArrowRight, CheckCircle2, Phone,
   Clock, Zap, ShieldCheck, Award, Star, Users, TrendingUp,
@@ -162,50 +163,49 @@ const socialLinks = [
   },
 ];
 
-type GalleryItem = {
+type HomePortfolioProject = {
   id: string;
-  image_url: string;
+  slug: string;
   title: string;
-  client_name: string | null;
   category: string;
+  client_name: string | null;
+  gallery_images: { image_url: string; is_cover: boolean | null; step_order: number | null }[] | null;
 };
 
-const galleryCategories = [
-  { value: "todos", label: "Todos" },
-  { value: "logotipos", label: "Logótipos" },
-  { value: "estampagem", label: "Estampagem" },
-  { value: "impressao", label: "Impressão" },
-  { value: "web", label: "Web" },
-  { value: "cartazes", label: "Cartazes" },
-];
+function portfolioCover(images: HomePortfolioProject["gallery_images"]): string | undefined {
+  if (!images?.length) return undefined;
+  const sorted = [...images].sort((a, b) => (a.step_order ?? 0) - (b.step_order ?? 0));
+  return (sorted.find((i) => i.is_cover) ?? sorted[sorted.length - 1])?.image_url;
+}
 
 function Index() {
   const [news, setNews] = useState<NewsItem[]>(HUB_NEWS.slice(0, 3));
-  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState("todos");
-  const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
+  const [portfolioProjects, setPortfolioProjects] = useState<HomePortfolioProject[]>([]);
+  const [galleryCategory, setGalleryCategory] = useState<string>("todos");
+  const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string; slug: string } | null>(null);
 
   useEffect(() => {
     fetchHubNews().then((data) => setNews(data.slice(0, 3)));
   }, []);
 
-  // Fetch gallery items
+  /* Portfólio — mesma fonte que /galeria (gallery_projects) */
   useEffect(() => {
-    const fetchGallery = async () => {
+    (async () => {
       const { data } = await supabase
-        .from("gallery_items")
-        .select("*")
-        .eq("active", true)
-        .order("display_order", { ascending: true })
+        .from("gallery_projects")
+        .select("id, slug, title, category, client_name, gallery_images(image_url, is_cover, step_order)")
+        .eq("is_active", true)
+        .order("is_featured", { ascending: false })
+        .order("project_date", { ascending: false })
         .limit(12);
-      if (data) setGalleryItems(data);
-    };
-    fetchGallery();
+      setPortfolioProjects((data as HomePortfolioProject[] | null) ?? []);
+    })();
   }, []);
 
-  const filteredGallery = selectedCategory === "todos"
-    ? galleryItems
-    : galleryItems.filter((item) => item.category === selectedCategory);
+  const filteredGallery =
+    galleryCategory === "todos"
+      ? portfolioProjects
+      : portfolioProjects.filter((p) => p.category === galleryCategory);
 
   return (
     <Layout>
@@ -661,22 +661,29 @@ function Index() {
             <div className="h-px w-10 bg-gold" />
           </div>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground">Galeria de Trabalhos</h2>
-          <p className="mt-3 text-muted-foreground">Explore alguns dos nossos projectos mais recentes</p>
+          <p className="mt-3 text-muted-foreground">
+            Os mesmos projectos da página{" "}
+            <Link to="/galeria" className="font-semibold text-brand hover:underline">
+              Galeria
+            </Link>
+            — clique para ver em grande ou abrir a página do projecto.
+          </p>
         </div>
 
-        {/* Category filters */}
+        {/* Category filters — alinhados com /galeria */}
         <div className="mb-10 flex flex-wrap items-center justify-center gap-2">
-          {galleryCategories.map((cat) => (
+          {GALLERY_CATEGORIES.map((cat) => (
             <button
-              key={cat.value}
-              onClick={() => setSelectedCategory(cat.value)}
+              key={cat.id}
+              type="button"
+              onClick={() => setGalleryCategory(cat.id)}
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition-smooth ${
-                selectedCategory === cat.value
+                galleryCategory === cat.id
                   ? "border-brand bg-brand text-brand-foreground shadow-card"
                   : "border-border bg-card text-foreground hover:border-brand/50 hover:bg-brand/5"
               }`}
             >
-              {cat.label}
+              {cat.icon} {cat.label}
             </button>
           ))}
         </div>
@@ -684,33 +691,49 @@ function Index() {
         {/* Gallery grid */}
         {filteredGallery.length > 0 ? (
           <motion.div
-            key={selectedCategory}
+            key={galleryCategory}
             initial="hidden"
             animate="visible"
             variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
             className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
           >
-            {filteredGallery.map((item) => (
-              <motion.div
-                key={item.id}
-                variants={scaleIn}
-                className="group relative aspect-square cursor-pointer overflow-hidden rounded-2xl bg-muted shadow-card transition-smooth hover:shadow-elegant"
-                onClick={() => setLightboxImage({ url: item.image_url, title: item.title })}
-              >
-                <img
-                  src={item.image_url}
-                  alt={item.title}
-                  className="h-full w-full object-cover transition-smooth duration-500 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 transition-smooth group-hover:opacity-100" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-4 opacity-0 transition-smooth group-hover:translate-y-0 group-hover:opacity-100">
-                  <p className="text-sm font-bold text-white">{item.title}</p>
-                  {item.client_name && (
-                    <p className="text-xs text-white/70 mt-1">{item.client_name}</p>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+            {filteredGallery.map((item) => {
+              const cover = portfolioCover(item.gallery_images);
+              if (!cover) return null;
+              return (
+                <motion.div
+                  key={item.id}
+                  variants={scaleIn}
+                  className="group relative aspect-square overflow-hidden rounded-2xl bg-muted shadow-card transition-smooth hover:shadow-elegant"
+                >
+                  <Link
+                    to="/galeria/$slug"
+                    params={{ slug: item.slug }}
+                    className="absolute right-3 top-3 z-20 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-brand shadow hover:bg-white"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Página
+                  </Link>
+                  <button
+                    type="button"
+                    className="absolute inset-0 z-10"
+                    aria-label={`Ampliar ${item.title}`}
+                    onClick={() => setLightboxImage({ url: cover, title: item.title, slug: item.slug })}
+                  />
+                  <img
+                    src={cover}
+                    alt={item.title}
+                    className="h-full w-full object-cover transition-smooth duration-500 group-hover:scale-110 pointer-events-none"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 transition-smooth group-hover:opacity-100 pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 right-0 z-0 p-4 pointer-events-none">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-gold">{categoryLabel(item.category)}</p>
+                    <p className="text-sm font-bold text-white drop-shadow">{item.title}</p>
+                    {item.client_name && <p className="text-xs text-white/75 mt-0.5">{item.client_name}</p>}
+                  </div>
+                </motion.div>
+              );
+            })}
           </motion.div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -919,6 +942,16 @@ function Index() {
           image={lightboxImage.url}
           title={lightboxImage.title}
           onClose={() => setLightboxImage(null)}
+          actions={
+            <Link
+              to="/galeria/$slug"
+              params={{ slug: lightboxImage.slug }}
+              className="rounded-full bg-gold px-5 py-2 text-sm font-bold text-gold-foreground shadow-lg hover:opacity-95"
+              onClick={() => setLightboxImage(null)}
+            >
+              Abrir página do projecto
+            </Link>
+          }
         />
       )}
     </Layout>

@@ -1,4 +1,4 @@
-type GeminiTask = "chat" | "cv_suggest" | "letter_generate" | "smart_search";
+type GeminiTask = "chat" | "cv_suggest" | "letter_generate" | "smart_search" | "scholarship_match";
 
 type GeminiResponse = {
   text?: string;
@@ -32,11 +32,13 @@ export async function callGemini(
   task: GeminiTask,
   prompt: string,
   context?: string,
+  signal?: AbortSignal,
 ): Promise<string> {
   const resp = await fetch("/api/gemini", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ task, prompt, context }),
+    signal,
   });
 
   let data: GeminiResponse = {};

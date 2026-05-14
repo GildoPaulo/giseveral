@@ -11,6 +11,7 @@ import { SCHOLARSHIPS } from "@/data/hub-bolsas";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { FileUpload } from "@/components/admin/FileUpload";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { readJsonOrThrow } from "@/lib/ai-json";
 
 export const Route = createFileRoute("/balcao/bolsas")({
   component: BalcaoBolsas,
@@ -278,27 +279,27 @@ function BalcaoBolsas() {
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/scholarship/import-pdf", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erro ao importar PDF");
+      const data = await readJsonOrThrow<Record<string, unknown> & { error?: string }>(res);
+      if (!res.ok) throw new Error((data.error as string) || "Erro ao importar PDF");
 
       upd((p) => ({
         ...p,
-        title: data.title || p.title,
-        country: data.country || p.country,
-        flag: data.flag || p.flag,
-        level: data.level || p.level,
-        area: data.area || p.area,
-        coverage: data.coverage || p.coverage,
-        language: data.language || p.language,
-        deadline: data.deadline || p.deadline,
-        institution: data.institution || p.institution,
-        description: data.description || p.description,
-        apply_url: data.apply_url || p.apply_url,
-        benefits: Array.isArray(data.benefits) && data.benefits.length ? data.benefits : p.benefits,
-        requirements: Array.isArray(data.requirements) && data.requirements.length ? data.requirements : p.requirements,
-        process_steps: Array.isArray(data.process_steps) && data.process_steps.length ? data.process_steps : p.process_steps,
-        documents: Array.isArray(data.documents) && data.documents.length ? data.documents : p.documents,
-        tips: Array.isArray(data.tips) && data.tips.length ? data.tips : p.tips,
+        title: (data.title as string) || p.title,
+        country: (data.country as string) || p.country,
+        flag: (data.flag as string) || p.flag,
+        level: (data.level as string) || p.level,
+        area: (data.area as string) || p.area,
+        coverage: (data.coverage as string) || p.coverage,
+        language: (data.language as string) || p.language,
+        deadline: (data.deadline as string) || p.deadline,
+        institution: (data.institution as string) || p.institution,
+        description: (data.description as string) || p.description,
+        apply_url: (data.apply_url as string) || p.apply_url,
+        benefits: Array.isArray(data.benefits) && data.benefits.length ? (data.benefits as ScholarshipRow["benefits"]) : p.benefits,
+        requirements: Array.isArray(data.requirements) && data.requirements.length ? (data.requirements as ScholarshipRow["requirements"]) : p.requirements,
+        process_steps: Array.isArray(data.process_steps) && data.process_steps.length ? (data.process_steps as ScholarshipRow["process_steps"]) : p.process_steps,
+        documents: Array.isArray(data.documents) && data.documents.length ? (data.documents as ScholarshipRow["documents"]) : p.documents,
+        tips: Array.isArray(data.tips) && data.tips.length ? (data.tips as ScholarshipRow["tips"]) : p.tips,
       }));
       toast.success("Edital importado com IA. Revê os campos antes de guardar.");
     } catch (e) {

@@ -1,3 +1,5 @@
+import { extractJsonObject } from "../_aiJson";
+
 interface Env {
   GEMINI_API_KEY: string;
 }
@@ -19,13 +21,6 @@ export const onRequestOptions: PagesFunction = async () =>
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: CORS });
-}
-
-function cleanJson(text: string) {
-  const cleaned = text.replace(/```json|```/g, "").trim();
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-  return start >= 0 && end >= start ? cleaned.slice(start, end + 1) : cleaned;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -81,7 +76,11 @@ Usa portugues mocambicano. Se um campo nao existir, deixa string vazia ou array 
             ],
           },
         ],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 1800 },
+        generationConfig: {
+          temperature: 0.1,
+          maxOutputTokens: 1800,
+          responseMimeType: "application/json",
+        },
       }),
     },
   );
@@ -91,7 +90,7 @@ Usa portugues mocambicano. Se um campo nao existir, deixa string vazia ou array 
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
   try {
-    return json(JSON.parse(cleanJson(text)));
+    return json(JSON.parse(extractJsonObject(text)));
   } catch {
     return json({ error: "A IA nao devolveu JSON valido", raw: text }, 502);
   }

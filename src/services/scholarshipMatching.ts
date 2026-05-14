@@ -1,5 +1,6 @@
 import { CvData } from "@/components/cv-builder";
 import { Scholarship } from "@/data/hub-bolsas";
+import { parseJsonFromAi } from "@/lib/ai-json";
 import { callGemini } from "./gemini";
 
 export interface MatchingResult {
@@ -27,15 +28,9 @@ export async function matchCvToScholarship(
   try {
     const prompt = buildMatchingPrompt(cvData, scholarship);
 
-    const response = await callGemini(prompt, signal);
-    
-    // Parse JSON response from Gemini
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error("Invalid JSON response from Gemini");
-    }
+    const response = await callGemini("scholarship_match", prompt, undefined, signal);
 
-    const result = JSON.parse(jsonMatch[0]) as MatchingResult;
+    const result = parseJsonFromAi<MatchingResult>(response);
     return normalizeMatchingResult(result);
   } catch (error) {
     console.error("Matching error:", error);

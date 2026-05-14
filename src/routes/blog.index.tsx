@@ -3,7 +3,7 @@ import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { blogPosts, formatPtDate, type BlogCategory } from "@/data/blog";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, ArrowRight, Tag, PenLine, Clock } from "lucide-react";
+import { Calendar, ArrowRight, Tag, PenLine, Clock, Search } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import blogHeroBg from "@/assets/printing.jpg";
@@ -28,6 +28,7 @@ type PostItem = {
   image: string;
   excerpt: string;
   source: "static" | "db";
+  tags?: string[];
 };
 
 const CATEGORIES: ("Todos" | BlogCategory)[] = ["Todos", "Informática", "Impressão", "Redes", "Dicas"];
@@ -80,45 +81,74 @@ const cardIn: any = {
 
 function BlogPage() {
   const [filter, setFilter] = useState<"Todos" | BlogCategory>("Todos");
+  const [search, setSearch] = useState("");
   const [dbPosts, setDbPosts] = useState<PostItem[]>([]);
   const [dbLoaded, setDbLoaded] = useState(false);
 
   useEffect(() => {
     (supabase as any)
       .from("blog_posts")
-      .select("slug, title, date, category, image_url, excerpt")
+      .select("slug, title, date, category, image_url, excerpt, tags")
       .eq("published", true)
       .order("created_at", { ascending: false })
       .then(({ data }: { data: any[] | null }) => {
         setDbLoaded(true);
         if (!data) return;
-        setDbPosts(data.map((r) => ({
-          slug: r.slug,
-          title: r.title,
-          date: r.date,
-          category: r.category as BlogCategory,
-          image: r.image_url ?? "",
-          excerpt: r.excerpt ?? "",
-          source: "db" as const,
-        })));
+        setDbPosts(
+          data.map((r) => ({
+            slug: r.slug,
+            title: r.title,
+            date: r.date,
+            category: r.category as BlogCategory,
+            image: r.image_url ?? "",
+            excerpt: r.excerpt ?? "",
+            source: "db" as const,
+            tags: Array.isArray(r.tags) ? r.tags : [],
+          })),
+        );
       });
   }, []);
 
-  const staticItems: PostItem[] = blogPosts.map((p) => ({
-    slug: p.slug, title: p.title, date: p.date,
-    category: p.category, image: p.image as string,
-    excerpt: p.excerpt, source: "static",
-  }));
-
-  const allPosts = dbLoaded && dbPosts.length > 0 ? dbPosts : dbLoaded ? staticItems : [];
-
-  const filtered = useMemo(
-    () => filter === "Todos" ? allPosts : allPosts.filter((p) => p.category === filter),
-    [filter, dbPosts, dbLoaded],
+  const staticItems: PostItem[] = useMemo(
+    () =>
+      blogPosts.map((p) => ({
+        slug: p.slug,
+        title: p.title,
+        date: p.date,
+        category: p.category,
+        image: p.image as string,
+        excerpt: p.excerpt,
+        source: "static" as const,
+      })),
+    [],
   );
 
+  const allPosts = useMemo(() => {
+    if (!dbLoaded) return [];
+    const merged: PostItem[] = [...dbPosts];
+    for (const s of staticItems) {
+      if (!merged.some((p) => p.slug === s.slug)) merged.push(s);
+    }
+    merged.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    return merged;
+  }, [dbLoaded, dbPosts, staticItems]);
+
+  const filtered = useMemo(() => {
+    let list = filter === "Todos" ? allPosts : allPosts.filter((p) => p.category === filter);
+    const q = search.trim().toLowerCase();
+    if (q) {
+      list = list.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          p.excerpt.toLowerCase().includes(q) ||
+          (p.tags ?? []).some((t) => t.toLowerCase().includes(q)),
+      );
+    }
+    return list;
+  }, [filter, allPosts, search]);
+
   const hero = filtered[0];
-  const rest  = filtered.slice(1);
+  const rest = filtered.slice(1);
 
   return (
     <Layout>
@@ -161,6 +191,20 @@ function BlogPage() {
       </section>
 
       <section className="container mx-auto px-4 py-12 max-w-5xl">
+        {dbLoaded && (
+          <div className="max-w-xl mx-auto mb-8">
+            <label className="relative block">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Pesquisar por título, texto ou tag…"
+                className="w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+              />
+            </label>
+          </div>
+        )}
 
         {/* ── LOADING SKELETONS ─────────────────────────────────────────────── */}
         {!dbLoaded && (
@@ -234,7 +278,7 @@ function BlogPage() {
         {dbLoaded && (
           <AnimatePresence mode="wait">
             <motion.div
-              key={filter}
+              key={`${filter}-${search}`}
               initial="hidden"
               animate="visible"
               exit="hidden"
@@ -304,7 +348,11 @@ function BlogPage() {
         {dbLoaded && filtered.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-16 text-center">
             <div className="text-5xl mb-4">📭</div>
-            <p className="text-muted-foreground">Sem artigos nesta categoria.</p>
+            <p className="text-muted-foreground">
+              {search.trim()
+                ? "Nenhum artigo corresponde à sua pesquisa. Tente outras palavras ou remova os filtros."
+                : "Sem artigos nesta categoria."}
+            </p>
           </motion.div>
         )}
       </section>

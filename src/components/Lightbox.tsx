@@ -5,15 +5,17 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 
 interface LightboxProps {
   image: string;
   title?: string;
   onClose: () => void;
+  /** e.g. link to full project page */
+  actions?: ReactNode;
 }
 
-export function Lightbox({ image, title, onClose }: LightboxProps) {
+export function Lightbox({ image, title, onClose, actions }: LightboxProps) {
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -68,6 +70,11 @@ export function Lightbox({ image, title, onClose }: LightboxProps) {
             <p className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 text-center text-sm font-medium text-white rounded-b-lg">
               {title}
             </p>
+          )}
+          {actions && (
+            <div className="absolute left-0 right-0 bottom-16 flex justify-center px-4" onClick={(e) => e.stopPropagation()}>
+              {actions}
+            </div>
           )}
         </motion.div>
       </motion.div>

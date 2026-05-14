@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { parseJsonFromAi, readJsonOrThrow } from "@/lib/ai-json";
 import { triggerAutoNotify } from "@/services/autoNotify";
 import { callGemini } from "@/services/gemini";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
@@ -174,8 +175,7 @@ Responde APENAS com JSON válido neste formato exacto (sem markdown, sem explica
   "improvements": ["melhoria 1 concisa", "melhoria 2 concisa", "melhoria 3 concisa"]
 }`;
       const raw = await geminiSuggest(prompt);
-      const clean = raw.replace(/```json|```/g, "").trim();
-      const parsed = JSON.parse(clean) as AiSuggestions;
+      const parsed = parseJsonFromAi<AiSuggestions>(raw);
       setResult(parsed);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Erro na análise IA");
@@ -266,18 +266,50 @@ type Draft = {
   keyword: string;
   excerpt: string;
   imageUrl: string;
+  /** etiquetas separadas por vírgula (SEO / filtros) */
+  tags: string;
+  /** slug manual opcional; vazio = derivado do título */
+  slugOverride: string;
   slug: string;
   createdAt: string;
 };
 
+const emptyDraft = (): Draft => ({
+  id: "",
+  title: "",
+  content: "",
+  category: "Informática",
+  keyword: "",
+  excerpt: "",
+  imageUrl: "",
+  tags: "",
+  slugOverride: "",
+  slug: "",
+  createdAt: new Date().toISOString(),
+});
+
 function loadDrafts(): Draft[] {
-  try { return JSON.parse(localStorage.getItem("blog_drafts") ?? "[]"); } catch { return []; }
+  try {
+    const raw = JSON.parse(localStorage.getItem("blog_drafts") ?? "[]") as Partial<Draft>[];
+    return raw.map((d) => ({
+      ...emptyDraft(),
+      ...d,
+      tags: typeof d.tags === "string" ? d.tags : "",
+      slugOverride: typeof d.slugOverride === "string" ? d.slugOverride : "",
+    }));
+  } catch {
+    return [];
+  }
 }
 function saveDraftsLocal(drafts: Draft[]) {
   localStorage.setItem("blog_drafts", JSON.stringify(drafts));
 }
 
 async function publishToSupabase(draft: Draft, slug: string): Promise<void> {
+  const tagArr = draft.tags
+    .split(/[,;]/)
+    .map((t) => t.trim())
+    .filter(Boolean);
   const row = {
     slug,
     title: draft.title,
@@ -288,6 +320,7 @@ async function publishToSupabase(draft: Draft, slug: string): Promise<void> {
     meta_title: draft.title,
     meta_description: draft.excerpt,
     keywords: draft.keyword,
+    tags: tagArr,
     content: draft.content,
     published: true,
   };
@@ -301,12 +334,6 @@ async function publishToSupabase(draft: Draft, slug: string): Promise<void> {
 async function deleteFromSupabase(slug: string): Promise<void> {
   await supabase.from("blog_posts").delete().eq("slug", slug);
 }
-
-const emptyDraft = (): Draft => ({
-  id: "", title: "", content: "", category: "Informática",
-  keyword: "", excerpt: "", imageUrl: "", slug: "",
-  createdAt: new Date().toISOString(),
-});
 
 function BalcaoBlog() {
   const [drafts, setDrafts] = useState<Draft[]>(loadDrafts);
@@ -338,6 +365,10 @@ function BalcaoBlog() {
               keyword: p.keywords ?? "",
               excerpt: p.excerpt ?? "",
               imageUrl: p.image_url ?? "",
+              tags: Array.isArray((p as { tags?: string[] }).tags)
+                ? ((p as { tags?: string[] }).tags ?? []).join(", ")
+                : "",
+              slugOverride: "",
               slug: p.slug,
               createdAt: p.created_at,
             }))
@@ -345,7 +376,11 @@ function BalcaoBlog() {
       });
   }, []);
 
-  const slug = useMemo(() => slugify(editing.title), [editing.title]);
+  const slug = useMemo(() => {
+    const manual = editing.slugOverride.trim();
+    if (manual) return slugify(manual);
+    return slugify(editing.title);
+  }, [editing.title, editing.slugOverride]);
   const { score, checks } = useMemo(
     () => computeSeo(editing.title, editing.content, editing.keyword, editing.excerpt),
     [editing.title, editing.content, editing.keyword, editing.excerpt]
@@ -431,8 +466,26 @@ function BalcaoBlog() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic, category: editing.category }),
       });
-      const data = await res.json();
+      const data = await readJsonOrThrow<{
+        error?: string;
+        title?: string;
+        suggested_slug?: string;
+        excerpt?: string;
+        content?: string;
+        keyword?: string;
+        tags?: string[];
+        hashtags?: string[];
+        imagePrompt?: string;
+        youtubeQuery?: string;
+      }>(res);
       if (!res.ok) throw new Error(data.error || "Erro ao gerar notícia");
+
+      const tagLine = [
+        ...(Array.isArray(data.tags) ? data.tags : []),
+        ...(Array.isArray(data.hashtags) ? data.hashtags.map((h) => h.replace(/^#/, "")) : []),
+      ]
+        .filter(Boolean)
+        .join(", ");
 
       setEditing((prev) => ({
         ...prev,
@@ -441,6 +494,8 @@ function BalcaoBlog() {
         excerpt: data.excerpt || prev.excerpt,
         content: data.content || prev.content,
         keyword: data.keyword || prev.keyword,
+        tags: tagLine || prev.tags,
+        slugOverride: data.suggested_slug?.trim() ? slugify(data.suggested_slug.trim()) : prev.slugOverride,
       }));
       toast.success("Notícia gerada com IA. Revê o texto antes de publicar.");
       if (data.imagePrompt || data.youtubeQuery) {
@@ -636,6 +691,26 @@ function BalcaoBlog() {
                       value={editing.keyword}
                       onChange={(e) => setEditing((p) => ({ ...p, keyword: e.target.value }))}
                       placeholder="Ex: remover vírus Beira"
+                      className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-3 pt-3 border-t border-border/50">
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Slug URL (opcional)</label>
+                    <input
+                      value={editing.slugOverride}
+                      onChange={(e) => setEditing((p) => ({ ...p, slugOverride: e.target.value }))}
+                      placeholder="Vazio = gerado do título (ex: bolsas-canada-2026)"
+                      className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-brand/30"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tags (SEO, vírgulas)</label>
+                    <input
+                      value={editing.tags}
+                      onChange={(e) => setEditing((p) => ({ ...p, tags: e.target.value }))}
+                      placeholder="bolsas, Canadá, estudantes, Moçambique"
                       className="mt-1.5 w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
                     />
                   </div>

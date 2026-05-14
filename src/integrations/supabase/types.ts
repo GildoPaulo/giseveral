@@ -667,6 +667,7 @@ export type Database = {
           meta_title: string | null
           meta_description: string | null
           keywords: string | null
+          tags: string[] | null
           content: Json
           published: boolean
           created_at: string
@@ -683,6 +684,7 @@ export type Database = {
           meta_title?: string | null
           meta_description?: string | null
           keywords?: string | null
+          tags?: string[] | null
           content?: Json
           published?: boolean
           created_at?: string
@@ -699,6 +701,7 @@ export type Database = {
           meta_title?: string | null
           meta_description?: string | null
           keywords?: string | null
+          tags?: string[] | null
           content?: Json
           published?: boolean
           created_at?: string
@@ -1032,6 +1035,113 @@ export type Database = {
           created_at?: string
         }
         Relationships: []
+      }
+      gallery_projects: {
+        Row: {
+          id: string
+          title: string
+          slug: string
+          client_name: string | null
+          client_testimonial: string | null
+          category: string
+          description: string
+          challenge: string | null
+          solution: string | null
+          results: string | null
+          technologies: string[] | null
+          project_url: string | null
+          project_date: string | null
+          is_featured: boolean
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          slug: string
+          client_name?: string | null
+          client_testimonial?: string | null
+          category: string
+          description?: string
+          challenge?: string | null
+          solution?: string | null
+          results?: string | null
+          technologies?: string[] | null
+          project_url?: string | null
+          project_date?: string | null
+          is_featured?: boolean
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          slug?: string
+          client_name?: string | null
+          client_testimonial?: string | null
+          category?: string
+          description?: string
+          challenge?: string | null
+          solution?: string | null
+          results?: string | null
+          technologies?: string[] | null
+          project_url?: string | null
+          project_date?: string | null
+          is_featured?: boolean
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gallery_images: {
+        Row: {
+          id: string
+          project_id: string
+          image_url: string
+          thumbnail_url: string | null
+          title: string | null
+          description: string | null
+          step_order: number
+          step_label: string | null
+          is_cover: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          image_url: string
+          thumbnail_url?: string | null
+          title?: string | null
+          description?: string | null
+          step_order?: number
+          step_label?: string | null
+          is_cover?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          image_url?: string
+          thumbnail_url?: string | null
+          title?: string | null
+          description?: string | null
+          step_order?: number
+          step_label?: string | null
+          is_cover?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_images_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       newsletter_campaigns: {
         Row: {

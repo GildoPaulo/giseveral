@@ -9,7 +9,7 @@ interface Env {
   GEMINI_MODEL?: string;
 }
 
-type GeminiTask = "chat" | "cv_suggest" | "letter_generate" | "smart_search";
+type GeminiTask = "chat" | "cv_suggest" | "letter_generate" | "smart_search" | "scholarship_match";
 
 interface GeminiRequest {
   task?: GeminiTask;
@@ -50,6 +50,9 @@ Se especifico, profissional e persuasivo. Comprimento: 250 a 400 palavras.`,
   smart_search: `Interpreta a pesquisa do utilizador sobre documentos academicos e devolve filtros JSON.
 Categorias disponiveis: "exames", "trabalhos", "cvs", "livros".
 Responde apenas com JSON valido, sem markdown, no formato exacto: {"q":"termo","cat":"categoria_ou_null"}.`,
+
+  scholarship_match: `Es um especialista em bolsas de estudo. Analisa o perfil do candidato face aos requisitos da bolsa.
+Responde APENAS com JSON valido (sem markdown, sem texto extra) no formato exacto pedido no prompt do utilizador.`,
 };
 
 const MAX_TOKENS: Record<GeminiTask, number> = {
@@ -57,6 +60,7 @@ const MAX_TOKENS: Record<GeminiTask, number> = {
   cv_suggest: 600,
   letter_generate: 1200,
   smart_search: 100,
+  scholarship_match: 900,
 };
 
 function json(data: unknown, status = 200): Response {
@@ -120,12 +124,15 @@ async function callGemini(env: Env, body: GeminiRequest) {
     resp = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+        body: JSON.stringify({
         system_instruction: { parts: [{ text: systemPrompt }] },
         contents: [{ role: "user", parts: [{ text: userPrompt }] }],
         generationConfig: {
           temperature: task === "chat" ? 0.7 : task === "smart_search" ? 0.1 : 0.4,
           maxOutputTokens: MAX_TOKENS[task],
+          ...(task === "smart_search" || task === "scholarship_match"
+            ? { responseMimeType: "application/json" as const }
+            : {}),
         },
       }),
     });

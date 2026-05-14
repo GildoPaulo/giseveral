@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Layout } from "@/components/Layout";
+import { RelatedPortfolioSection } from "@/components/RelatedPortfolioSection";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import {
   MessageCircle, Phone, ArrowLeft, Check, Star, ChevronRight,
@@ -426,26 +427,7 @@ function ServicoPage() {
         </div>
       </section>
 
-      {/* ── GALLERY ──────────────────────────────────────── */}
-      <section className="container mx-auto px-4 py-16 max-w-5xl">
-        <h2 className="text-2xl md:text-3xl font-bold text-brand mb-2">Galeria</h2>
-        <p className="text-muted-foreground mb-8">Imagens do nosso trabalho e equipamentos.</p>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {s.gallery.map((img, i) => (
-            <div
-              key={i}
-              className={`overflow-hidden rounded-xl ${i === 0 ? "md:col-span-2 md:row-span-2" : ""}`}
-            >
-              <img
-                src={img.src}
-                alt={img.alt}
-                loading="lazy"
-                className="h-full w-full object-cover aspect-square md:aspect-auto hover:scale-105 transition-smooth"
-              />
-            </div>
-          ))}
-        </div>
-      </section>
+      <RelatedPortfolioSection serviceSlug={s.slug} />
 
       {/* ── PRICING ──────────────────────────────────────── */}
       <section className="bg-muted/40 py-14">

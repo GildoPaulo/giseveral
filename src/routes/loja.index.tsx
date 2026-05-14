@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import useEmblaCarousel from "embla-carousel-react";
 import {
   BookOpen, Pen, FolderOpen, GraduationCap, FileText,
   Printer, Laptop, Wifi, Palette, ArrowRight, ShoppingBag,
-  Star, Truck, Shield, Clock, ShoppingCart, Zap, Package,
-  Heart, GitCompareArrows, BadgePercent, Search,
+  Star, Truck, Shield, ShoppingCart, Zap, Package,
+  Heart, GitCompareArrows, Globe, Store,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
@@ -18,8 +19,12 @@ import stationeryBg from "@/assets/stationery.jpg";
 export const Route = createFileRoute("/loja/")({
   head: () => ({
     meta: [
-      { title: "Loja – Giseveral e Services" },
-      { name: "description", content: "Compre produtos de papelaria e peça serviços de impressão, informática e redes. Entrega ao domicílio na Beira." },
+      { title: "Loja Giseveral — Marketplace" },
+      {
+        name: "description",
+        content:
+          "Loja online Giseveral: papelaria, eletrónicos, moda por encomenda, impressão, informática e design. Entregas na Beira, em Moçambique e envios internacionais.",
+      },
     ],
   }),
   component: LojaIndex,
@@ -59,6 +64,69 @@ type Product = Tables<"products"> & {
   product_categories: { name: string; slug: string } | null;
 };
 
+type CategorySlide = {
+  emoji: string;
+  label: string;
+  blurb: string;
+  accent: string;
+  onClick: () => void;
+};
+
+function CategoryDotsCarousel({ slides }: { slides: CategorySlide[] }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" });
+  const [selected, setSelected] = useState(0);
+  const scrollTo = useCallback((i: number) => emblaApi?.scrollTo(i), [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    const onSelect = () => setSelected(emblaApi.selectedScrollSnap());
+    emblaApi.on("select", onSelect);
+    onSelect();
+    return () => emblaApi.off("select", onSelect);
+  }, [emblaApi]);
+
+  return (
+    <div className="relative">
+      <div ref={emblaRef} className="overflow-hidden">
+        <div className="flex -ml-3">
+          {slides.map((s, i) => (
+            <div
+              key={i}
+              className="min-w-0 shrink-0 grow-0 basis-[88%] pl-3 sm:basis-[52%] md:basis-[38%] lg:basis-[28%]"
+            >
+              <button
+                type="button"
+                onClick={s.onClick}
+                className={`w-full text-left rounded-2xl border border-border bg-gradient-to-br ${s.accent} bg-card p-5 shadow-card transition-smooth hover:border-gold/40 hover:shadow-elegant`}
+              >
+                <div className="text-4xl mb-3">{s.emoji}</div>
+                <div className="font-bold text-brand text-sm md:text-base leading-snug">{s.label}</div>
+                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{s.blurb}</p>
+                <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-gold">
+                  Explorar <ArrowRight className="h-3.5 w-3.5" />
+                </span>
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mt-4 flex justify-center gap-1.5">
+        {slides.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            aria-label={`Categoria ${i + 1}`}
+            onClick={() => scrollTo(i)}
+            className={`h-2 rounded-full transition-all ${
+              selected === i ? "w-7 bg-gold" : "w-2 bg-border hover:bg-muted-foreground/40"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 function LojaIndex() {
@@ -73,12 +141,74 @@ function LojaIndex() {
       .select("*, product_categories(name, slug)")
       .eq("active", true)
       .order("created_at", { ascending: false })
-      .limit(4)
+      .limit(8)
       .then(({ data }) => {
         setFeatured((data as Product[]) ?? []);
         setLoading(false);
       });
   }, []);
+
+  const categorySlides: CategorySlide[] = useMemo(
+    () => [
+      {
+        emoji: "👕",
+        label: "Moda e acessórios",
+        blurb: "Vestuário e peças sob encomenda — envie a sua ideia e cotamos.",
+        accent: "from-rose-500/15 to-card",
+        onClick: () => navigate({ to: "/orcamento" }),
+      },
+      {
+        emoji: "📱",
+        label: "Eletrónicos",
+        blurb: "Gadgets, telemóveis e acessórios — stock variável, consulte disponibilidade.",
+        accent: "from-sky-500/15 to-card",
+        onClick: () => navigate({ to: "/orcamento" }),
+      },
+      {
+        emoji: "🖨️",
+        label: "Impressão & papel",
+        blurb: "Impressão a cores, cópias, encadernação e material de escritório.",
+        accent: "from-amber-500/15 to-card",
+        onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "impressao" } }),
+      },
+      {
+        emoji: "💻",
+        label: "Informática",
+        blurb: "Formatação, reparação, software e assistência técnica.",
+        accent: "from-emerald-500/15 to-card",
+        onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "formatacao-pc" } }),
+      },
+      {
+        emoji: "📦",
+        label: "Papelaria & escolar",
+        blurb: "Cadernos, canetas, pastas e tudo para a escola ou escritório.",
+        accent: "from-brand/15 to-card",
+        onClick: () => navigate({ to: "/loja/papelaria" }),
+      },
+      {
+        emoji: "✨",
+        label: "Design & digital",
+        blurb: "Branding, artes finais, conteúdos e apoio a marketing.",
+        accent: "from-purple-500/15 to-card",
+        onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "design-grafico" } }),
+      },
+    ],
+    [navigate],
+  );
+
+  const wideCategories = useMemo(
+    () => [
+      { label: "Moda e acessórios", onClick: () => navigate({ to: "/orcamento" }) },
+      { label: "Eletrónicos e gadgets", onClick: () => navigate({ to: "/orcamento" }) },
+      { label: "Impressão profissional", onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "impressao" } }) },
+      { label: "Informática & PCs", onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "formatacao-pc" } }) },
+      { label: "Papelaria & escolar", onClick: () => navigate({ to: "/loja/papelaria" }) },
+      { label: "Serviços digitais", onClick: () => navigate({ to: "/orcamento" }) },
+      { label: "Blog & dicas", onClick: () => navigate({ to: "/blog" }) },
+      { label: "Design & branding", onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "design-grafico" } }) },
+    ],
+    [navigate],
+  );
 
   const handleAdd = (p: Product) => {
     addItem({
@@ -120,17 +250,10 @@ function LojaIndex() {
   ];
 
   const benefits = [
-    { icon: Truck,  text: "Entrega ao domicílio", sub: "Na Beira em 30–120 min" },
-    { icon: Shield, text: "Produtos de qualidade", sub: "Marcas reconhecidas" },
-    { icon: Clock,  text: "Serviço rápido",        sub: "Atendimento imediato" },
-    { icon: Star,   text: "Clientes satisfeitos",  sub: "Avaliação 4.9/5" },
-  ];
-
-  const marketplaceUx = [
-    { icon: BadgePercent, label: "Flash sales", value: "Promocoes activas" },
-    { icon: Heart, label: "Wishlist", value: "Guarde favoritos" },
-    { icon: GitCompareArrows, label: "Comparar", value: "Escolha melhor" },
-    { icon: Search, label: "Pesquisa rapida", value: "Filtros por categoria" },
+    { icon: Globe, text: "Moçambique & internacional", sub: "Entregas nacionais e cotação para o exterior" },
+    { icon: Package, text: "Marketplace alargado", sub: "Papelaria, tech, moda por encomenda e serviços" },
+    { icon: Shield, text: "Compra com apoio humano", sub: "Marcas reconhecidas e stock verificado" },
+    { icon: Star, text: "Clientes satisfeitos", sub: "Avaliação 4.9/5" },
   ];
 
   return (
@@ -150,13 +273,14 @@ function LojaIndex() {
           <motion.div initial="hidden" animate="visible" variants={stagger} className="grid md:grid-cols-[1fr_auto] gap-8 items-center">
             <div>
               <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-bold mb-5">
-                <ShoppingBag className="h-3.5 w-3.5" /> LOJA GISEVERAL
+                <Store className="h-3.5 w-3.5" /> LOJA GISEVERAL
               </motion.div>
               <motion.h1 variants={fadeUp} className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4">
-                Papelaria &<br /><span className="text-gold">Serviços</span><br />na Beira
+                Marketplace<br /><span className="text-gold">completo</span>
               </motion.h1>
               <motion.p variants={fadeUp} className="text-lg text-brand-foreground/80 max-w-xl mb-8">
-                Tudo o que precisa — impressão, material escolar, informática e redes. Com entrega ao domicílio.
+                Tudo num só lugar — papelaria, eletrónicos, moda por encomenda, impressão, informática e design.
+                Entregas na Beira, em todo Moçambique e envios internacionais sob cotação.
               </motion.p>
               <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
                 <button
@@ -164,7 +288,7 @@ function LojaIndex() {
                   onClick={() => navigate({ to: "/loja/papelaria" })}
                   className="inline-flex items-center gap-2 rounded-xl bg-gold px-6 py-3 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth"
                 >
-                  <ShoppingBag className="h-4 w-4" /> Comprar papelaria
+                  <ShoppingBag className="h-4 w-4" /> Explorar loja
                 </button>
                 <button
                   type="button"
@@ -181,7 +305,7 @@ function LojaIndex() {
               {[
                 { label: "Produtos", value: "200+", icon: <Package className="h-5 w-5" /> },
                 { label: "Clientes", value: "1 200+", icon: <Star className="h-5 w-5" /> },
-                { label: "Serviços", value: "4",     icon: <Zap className="h-5 w-5" /> },
+                { label: "Categorias", value: "8+", icon: <Zap className="h-5 w-5" /> },
                 { label: "Anos",     value: "5+",    icon: <Shield className="h-5 w-5" /> },
               ].map((s) => (
                 <div key={s.label} className="rounded-2xl bg-white/10 backdrop-blur-sm p-5 text-center">
@@ -214,22 +338,40 @@ function LojaIndex() {
         </div>
       </section>
 
-      {/* ── CATEGORIAS PAPELARIA ──────────────────────────────────────────────── */}
-      <section className="border-b border-border bg-gradient-premium">
-        <div className="container mx-auto max-w-6xl px-4 py-5">
-          <div className="grid gap-3 md:grid-cols-4">
-            {marketplaceUx.map(({ icon: Icon, label, value }) => (
-              <div key={label} className="glass-panel flex items-center gap-3 rounded-2xl px-4 py-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div>
-                  <p className="text-xs font-extrabold uppercase tracking-wide text-foreground">{label}</p>
-                  <p className="text-[11px] text-muted-foreground">{value}</p>
-                </div>
+      {/* ── CATEGORIAS (carrossel + atalhos) ─────────────────────────────────── */}
+      <section className="border-b border-border bg-muted/30 py-12">
+        <div className="container mx-auto max-w-6xl px-4">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
+            <motion.div variants={fadeUp} className="mb-8 text-center md:text-left">
+              <div className="inline-flex items-center gap-2 rounded-full bg-gold/10 px-3 py-1 text-xs font-bold text-gold mb-3">
+                <Store className="h-3.5 w-3.5" /> CATEGORIAS
               </div>
-            ))}
-          </div>
+              <h2 className="text-2xl font-bold text-brand">Explore por área</h2>
+              <p className="text-sm text-muted-foreground mt-1 max-w-2xl mx-auto md:mx-0">
+                Deslize o carrossel (pontos em baixo) — papelaria, tecnologia, impressão, design e pedidos especiais.
+              </p>
+            </motion.div>
+            <motion.div variants={fadeUp}>
+              <CategoryDotsCarousel slides={categorySlides} />
+            </motion.div>
+            <motion.div variants={fadeUp} className="mt-10">
+              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 text-center md:text-left">
+                Também na loja
+              </p>
+              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                {wideCategories.map((c) => (
+                  <button
+                    key={c.label}
+                    type="button"
+                    onClick={c.onClick}
+                    className="rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground hover:border-gold/50 hover:text-brand transition-smooth"
+                  >
+                    {c.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
@@ -237,8 +379,8 @@ function LojaIndex() {
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
           <motion.div variants={fadeUp} className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl font-bold text-brand">Papelaria</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">Material escolar e escritório</p>
+              <h2 className="text-2xl font-bold text-brand">Papelaria & escritório</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">Atalhos rápidos para o catálogo online</p>
             </div>
             <button
               type="button"
@@ -279,7 +421,7 @@ function LojaIndex() {
               <motion.div variants={fadeUp} className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-2xl font-bold text-brand">Produtos em Destaque</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">Os mais recentes na loja</p>
+                  <p className="text-sm text-muted-foreground mt-0.5">Até 8 produtos mais recentes — mistura de categorias</p>
                 </div>
                 <button
                   type="button"
@@ -424,20 +566,30 @@ function LojaIndex() {
           <div className="grid md:grid-cols-[1fr_auto] gap-8 items-center relative">
             <div>
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-bold mb-3">
-                <Truck className="h-3.5 w-3.5" /> ENTREGA AO DOMICÍLIO
+                <Globe className="h-3.5 w-3.5" /> ENVIOS NACIONAIS E INTERNACIONAIS
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-2">Receba em casa, na Beira</h2>
-              <p className="text-brand-foreground/80 max-w-md">
-                Tempo estimado de 30 min a 2 horas conforme a zona. Sem saír de casa.
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">Entregamos em todo Moçambique</h2>
+              <p className="text-brand-foreground/80 max-w-lg">
+                Beira: entrega rápida ao domicílio (30 min–2 h). Resto do país por transportadora ou acordo.
+                Encomendas volumosas ou para o exterior — cotação personalizada.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate({ to: "/loja/papelaria" })}
-              className="inline-flex items-center gap-2 rounded-xl bg-gold px-7 py-4 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth whitespace-nowrap"
-            >
-              <ShoppingBag className="h-4 w-4" /> Começar a Comprar
-            </button>
+            <div className="flex flex-col sm:flex-row md:flex-col gap-3 shrink-0">
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/loja/papelaria" })}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-7 py-4 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth whitespace-nowrap"
+              >
+                <ShoppingBag className="h-4 w-4" /> Explorar produtos
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate({ to: "/orcamento" })}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/15 px-7 py-4 text-sm font-semibold text-brand-foreground hover:bg-white/25 transition-smooth whitespace-nowrap"
+              >
+                <Truck className="h-4 w-4" /> Métodos de envio
+              </button>
+            </div>
           </div>
         </motion.div>
       </section>

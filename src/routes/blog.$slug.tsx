@@ -1,9 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState, useEffect, useMemo } from "react";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
-import { blogPosts, getPostBySlug, formatPtDate } from "@/data/blog";
+import { blogPosts, getPostBySlug, formatPtDate, type BlogPost } from "@/data/blog";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import {
   Calendar, Tag, ArrowLeft, Phone, MessageCircle, Wrench,
   Share2, Copy, CheckCircle2, Linkedin,
@@ -11,41 +12,86 @@ import {
 
 const SITE_URL = "https://giseveral.pages.dev";
 
+type ResolvedBlogPost = Omit<BlogPost, "content"> & {
+  content: BlogPost["content"] | string;
+  tags?: string[];
+};
+
+function mapBlogRowToResolved(row: Tables<"blog_posts">): ResolvedBlogPost {
+  const category = row.category as BlogPost["category"];
+  let content: BlogPost["content"] | string;
+  if (typeof row.content === "string") content = row.content;
+  else if (Array.isArray(row.content)) content = row.content as BlogPost["content"];
+  else content = [];
+  return {
+    slug: row.slug,
+    title: row.title,
+    date: row.date,
+    category,
+    image: row.image_url ?? "",
+    excerpt: row.excerpt ?? "",
+    metaTitle: row.meta_title ?? undefined,
+    metaDescription: row.meta_description ?? undefined,
+    keywords: row.keywords ?? undefined,
+    tags: row.tags ?? undefined,
+    content,
+  };
+}
+
 export const Route = createFileRoute("/blog/$slug")({
-  loader: ({ params }) => {
-    const post = getPostBySlug(params.slug);
-    return { post: post ?? null, slug: params.slug };
+  loader: async ({ params }) => {
+    const slug = params.slug;
+    const staticPost = getPostBySlug(slug);
+    if (staticPost) {
+      return {
+        post: { ...staticPost, content: staticPost.content, tags: undefined } satisfies ResolvedBlogPost,
+        slug,
+      };
+    }
+    const { data, error } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("slug", slug)
+      .eq("published", true)
+      .maybeSingle();
+    if (error || !data) throw notFound();
+    return { post: mapBlogRowToResolved(data), slug };
   },
   head: ({ loaderData }) => {
-    const post = loaderData?.post ?? null;
+    const post = loaderData?.post;
     if (!post) return { meta: [{ title: "Artigo — Giseveral e Services" }] };
 
     const metaTitle = post.metaTitle ?? `${post.title} | Giseveral e Services — Beira`;
     const metaDesc = post.metaDescription ?? post.excerpt;
     const canonical = `${SITE_URL}/blog/${post.slug}`;
+    const tagKeywords = post.tags?.length ? post.tags.join(", ") : "";
+    const keywords =
+      post.keywords ??
+      (tagKeywords ? `${tagKeywords}, ${post.category}, Beira, Moçambique` : `${post.category.toLowerCase()}, ${post.title.toLowerCase()}, Beira, Moçambique, Giseveral`);
 
     const jsonLd = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Article",
-      "headline": post.title,
-      "description": metaDesc,
-      "datePublished": post.date,
-      "author": { "@type": "Organization", "name": "Giseveral e Services" },
-      "publisher": {
+      headline: post.title,
+      description: metaDesc,
+      datePublished: post.date,
+      author: { "@type": "Organization", name: "Giseveral e Services" },
+      publisher: {
         "@type": "Organization",
-        "name": "Giseveral e Services",
-        "address": { "@type": "PostalAddress", "addressLocality": "Beira", "addressCountry": "MZ" },
+        name: "Giseveral e Services",
+        address: { "@type": "PostalAddress", addressLocality: "Beira", addressCountry: "MZ" },
       },
-      "image": typeof post.image === "string" ? post.image : undefined,
-      "url": canonical,
-      "inLanguage": "pt-MZ",
+      image: typeof post.image === "string" ? post.image : undefined,
+      url: canonical,
+      inLanguage: "pt-MZ",
+      keywords: tagKeywords || keywords,
     });
 
     return {
       meta: [
         { title: metaTitle },
         { name: "description", content: metaDesc },
-        { name: "keywords", content: post.keywords ?? `${post.category.toLowerCase()}, ${post.title.toLowerCase()}, Beira, Moçambique, Giseveral` },
+        { name: "keywords", content: keywords },
         { name: "robots", content: "index, follow" },
         { property: "og:title", content: metaTitle },
         { property: "og:description", content: metaDesc },
@@ -55,6 +101,7 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "og:locale", content: "pt_MZ" },
         { property: "article:published_time", content: post.date },
         { property: "article:section", content: post.category },
+        ...(post.tags?.flatMap((t) => [{ property: "article:tag" as const, content: t }]) ?? []),
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: metaTitle },
         { name: "twitter:description", content: metaDesc },
@@ -185,37 +232,8 @@ function TocPanel({ entries, activeId }: { entries: TocEntry[]; activeId: string
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 function BlogPostPage() {
-  const { post: staticPost, slug } = Route.useLoaderData();
-  const [post, setPost] = useState<typeof staticPost | null>(staticPost);
-  const [notFoundState, setNotFoundState] = useState(false);
+  const { post } = Route.useLoaderData();
   const [activeId, setActiveId] = useState("");
-
-  useEffect(() => {
-    if (staticPost) return;
-    supabase
-      .from("blog_posts")
-      .select("*")
-      .eq("slug", slug)
-      .eq("published", true)
-      .single()
-      .then(({ data }) => {
-        if (!data) { setNotFoundState(true); return; }
-        setPost({
-          slug: data.slug,
-          title: data.title,
-          date: data.date,
-          category: data.category as "Informática" | "Impressão" | "Redes" | "Dicas",
-          image: data.image_url ?? "",
-          excerpt: data.excerpt ?? "",
-          metaTitle: data.meta_title ?? undefined,
-          metaDescription: data.meta_description ?? undefined,
-          keywords: data.keywords ?? undefined,
-          content: (Array.isArray(data.content)
-            ? data.content as { heading?: string; paragraphs: string[] }[]
-            : typeof data.content === "string" ? data.content : []) as any,
-        });
-      });
-  }, [slug, staticPost]);
 
   const { toc, processedHtml } = useMemo(() => {
     if (!post) return { toc: [] as TocEntry[], processedHtml: "" };
@@ -241,30 +259,6 @@ function BlogPostPage() {
     return () => obs.disconnect();
   }, [toc]);
 
-  if (notFoundState) {
-    return (
-      <Layout>
-        <section className="container mx-auto px-4 py-24 text-center">
-          <h1 className="text-3xl font-bold text-brand">Artigo não encontrado</h1>
-          <p className="mt-3 text-muted-foreground">O artigo que procura não existe ou foi movido.</p>
-          <Link to="/blog" className="mt-6 inline-flex items-center gap-2 rounded-md bg-gradient-gold px-5 py-2.5 text-sm font-semibold text-gold-foreground">
-            <ArrowLeft className="h-4 w-4" /> Voltar ao blog
-          </Link>
-        </section>
-      </Layout>
-    );
-  }
-
-  if (!post) {
-    return (
-      <Layout>
-        <div className="flex justify-center py-32">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand border-t-transparent" />
-        </div>
-      </Layout>
-    );
-  }
-
   const pageUrl = `${SITE_URL}/blog/${post.slug}`;
   const related = blogPosts.filter((p) => p.slug !== post.slug).slice(0, 3);
   const imageUrl = typeof post.image === "string" ? post.image : "";
@@ -283,7 +277,7 @@ function BlogPostPage() {
           <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-white/70 hover:text-gold transition-smooth mb-5">
             <ArrowLeft className="h-4 w-4" /> Voltar ao blog
           </Link>
-          <div className="flex items-center gap-3 text-xs mb-4">
+          <div className="flex flex-wrap items-center gap-3 text-xs mb-4">
             <span className="inline-flex items-center gap-1 rounded-full bg-gold/25 px-2.5 py-0.5 font-semibold text-gold">
               <Tag className="h-3 w-3" /> {post.category}
             </span>
@@ -292,6 +286,18 @@ function BlogPostPage() {
             </span>
             <span className="text-white/60">por Equipa Giseveral</span>
           </div>
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {post.tags.map((t) => (
+                <span
+                  key={t}
+                  className="rounded-full border border-white/25 bg-white/10 px-2.5 py-0.5 text-[11px] font-medium text-white/90 backdrop-blur-sm"
+                >
+                  #{t}
+                </span>
+              ))}
+            </div>
+          )}
           <h1 className="text-3xl md:text-5xl font-bold leading-tight text-white drop-shadow-lg">{post.title}</h1>
           {post.excerpt && (
             <p className="mt-4 text-base md:text-lg text-white/80 max-w-2xl">{post.excerpt}</p>
