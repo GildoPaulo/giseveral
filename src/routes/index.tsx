@@ -21,10 +21,7 @@ import {
   Palette, Shirt, Globe, Wrench, Package, Facebook, Instagram, Linkedin,
   MessageCircle,
 } from "lucide-react";
-import printing from "@/assets/printing.jpg";
-import repair from "@/assets/computer-repair.jpg";
-import network from "@/assets/network.jpg";
-import technician from "@/assets/technician.jpg";
+// Removed AI-generated images - using real photos from /public/images/
 
 const ease = [0.22, 1, 0.36, 1] as [number, number, number, number];
 const fadeUp = {
@@ -232,25 +229,50 @@ function Index() {
           <div className="grid lg:grid-cols-2 gap-10 items-center">
 
             {/* ── Left: Text ── */}
-            <motion.div className="order-2 lg:order-1" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
-              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1 text-[11px] font-bold tracking-widest text-brand uppercase">
+            <motion.div className="order-2 lg:order-1" initial="hidden" animate="visible">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1 text-[11px] font-bold tracking-widest text-brand uppercase"
+              >
                 ✦ Soluções Profissionais · Beira, Moçambique
               </motion.div>
 
-              <motion.h1 variants={fadeUp} className="mt-5 text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-6xl">
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.15 }}
+                className="mt-5 text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-6xl"
+              >
                 A Empresa Líder<br />em Impressão e<br />
                 <span className="text-brand">Tecnologia</span>
               </motion.h1>
 
-              <motion.p variants={fadeUp} className="mt-5 text-base text-muted-foreground min-h-[1.6rem]">
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="mt-5 text-base text-muted-foreground min-h-[1.6rem]"
+              >
                 <TypewriterText phrases={typewriterPhrases} className="font-semibold text-brand" />
               </motion.p>
 
-              <motion.p variants={fadeUp} className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.25 }}
+                className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground"
+              >
                 Mais de 10 anos a servir estudantes, empresas e famílias na Beira com qualidade, rapidez e preços honestos.
               </motion.p>
 
-              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center gap-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="mt-8 flex flex-wrap items-center gap-4"
+              >
                 <Link
                   to="/servicos"
                   className="inline-flex items-center gap-2 rounded-lg bg-gradient-brand px-7 py-3.5 text-sm font-bold text-brand-foreground shadow-card hover:shadow-elegant hover:-translate-y-0.5 transition-smooth"
@@ -270,71 +292,107 @@ function Index() {
               </motion.div>
 
               {/* Trust badges */}
-              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center gap-5 text-xs text-muted-foreground">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.35 }}
+                className="mt-8 flex flex-wrap items-center gap-5 text-xs text-muted-foreground"
+              >
                 {["✓ Atendimento personalizado", "✓ Entrega no mesmo dia", "✓ Orçamento grátis"].map((b) => (
                   <span key={b} className="text-foreground/70 font-medium">{b}</span>
                 ))}
               </motion.div>
             </motion.div>
 
-            {/* ── Right: Image ── */}
+            {/* ── Right: Images Stack ── */}
             <motion.div
               className="order-1 lg:order-2 relative flex items-center justify-center py-6"
-              initial="hidden" animate="visible" variants={slideRight}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
-              {/* Outer decorative ring */}
-              <div className="absolute h-[420px] w-[420px] rounded-full border-2 border-dashed border-brand/10 animate-[spin_40s_linear_infinite]" />
-              {/* Middle ring */}
-              <div className="absolute h-[360px] w-[360px] rounded-full border border-brand/15" />
-
-              {/* Main image circle */}
+              {/* Main image */}
               <motion.div
-                className="relative z-10 h-[300px] w-[300px] overflow-hidden rounded-full border-4 border-white shadow-elegant sm:h-[360px] sm:w-[360px] md:h-[400px] md:w-[400px]"
-                initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.7, delay: 0.2, ease }}
+                className="relative z-10 w-full max-w-[420px]"
+                animate={{ y: [0, -8, 0] }}
+                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
               >
                 <img
-                  src={technician}
-                  alt="Técnico Giseveral"
-                  className="h-full w-full object-cover object-center"
+                  src="/images/hero-1.jpg"
+                  alt="Técnico Giseveral a trabalhar"
+                  className="w-full h-auto rounded-2xl shadow-elegant object-cover"
                 />
+
+                {/* Secondary image overlapped */}
+                <motion.div
+                  className="absolute -bottom-6 -left-6 w-[45%] z-20"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: 0.6 }}
+                >
+                  <img
+                    src="/images/hero-2.jpg"
+                    alt="Equipa Giseveral"
+                    className="w-full h-auto rounded-xl border-[3px] border-white shadow-elegant object-cover"
+                  />
+                </motion.div>
               </motion.div>
 
               {/* Floating badge — experience */}
               <motion.div
-                className="absolute bottom-4 left-0 md:bottom-10 md:-left-6 z-20 flex items-center gap-2.5 rounded-2xl border border-border bg-card/95 backdrop-blur-sm px-4 py-3 shadow-elegant"
-                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
+                className="absolute bottom-4 right-0 md:bottom-10 md:-right-6 z-30"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+                style={{
+                  background: 'white',
+                  borderRadius: 16,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  gap: 10,
+                  alignItems: 'center'
+                }}
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-gold">
-                  <Award className="h-4 w-4 text-gold-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-gold">
+                  <Award className="h-5 w-5 text-gold-foreground" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-foreground">+10 anos</p>
-                  <p className="text-[10px] text-muted-foreground">de experiência</p>
+                  <p className="text-sm font-bold text-foreground">+10 anos</p>
+                  <p className="text-[11px] text-muted-foreground">de experiência</p>
                 </div>
               </motion.div>
 
               {/* Floating badge — clients */}
               <motion.div
-                className="absolute top-4 right-0 md:top-12 md:-right-6 z-20 flex items-center gap-2.5 rounded-2xl border border-border bg-card/95 backdrop-blur-sm px-4 py-3 shadow-elegant"
-                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.7 }}
+                className="absolute top-4 left-0 md:top-8 md:-left-6 z-30"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.9 }}
+                style={{
+                  background: 'white',
+                  borderRadius: 16,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                  padding: '12px 16px',
+                  display: 'flex',
+                  gap: 10,
+                  alignItems: 'center'
+                }}
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand/10">
-                  <Users className="h-4 w-4 text-brand" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
+                  <Users className="h-5 w-5 text-brand" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-foreground">5 000+</p>
-                  <p className="text-[10px] text-muted-foreground">clientes</p>
+                  <p className="text-sm font-bold text-foreground">5 000+</p>
+                  <p className="text-[11px] text-muted-foreground">clientes</p>
                 </div>
               </motion.div>
 
               {/* Accent dots */}
-              <div className="absolute top-10 left-8 h-4 w-4 rounded-full bg-gold" />
-              <div className="absolute top-16 left-6 h-2.5 w-2.5 rounded-full bg-brand/40" />
-              <div className="absolute bottom-16 right-6 h-3 w-3 rounded-full bg-brand" />
-              <div className="absolute bottom-8 right-10 h-2 w-2 rounded-full bg-gold/60" />
+              <div className="absolute top-10 right-8 h-4 w-4 rounded-full bg-gold" />
+              <div className="absolute top-16 right-6 h-2.5 w-2.5 rounded-full bg-brand/40" />
+              <div className="absolute bottom-20 left-8 h-3 w-3 rounded-full bg-brand" />
+              <div className="absolute bottom-24 left-12 h-2 w-2 rounded-full bg-gold/60" />
             </motion.div>
           </div>
         </div>
@@ -469,9 +527,9 @@ function Index() {
 
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { img: printing, title: "Reprografia",  text: "Impressão a cores e P&B, fotocópias, encadernação e plastificação com materiais de qualidade.", slug: "reprografia", badge: "Mais popular" },
-              { img: repair,   title: "Informática",  text: "Formatação, instalação de Windows, remoção de vírus e diagnóstico rápido de hardware.", slug: "informatica", badge: null },
-              { img: network,  title: "Redes",        text: "Instalação Wi-Fi, redes LAN, routers e cabeamento estruturado para residências e empresas.", slug: "redes", badge: null },
+              { img: "/images/hero-2.jpg", title: "Reprografia",  text: "Impressão a cores e P&B, fotocópias, encadernação e plastificação com materiais de qualidade.", slug: "reprografia", badge: "Mais popular", filter: "" },
+              { img: "/images/hero-1.jpg", title: "Informática",  text: "Formatação, instalação de Windows, remoção de vírus e diagnóstico rápido de hardware.", slug: "informatica", badge: null, filter: "" },
+              { img: "/images/hero-1.jpg", title: "Redes",        text: "Instalação Wi-Fi, redes LAN, routers e cabeamento estruturado para residências e empresas.", slug: "redes", badge: null, filter: "brightness(0.9) contrast(1.1) hue-rotate(10deg)" },
             ].map((s, i) => (
               <motion.div key={s.title} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
               <Link
@@ -480,7 +538,13 @@ function Index() {
                 className="group overflow-hidden rounded-2xl bg-card shadow-card transition-smooth hover:shadow-elegant block"
               >
                 <div className="relative aspect-video overflow-hidden">
-                  <img src={s.img} alt={s.title} loading="lazy" className="h-full w-full object-cover transition-smooth duration-500 group-hover:scale-105" />
+                  <img
+                    src={s.img}
+                    alt={s.title}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-smooth duration-500 group-hover:scale-105"
+                    style={{ filter: s.filter }}
+                  />
                   {s.badge && (
                     <span className="absolute top-3 left-3 rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-bold text-gold-foreground">
                       {s.badge}
