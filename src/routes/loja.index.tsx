@@ -90,6 +90,16 @@ function LojaIndex() {
       unit: p.unit,
       brand: p.brand ?? undefined,
       image: p.image_url ?? undefined,
+      weightKg: p.weight_kg,
+      lengthCm: p.length_cm,
+      widthCm: p.width_cm,
+      heightCm: p.height_cm,
+      shippingType: p.shipping_type as "local" | "national" | "international" | "digital",
+      shippingOrigin: p.shipping_origin,
+      freeShipping: p.free_shipping,
+      expressAvailable: p.express_available,
+      shippingFee: p.shipping_fee,
+      internationalShippingFee: p.international_shipping_fee,
     });
     toast.success(`"${p.name}" adicionado ao carrinho`);
   };

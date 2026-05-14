@@ -27,6 +27,16 @@ type Product = {
   image_url: string | null;
   featured: boolean;
   active: boolean;
+  weight_kg: number | null;
+  length_cm: number | null;
+  width_cm: number | null;
+  height_cm: number | null;
+  shipping_type: "local" | "national" | "international" | "digital";
+  shipping_origin: string;
+  free_shipping: boolean;
+  express_available: boolean;
+  shipping_fee: number | null;
+  international_shipping_fee: number | null;
   category_id: string | null;
   specs: Record<string, unknown>;
   product_categories: { name: string; type: string } | null;
@@ -44,12 +54,26 @@ type ProductForm = {
   image_url: string;
   featured: boolean;
   active: boolean;
+  weight_kg: string;
+  length_cm: string;
+  width_cm: string;
+  height_cm: string;
+  shipping_type: "local" | "national" | "international" | "digital";
+  shipping_origin: string;
+  free_shipping: boolean;
+  express_available: boolean;
+  shipping_fee: string;
+  international_shipping_fee: string;
 };
 
 const emptyForm: ProductForm = {
   name: "", category_id: "", description: "", price: "",
   compare_price: "", stock: "0", unit: "un", brand: "",
   image_url: "", featured: false, active: true,
+  weight_kg: "", length_cm: "", width_cm: "", height_cm: "",
+  shipping_type: "local", shipping_origin: "Beira, Mocambique",
+  free_shipping: false, express_available: true,
+  shipping_fee: "", international_shipping_fee: "",
 };
 
 function discount(price: number, comparePrice: number | null) {
@@ -103,6 +127,16 @@ function BalcaoProdutos() {
       image_url: p.image_url ?? "",
       featured: p.featured,
       active: p.active,
+      weight_kg: p.weight_kg ? String(p.weight_kg) : "",
+      length_cm: p.length_cm ? String(p.length_cm) : "",
+      width_cm: p.width_cm ? String(p.width_cm) : "",
+      height_cm: p.height_cm ? String(p.height_cm) : "",
+      shipping_type: p.shipping_type ?? "local",
+      shipping_origin: p.shipping_origin ?? "Beira, Mocambique",
+      free_shipping: p.free_shipping ?? false,
+      express_available: p.express_available ?? true,
+      shipping_fee: p.shipping_fee ? String(p.shipping_fee) : "",
+      international_shipping_fee: p.international_shipping_fee ? String(p.international_shipping_fee) : "",
     });
     setSelected(p);
     setModal("edit");
@@ -139,6 +173,16 @@ function BalcaoProdutos() {
       image_url: form.image_url.trim() || null,
       featured: form.featured,
       active: form.active,
+      weight_kg: form.weight_kg ? parseFloat(form.weight_kg) : null,
+      length_cm: form.length_cm ? parseInt(form.length_cm) : null,
+      width_cm: form.width_cm ? parseInt(form.width_cm) : null,
+      height_cm: form.height_cm ? parseInt(form.height_cm) : null,
+      shipping_type: form.shipping_type,
+      shipping_origin: form.shipping_origin.trim() || "Beira, Mocambique",
+      free_shipping: form.free_shipping,
+      express_available: form.express_available,
+      shipping_fee: form.shipping_fee ? parseFloat(form.shipping_fee) : null,
+      international_shipping_fee: form.international_shipping_fee ? parseFloat(form.international_shipping_fee) : null,
     };
 
     if (modal === "add") {
@@ -494,6 +538,89 @@ function BalcaoProdutos() {
                 bucket="images"
                 folder="products"
               />
+
+              <div className="rounded-xl border border-border bg-gradient-premium p-4 space-y-4">
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Frete inteligente por produto</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Define peso, dimensoes, origem e tipo logistico para checkout estilo marketplace.</p>
+                </div>
+                <div className="grid sm:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Peso kg</label>
+                    <input type="number" min="0" step="0.01" value={form.weight_kg}
+                      onChange={(e) => fieldChange("weight_kg", e.target.value)}
+                      className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Comp. cm</label>
+                    <input type="number" min="0" value={form.length_cm}
+                      onChange={(e) => fieldChange("length_cm", e.target.value)}
+                      className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Larg. cm</label>
+                    <input type="number" min="0" value={form.width_cm}
+                      onChange={(e) => fieldChange("width_cm", e.target.value)}
+                      className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Alt. cm</label>
+                    <input type="number" min="0" value={form.height_cm}
+                      onChange={(e) => fieldChange("height_cm", e.target.value)}
+                      className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Tipo de frete</label>
+                    <select value={form.shipping_type}
+                      onChange={(e) => fieldChange("shipping_type", e.target.value as ProductForm["shipping_type"])}
+                      className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30">
+                      <option value="local">Local</option>
+                      <option value="national">Nacional</option>
+                      <option value="international">Internacional</option>
+                      <option value="digital">Digital</option>
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Origem</label>
+                    <input value={form.shipping_origin}
+                      onChange={(e) => fieldChange("shipping_origin", e.target.value)}
+                      placeholder="Beira, Mocambique"
+                      className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                  </div>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Frete local/nacional fixo</label>
+                    <input type="number" min="0" step="0.01" value={form.shipping_fee}
+                      onChange={(e) => fieldChange("shipping_fee", e.target.value)}
+                      placeholder="Auto se vazio"
+                      className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Frete internacional fixo</label>
+                    <input type="number" min="0" step="0.01" value={form.international_shipping_fee}
+                      onChange={(e) => fieldChange("international_shipping_fee", e.target.value)}
+                      placeholder="Auto se vazio"
+                      className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={form.free_shipping}
+                      onChange={(e) => fieldChange("free_shipping", e.target.checked)}
+                      className="h-4 w-4 accent-emerald-500" />
+                    <span className="text-sm font-medium text-foreground">Frete gratis</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={form.express_available}
+                      onChange={(e) => fieldChange("express_available", e.target.checked)}
+                      className="h-4 w-4 accent-blue-500" />
+                    <span className="text-sm font-medium text-foreground">Express disponivel</span>
+                  </label>
+                </div>
+              </div>
 
               {/* Row 6: Toggles */}
               <div className="flex flex-wrap gap-6 pt-2 border-t border-border">

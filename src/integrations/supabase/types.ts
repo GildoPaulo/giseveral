@@ -215,14 +215,23 @@ export type Database = {
           created_at: string
           description: string | null
           featured: boolean
+          free_shipping: boolean
+          height_cm: number | null
           id: string
           image_url: string | null
+          international_shipping_fee: number | null
+          length_cm: number | null
           name: string
           price: number
+          shipping_fee: number | null
+          shipping_origin: string
+          shipping_type: string
           specs: Json
           stock: number
           unit: string
           updated_at: string
+          weight_kg: number | null
+          width_cm: number | null
         }
         Insert: {
           active?: boolean
@@ -232,14 +241,23 @@ export type Database = {
           created_at?: string
           description?: string | null
           featured?: boolean
+          free_shipping?: boolean
+          height_cm?: number | null
           id?: string
           image_url?: string | null
+          international_shipping_fee?: number | null
+          length_cm?: number | null
           name: string
           price: number
+          shipping_fee?: number | null
+          shipping_origin?: string
+          shipping_type?: string
           specs?: Json
           stock?: number
           unit?: string
           updated_at?: string
+          weight_kg?: number | null
+          width_cm?: number | null
         }
         Update: {
           active?: boolean
@@ -249,14 +267,23 @@ export type Database = {
           created_at?: string
           description?: string | null
           featured?: boolean
+          free_shipping?: boolean
+          height_cm?: number | null
           id?: string
           image_url?: string | null
+          international_shipping_fee?: number | null
+          length_cm?: number | null
           name?: string
           price?: number
+          shipping_fee?: number | null
+          shipping_origin?: string
+          shipping_type?: string
           specs?: Json
           stock?: number
           unit?: string
           updated_at?: string
+          weight_kg?: number | null
+          width_cm?: number | null
         }
         Relationships: [
           {

@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 import { Link } from "@tanstack/react-router";
+import { calculateCartShipping } from "@/services/shipping";
 
 export const Route = createFileRoute("/loja/checkout")({
   head: () => ({
@@ -114,6 +115,7 @@ function Checkout() {
   const customerName = watch("customer_name");
   const customerPhone = watch("customer_phone");
   const neighborhood = watch("neighborhood");
+  const address = watch("address");
 
   useEffect(() => {
     supabase.from("delivery_zones").select("*").eq("active", true).then(({ data }) => setZones(data ?? []));
@@ -135,7 +137,9 @@ function Checkout() {
     setSelectedZone(zones.find((z) => z.id === zoneId) ?? null);
   }, [zoneId, zones]);
 
-  const deliveryFee = deliveryType === "delivery" ? (selectedZone?.fee ?? 0) : 0;
+  const shippingDestination = [selectedZone?.name, neighborhood, address].filter(Boolean).join(", ") || "Beira";
+  const shippingSummary = calculateCartShipping(items, shippingDestination, deliveryType);
+  const deliveryFee = deliveryType === "delivery" ? shippingSummary.total : 0;
   const total = subtotal + deliveryFee;
 
   const serviceItems = items.filter((i) => i.type === "servico");
@@ -216,9 +220,9 @@ function Checkout() {
           neighborhood: values.neighborhood,
           address: values.address || null,
           reference_point: values.reference_point || null,
-          delivery_type: values.delivery_type,
-          delivery_zone_id: values.delivery_zone_id || null,
-          delivery_fee: deliveryFee,
+        delivery_type: values.delivery_type,
+        delivery_zone_id: values.delivery_zone_id || null,
+        delivery_fee: deliveryFee,
           subtotal,
           total,
           payment_method: values.payment_method,
@@ -238,6 +242,19 @@ function Checkout() {
         quantity: item.quantity,
         unit_price: item.price,
         subtotal: item.price * item.quantity,
+        specs: {
+          shipping: shippingSummary.quotes.find((quote) => quote.itemId === item.id) ?? null,
+          logistics: {
+            weightKg: item.weightKg ?? null,
+            dimensions: {
+              lengthCm: item.lengthCm ?? null,
+              widthCm: item.widthCm ?? null,
+              heightCm: item.heightCm ?? null,
+            },
+            shippingType: item.shippingType ?? null,
+            shippingOrigin: item.shippingOrigin ?? null,
+          },
+        },
         file_url: fileUrls[item.id] ?? null,
       }));
       const { error: itemsErr } = await supabase.from("order_items").insert(orderItems);
@@ -382,7 +399,7 @@ function Checkout() {
               <div className="grid sm:grid-cols-2 gap-3 mb-4">
                 {[
                   { value: "pickup", label: "Levantar na loja", icon: Store, desc: "Gratuito · Beira, Esturro • Rua Alfredo Lawley" },
-                  { value: "delivery", label: "Entrega ao domicílio", icon: Truck, desc: "Taxa calculada por zona" },
+                  { value: "delivery", label: "Entrega ao domicílio", icon: Truck, desc: "Frete calculado por produto" },
                 ].map(({ value, label, icon: Icon, desc }) => (
                   <label key={value} className={`flex items-start gap-3 rounded-xl border p-4 cursor-pointer transition-smooth ${deliveryType === value ? "border-gold bg-gold/5 ring-1 ring-gold/30" : "border-border hover:border-gold/40"}`}>
                     <input type="radio" value={value} {...register("delivery_type")} className="mt-0.5" />
@@ -497,6 +514,25 @@ function Checkout() {
                     <span className="text-muted-foreground">Entrega</span>
                     <span>{deliveryFee > 0 ? `${deliveryFee.toLocaleString("pt-MZ")} MZN` : <span className="text-green-600 font-medium">Grátis</span>}</span>
                   </div>
+                  {deliveryType === "delivery" && (
+                    <div className="rounded-xl border border-border bg-muted/30 p-3 space-y-2">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Frete por produto</p>
+                      {shippingSummary.quotes.map((quote) => (
+                        <div key={quote.itemId} className="flex items-start justify-between gap-3 text-xs">
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-foreground">{quote.itemName}</p>
+                            <p className="text-muted-foreground">{quote.carrier} · {quote.eta}</p>
+                          </div>
+                          <span className="flex-shrink-0 font-semibold text-foreground">
+                            {quote.cost > 0 ? `${quote.cost.toLocaleString("pt-MZ")} MZN` : "Gratis"}
+                          </span>
+                        </div>
+                      ))}
+                      {shippingSummary.hasDigital && (
+                        <p className="text-[10px] text-emerald-600">Produtos digitais ficam disponiveis sem frete.</p>
+                      )}
+                    </div>
+                  )}
                   <div className="flex justify-between font-bold text-base border-t border-border pt-3">
                     <span>Total</span>
                     <span className="text-brand">{total.toLocaleString("pt-MZ", { minimumFractionDigits: 2 })} MZN</span>

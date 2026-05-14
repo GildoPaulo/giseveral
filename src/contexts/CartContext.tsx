@@ -10,6 +10,16 @@ export interface CartItem {
   unit?: string;
   image?: string;
   brand?: string;
+  weightKg?: number | null;
+  lengthCm?: number | null;
+  widthCm?: number | null;
+  heightCm?: number | null;
+  shippingType?: "local" | "national" | "international" | "digital" | null;
+  shippingOrigin?: string | null;
+  freeShipping?: boolean | null;
+  expressAvailable?: boolean | null;
+  shippingFee?: number | null;
+  internationalShippingFee?: number | null;
   serviceDetails?: {
     category: string;
     description: string;

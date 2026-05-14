@@ -162,6 +162,16 @@ function ProdutoPage() {
       unit: product.unit,
       brand: product.brand ?? undefined,
       image: product.image_url ?? undefined,
+      weightKg: product.weight_kg,
+      lengthCm: product.length_cm,
+      widthCm: product.width_cm,
+      heightCm: product.height_cm,
+      shippingType: product.shipping_type as "local" | "national" | "international" | "digital",
+      shippingOrigin: product.shipping_origin,
+      freeShipping: product.free_shipping,
+      expressAvailable: product.express_available,
+      shippingFee: product.shipping_fee,
+      internationalShippingFee: product.international_shipping_fee,
     });
     toast.success(`"${product.name}" adicionado ao carrinho`);
   }
