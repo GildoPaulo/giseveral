@@ -8,6 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { triggerAutoNotify } from "@/services/autoNotify";
+import { callGemini } from "@/services/gemini";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
@@ -16,22 +17,8 @@ export const Route = createFileRoute("/balcao/blog")({
 });
 
 /* ── Gemini ─────────────────────────────────────────────── */
-const GEMINI_KEY = (typeof import.meta !== "undefined" ? (import.meta as { env?: Record<string, string> }).env?.VITE_GEMINI_KEY : undefined) ?? "";
-const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
-
 async function geminiSuggest(prompt: string): Promise<string> {
-  if (!GEMINI_KEY) throw new Error("VITE_GEMINI_KEY não configurada");
-  const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.7, maxOutputTokens: 500 },
-    }),
-  });
-  if (!res.ok) throw new Error(`Gemini error ${res.status}`);
-  const data = await res.json();
-  return data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  return callGemini("chat", prompt);
 }
 
 /* ── SEO scoring ─────────────────────────────────────────── */
@@ -211,19 +198,10 @@ Responde APENAS com JSON válido neste formato exacto (sem markdown, sem explica
 
       {open && (
         <div className="p-5">
-          {!GEMINI_KEY && (
-            <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/30 p-4 text-sm">
-              <p className="font-semibold text-amber-700 dark:text-amber-400">Configura a IA Gemini</p>
-              <p className="mt-1 text-amber-600 dark:text-amber-500 text-xs">
-                Adiciona <code className="font-mono bg-amber-100 dark:bg-amber-900/50 px-1 rounded">VITE_GEMINI_KEY</code> nas variáveis de ambiente do Cloudflare Pages (Google AI Studio → API keys, gratuito).
-              </p>
-            </div>
-          )}
-
           <button
             type="button"
             onClick={analyse}
-            disabled={loading || !GEMINI_KEY}
+            disabled={loading}
             className="flex items-center gap-2 rounded-lg bg-gradient-gold px-5 py-2.5 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth disabled:opacity-50 mb-4"
           >
             {loading ? <><Loader2 className="h-4 w-4 animate-spin" /> A analisar...</> : <><Sparkles className="h-4 w-4" /> Analisar com Gemini</>}
