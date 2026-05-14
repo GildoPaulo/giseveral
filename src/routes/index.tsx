@@ -15,7 +15,7 @@ import { HUB_NEWS, type NewsItem } from "@/data/hub-bolsas";
 import {
   Printer, Laptop, Network, BookOpen, ArrowRight, CheckCircle2, Phone,
   Clock, Zap, ShieldCheck, Award, Star, Users, TrendingUp,
-  GraduationCap, FileText, Crown, Calendar,
+  GraduationCap, FileText, Crown, Calendar, ShoppingBag, Sparkles,
 } from "lucide-react";
 import printing from "@/assets/printing.jpg";
 import repair from "@/assets/computer-repair.jpg";
@@ -80,6 +80,37 @@ const whyUs = [
   { icon: ShieldCheck, title: "Garantia de qualidade",desc: "Trabalhamos com equipamentos modernos e materiais de qualidade comprovada." },
   { icon: Award,       title: "Equipa experiente",   desc: "Mais de 10 anos a servir estudantes, empresas e famílias na Beira." },
   { icon: Star,        title: "Preços transparentes", desc: "Sem cobranças ocultas. O preço que vê é o que paga." },
+];
+
+const platformPillars = [
+  {
+    icon: ShoppingBag,
+    title: "Marketplace integrado",
+    desc: "Produtos, servicos, checkout e entregas numa experiencia unica para clientes da Beira.",
+    to: "/loja" as const,
+    metric: "Loja + servicos",
+  },
+  {
+    icon: FileText,
+    title: "CV Builder premium",
+    desc: "Templates modernos, exportacao PDF, IA para textos e preview profissional em tempo real.",
+    to: "/hub/cv" as const,
+    metric: "Canva para CVs",
+  },
+  {
+    icon: GraduationCap,
+    title: "Bolsas inteligentes",
+    desc: "Bolsas, documentos, noticias academicas e candidatura orientada para estudantes.",
+    to: "/hub/bolsas" as const,
+    metric: "Hub academico",
+  },
+  {
+    icon: Sparkles,
+    title: "Automacao com IA",
+    desc: "Geracao de noticias, cartas, sugestoes de CV e extracao de dados de editais.",
+    to: "/hub" as const,
+    metric: "AI ready",
+  },
 ];
 
 function Index() {
@@ -235,6 +266,54 @@ function Index() {
                 icon={s.icon}
               />
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden border-b border-border bg-gradient-premium py-16 md:py-20">
+        <div className="absolute inset-0 premium-grid-bg opacity-70" />
+        <div className="container relative mx-auto max-w-6xl px-4">
+          <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+              <div className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-background/70 px-3 py-1 text-xs font-bold uppercase tracking-widest text-brand backdrop-blur">
+                <Sparkles className="h-3.5 w-3.5" /> Plataforma Giseveral
+              </div>
+              <h2 className="mt-5 text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
+                Um ecossistema digital, nao apenas um site.
+              </h2>
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                Loja, servicos, hub academico, CVs, bolsas e IA trabalham juntos para criar uma experiencia moderna, rapida e preparada para crescer.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                {["Mobile-first", "Dark mode", "IA integrada", "Checkout fluido"].map((item) => (
+                  <span key={item} className="rounded-full border border-border bg-card/80 px-3 py-1 text-xs font-semibold text-foreground shadow-card">
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ visible: { transition: { staggerChildren: 0.08 } } }} className="grid gap-4 sm:grid-cols-2">
+              {platformPillars.map((item) => (
+                <motion.div key={item.title} variants={fadeUp}>
+                  <Link to={item.to} className="premium-card group block h-full rounded-2xl p-5">
+                    <div className="mb-5 flex items-center justify-between gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand/10 text-brand transition-smooth group-hover:bg-brand group-hover:text-brand-foreground">
+                        <item.icon className="h-5 w-5" />
+                      </div>
+                      <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-600">
+                        {item.metric}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-foreground">{item.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.desc}</p>
+                    <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-brand">
+                      Abrir modulo <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </section>

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import {
   Menu, X, User, LogIn, ShoppingCart, Bell, Sun, Moon,
   Package, Wrench, Truck, CheckCircle2, Tag, AlertTriangle,
-  BellOff, Trash2, Info, Search, BellRing,
+  BellOff, Trash2, Info, Search, BellRing, Home, Store, Compass,
 } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { GlobalSearch } from "@/components/GlobalSearch";
@@ -28,6 +28,13 @@ const navItems = [
   { to: "/hub", label: "Hub" },
   { to: "/precos", label: "Preços" },
   { to: "/contactos", label: "Contactos" },
+] as const;
+
+const mobileQuickNav = [
+  { to: "/", label: "Home", icon: Home },
+  { to: "/loja", label: "Loja", icon: Store },
+  { to: "/hub", label: "Hub", icon: Compass },
+  { to: "/conta", label: "Conta", icon: User },
 ] as const;
 
 // ── Notification meta (icon + colour per type) ────────────────────────────────
@@ -94,28 +101,32 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-lg">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    <>
+    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/75 backdrop-blur-xl">
+      <div className="container mx-auto flex h-[4.25rem] items-center justify-between px-4">
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-          <img src={logo} alt="Giseveral e Services" className="h-10 w-10 rounded-md object-cover" />
+          <span className="relative">
+            <img src={logo} alt="Giseveral e Services" className="h-10 w-10 rounded-lg object-cover ring-1 ring-border shadow-card" />
+            <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-background bg-emerald-500" />
+          </span>
           <div className="flex flex-col leading-tight">
-            <span className="text-sm font-bold text-brand">GISEVERAL</span>
+            <span className="text-sm font-extrabold text-brand tracking-tight">GISEVERAL</span>
             <span className="text-[10px] tracking-widest text-gold">E SERVICES</span>
           </div>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-0.5">
+        <nav className="hidden lg:flex items-center gap-0.5 rounded-full border border-border/70 bg-card/70 px-1.5 py-1 shadow-card backdrop-blur-xl">
           {navItems.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               activeOptions={{ exact: item.to === "/" }}
-              activeProps={{ className: "text-brand border-b-2 border-gold" }}
-              inactiveProps={{ className: "text-foreground/65 hover:text-brand border-b-2 border-transparent" }}
-              className="px-3 py-[1.1rem] text-sm font-medium transition-smooth"
+              activeProps={{ className: "bg-brand text-brand-foreground shadow-card" }}
+              inactiveProps={{ className: "text-foreground/65 hover:text-brand hover:bg-accent" }}
+              className="rounded-full px-3.5 py-2 text-sm font-semibold transition-smooth"
             >
               {item.label}
             </Link>
@@ -127,7 +138,7 @@ export function SiteHeader() {
           {/* Search — icon only; Ctrl+K keyboard shortcut still works */}
           <button
             onClick={() => setSearchOpen(true)}
-            className="rounded-md p-2 text-foreground/60 hover:text-brand hover:bg-accent transition-smooth"
+            className="rounded-full border border-border bg-card p-2 text-foreground/60 shadow-card hover:text-brand hover:bg-accent transition-smooth"
             aria-label="Pesquisar (Ctrl+K)"
           >
             <Search className="h-4 w-4" />
@@ -136,7 +147,7 @@ export function SiteHeader() {
           {/* Cart */}
           <Link
             to="/loja/carrinho"
-            className="relative inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-smooth"
+            className="relative inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground shadow-card hover:bg-accent transition-smooth"
           >
             <ShoppingCart className="h-4 w-4" />
             {totalItems > 0 && (
@@ -151,7 +162,7 @@ export function SiteHeader() {
             <div className="relative">
               <button
                 onClick={() => setBellOpen((v) => !v)}
-                className="relative rounded-md border border-border p-2 text-foreground hover:bg-accent transition-smooth"
+                className="relative rounded-full border border-border bg-card p-2 text-foreground shadow-card hover:bg-accent transition-smooth"
                 aria-label="Notificações"
                 aria-expanded={bellOpen}
               >
@@ -291,7 +302,7 @@ export function SiteHeader() {
           {/* Theme toggle */}
           <button
             onClick={toggle}
-            className="rounded-md border border-border p-2 text-foreground hover:bg-accent transition-smooth"
+            className="rounded-full border border-border bg-card p-2 text-foreground shadow-card hover:bg-accent transition-smooth"
             aria-label={theme === "dark" ? "Modo claro" : "Modo escuro"}
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -301,14 +312,14 @@ export function SiteHeader() {
           {user ? (
             <Link
               to="/conta"
-              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-smooth"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground shadow-card hover:bg-accent transition-smooth"
             >
               <User className="h-4 w-4" /> A Minha Conta
             </Link>
           ) : (
             <Link
               to="/login"
-              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-smooth"
+              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground shadow-card hover:bg-accent transition-smooth"
             >
               <LogIn className="h-4 w-4" /> Entrar
             </Link>
@@ -316,7 +327,7 @@ export function SiteHeader() {
 
           <Link
             to="/orcamento"
-            className="inline-flex items-center justify-center rounded-md bg-gradient-gold px-4 py-2 text-sm font-semibold text-gold-foreground shadow-card transition-smooth hover:shadow-glow"
+            className="inline-flex items-center justify-center rounded-full bg-gradient-gold px-4 py-2 text-sm font-bold text-gold-foreground shadow-card transition-smooth hover:shadow-glow"
           >
             Pedir Orçamento
           </Link>
@@ -420,6 +431,24 @@ export function SiteHeader() {
         </nav>
       )}
     </header>
+
+    <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 gap-1 rounded-2xl border border-border/70 bg-background/88 p-1.5 shadow-elegant backdrop-blur-xl lg:hidden">
+      {mobileQuickNav.map(({ to, label, icon: Icon }) => (
+        <Link
+          key={to}
+          to={to}
+          activeOptions={{ exact: to === "/" }}
+          activeProps={{ className: "bg-brand text-brand-foreground shadow-card" }}
+          inactiveProps={{ className: "text-muted-foreground hover:text-brand hover:bg-accent" }}
+          className="flex min-h-12 flex-col items-center justify-center rounded-xl text-[10px] font-bold transition-smooth"
+          onClick={() => setOpen(false)}
+        >
+          <Icon className="mb-0.5 h-4 w-4" />
+          {label}
+        </Link>
+      ))}
+    </nav>
+    </>
   );
 }
 

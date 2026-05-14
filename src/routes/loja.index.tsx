@@ -5,6 +5,7 @@ import {
   BookOpen, Pen, FolderOpen, GraduationCap, FileText,
   Printer, Laptop, Wifi, Palette, ArrowRight, ShoppingBag,
   Star, Truck, Shield, Clock, ShoppingCart, Zap, Package,
+  Heart, GitCompareArrows, BadgePercent, Search,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
@@ -115,6 +116,13 @@ function LojaIndex() {
     { icon: Star,   text: "Clientes satisfeitos",  sub: "Avaliação 4.9/5" },
   ];
 
+  const marketplaceUx = [
+    { icon: BadgePercent, label: "Flash sales", value: "Promocoes activas" },
+    { icon: Heart, label: "Wishlist", value: "Guarde favoritos" },
+    { icon: GitCompareArrows, label: "Comparar", value: "Escolha melhor" },
+    { icon: Search, label: "Pesquisa rapida", value: "Filtros por categoria" },
+  ];
+
   return (
     <Layout>
 
@@ -197,6 +205,24 @@ function LojaIndex() {
       </section>
 
       {/* ── CATEGORIAS PAPELARIA ──────────────────────────────────────────────── */}
+      <section className="border-b border-border bg-gradient-premium">
+        <div className="container mx-auto max-w-6xl px-4 py-5">
+          <div className="grid gap-3 md:grid-cols-4">
+            {marketplaceUx.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="glass-panel flex items-center gap-3 rounded-2xl px-4 py-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10 text-brand">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold uppercase tracking-wide text-foreground">{label}</p>
+                  <p className="text-[11px] text-muted-foreground">{value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="container mx-auto px-4 py-14 max-w-6xl">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
           <motion.div variants={fadeUp} className="flex items-center justify-between mb-8">
@@ -283,6 +309,19 @@ function LojaIndex() {
                           <div className="absolute inset-0 bg-background/70 grid place-items-center">
                             <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">Esgotado</span>
                           </div>
+                        )}
+                        <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 transition-smooth group-hover:opacity-100">
+                          <span className="grid h-9 w-9 place-items-center rounded-full bg-background/90 text-foreground shadow-card backdrop-blur" title="Guardar na wishlist">
+                            <Heart className="h-4 w-4" />
+                          </span>
+                          <span className="grid h-9 w-9 place-items-center rounded-full bg-background/90 text-foreground shadow-card backdrop-blur" title="Comparar produto">
+                            <GitCompareArrows className="h-4 w-4" />
+                          </span>
+                        </div>
+                        {p.stock > 0 && (
+                          <span className="absolute left-3 top-3 rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-card">
+                            Entrega rapida
+                          </span>
                         )}
                       </button>
 
