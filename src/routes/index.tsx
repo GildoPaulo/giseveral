@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { Lightbox } from "@/components/Lightbox";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { TypewriterText } from "@/components/TypewriterText";
 import { PromoBanner } from "@/components/promos/PromoBanner";
 import { PromoSlider } from "@/components/promos/PromoSlider";
