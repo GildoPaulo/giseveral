@@ -4,16 +4,15 @@ import { WhatsAppFab } from "@/components/WhatsAppFab";
 import {
   Award, Zap, ShieldCheck, Briefcase, Eye, Target,
   Printer, Laptop, Network, BookOpen, Palette, CheckCircle2, Phone,
-  Users, Clock, Map, TrendingUp,
+  Users, Clock, Map, TrendingUp, UserCircle,
 } from "lucide-react";
+import { generateSEOMeta, generateOrganizationSchema, generatePersonSchema, SEO_PRESETS } from "@/lib/seo";
 
 export const Route = createFileRoute("/sobre")({
-  head: () => ({
-    meta: [
-      { title: "Sobre Nós — Giseveral e Services" },
-      { name: "description", content: "Empresa moderna na Beira: reprografia, papelaria, assistência informática, redes e serviços gráficos." },
-    ],
-  }),
+  head: () => {
+    const seo = generateSEOMeta(SEO_PRESETS.sobre());
+    return seo;
+  },
   component: SobrePage,
 });
 
@@ -42,8 +41,22 @@ const stats = [
 ];
 
 function SobrePage() {
+  // Structured Data para SEO
+  const organizationSchema = generateOrganizationSchema();
+  const personSchema = generatePersonSchema();
+
   return (
     <Layout>
+      {/* JSON-LD Structured Data para Google */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
+
       <PageHero title="Sobre a Giseveral e Services" subtitle="Quem somos, o que fazemos e o que nos move." />
 
       {/* QUEM SOMOS */}
@@ -152,6 +165,69 @@ function SobrePage() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CEO / FUNDADOR */}
+      <section className="container mx-auto px-4 py-16">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <span className="inline-block rounded-full bg-gold/10 px-3 py-1 text-xs font-semibold tracking-wider text-gold uppercase">
+              Liderança
+            </span>
+            <h2 className="mt-4 font-bold text-brand">Fundador & CEO</h2>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-card p-8 md:p-12 shadow-elegant">
+            <div className="grid md:grid-cols-[auto,1fr] gap-8 items-start">
+              {/* Foto do CEO - usar quando disponível */}
+              <div className="flex justify-center md:justify-start">
+                <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-gradient-brand text-brand-foreground shadow-card">
+                  <UserCircle className="h-20 w-20" />
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-2xl font-bold text-brand">Gildo Paulo Correia</h3>
+                <p className="text-gold font-semibold mt-1">CEO & Founder</p>
+
+                <p className="mt-4 text-muted-foreground leading-relaxed">
+                  Empreendedor moçambicano com paixão por tecnologia e inovação. Fundou a Giseveral e Services
+                  com a visão de democratizar o acesso a serviços de qualidade em reprografia, tecnologia e
+                  educação na cidade da Beira.
+                </p>
+
+                <p className="mt-3 text-muted-foreground leading-relaxed">
+                  Com mais de uma década de experiência no setor, Gildo lidera uma equipa dedicada a oferecer
+                  soluções completas que combinam eficiência, qualidade e atendimento personalizado. A sua
+                  missão é transformar a Giseveral numa referência nacional em serviços digitais e educacionais.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-4 py-2 text-sm">
+                    <Briefcase className="h-4 w-4 text-brand" />
+                    <span className="font-medium">10+ anos de experiência</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-4 py-2 text-sm">
+                    <Target className="h-4 w-4 text-brand" />
+                    <span className="font-medium">Visão: Referência nacional</span>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-4 py-2 text-sm">
+                    <TrendingUp className="h-4 w-4 text-brand" />
+                    <span className="font-medium">Inovação & Crescimento</span>
+                  </div>
+                </div>
+
+                {/* Links - adicionar quando disponíveis
+                <div className="mt-6 flex gap-3">
+                  <a href="https://linkedin.com/in/gildopaulocorreia" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-brand transition-colors">
+                    LinkedIn
+                  </a>
+                </div>
+                */}
+              </div>
+            </div>
           </div>
         </div>
       </section>

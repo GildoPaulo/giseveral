@@ -19,4 +19,4 @@ User-agent: SemrushBot
 Crawl-delay: 10
 
 # Sitemap
-Sitemap: https://giseveral.com/sitemap.xml
+Sitemap: https://giseveral.vercel.app/sitemap.xml

@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   Plus, Pencil, Trash2, Star, Tag, Search,
-  X, Loader2, Package, ImageOff, ToggleLeft, ToggleRight, ChevronDown,
+  X, Loader2, Package, ImageOff, ToggleLeft, ToggleRight, ChevronDown, Truck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -541,46 +541,58 @@ function BalcaoProdutos() {
 
               <div className="rounded-xl border border-border bg-gradient-premium p-4 space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">Frete inteligente por produto</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">Define peso, dimensoes, origem e tipo logistico para checkout estilo marketplace.</p>
+                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <Truck className="h-4 w-4 text-brand" />
+                    Frete inteligente por produto
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Configure peso, dimensões, origem e tipo logístico. O sistema calcula automaticamente o frete no checkout baseado no destino.
+                  </p>
                 </div>
                 <div className="grid sm:grid-cols-4 gap-3">
                   <div>
                     <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Peso kg</label>
                     <input type="number" min="0" step="0.01" value={form.weight_kg}
                       onChange={(e) => fieldChange("weight_kg", e.target.value)}
+                      placeholder="Ex: 0.5"
                       className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Para cálculo de frete</p>
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Comp. cm</label>
                     <input type="number" min="0" value={form.length_cm}
                       onChange={(e) => fieldChange("length_cm", e.target.value)}
+                      placeholder="Ex: 30"
                       className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Larg. cm</label>
                     <input type="number" min="0" value={form.width_cm}
                       onChange={(e) => fieldChange("width_cm", e.target.value)}
+                      placeholder="Ex: 20"
                       className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
                   </div>
                   <div>
                     <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Alt. cm</label>
                     <input type="number" min="0" value={form.height_cm}
                       onChange={(e) => fieldChange("height_cm", e.target.value)}
+                      placeholder="Ex: 5"
                       className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
                   </div>
                 </div>
+                <p className="text-[10px] text-muted-foreground">💡 Dimensões usadas para calcular peso volumétrico (L×W×H÷5000). Sistema cobra o maior entre peso real e volumétrico.</p>
                 <div className="grid sm:grid-cols-3 gap-3">
                   <div>
                     <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Tipo de frete</label>
                     <select value={form.shipping_type}
                       onChange={(e) => fieldChange("shipping_type", e.target.value as ProductForm["shipping_type"])}
                       className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30">
-                      <option value="local">Local</option>
-                      <option value="national">Nacional</option>
-                      <option value="international">Internacional</option>
-                      <option value="digital">Digital</option>
+                      <option value="local">🏠 Local (Beira)</option>
+                      <option value="national">🇲🇿 Nacional (Moçambique)</option>
+                      <option value="international">🌍 Internacional</option>
+                      <option value="digital">📥 Digital (sem frete)</option>
                     </select>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Define regra de cálculo</p>
                   </div>
                   <div className="sm:col-span-2">
                     <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Origem</label>
@@ -588,24 +600,30 @@ function BalcaoProdutos() {
                       onChange={(e) => fieldChange("shipping_origin", e.target.value)}
                       placeholder="Beira, Mocambique"
                       className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Cidade/país de onde será enviado</p>
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Frete local/nacional fixo</label>
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Frete local/nacional fixo (MZN)</label>
                     <input type="number" min="0" step="0.01" value={form.shipping_fee}
                       onChange={(e) => fieldChange("shipping_fee", e.target.value)}
-                      placeholder="Auto se vazio"
+                      placeholder="Deixe vazio para cálculo automático"
                       className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Opcional: sobrescreve tabela padrão</p>
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Frete internacional fixo</label>
+                    <label className="text-xs font-semibold text-foreground uppercase tracking-wide">Frete internacional fixo (MZN)</label>
                     <input type="number" min="0" step="0.01" value={form.international_shipping_fee}
                       onChange={(e) => fieldChange("international_shipping_fee", e.target.value)}
-                      placeholder="Auto se vazio"
+                      placeholder="Deixe vazio para cálculo automático"
                       className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30" />
+                    <p className="text-[10px] text-muted-foreground mt-0.5">Opcional: sobrescreve tabela padrão</p>
                   </div>
                 </div>
+                <p className="text-[10px] text-muted-foreground bg-blue-50 dark:bg-blue-950/20 rounded-lg px-3 py-2">
+                  ℹ️ <strong>Cálculo automático:</strong> Se deixar os valores vazios, o sistema usa a tabela de preços base + adicional por peso/volume. Local base: 80 MZN (standard) ou 150 MZN (express). Nacional: 350-450 MZN. Internacional: 1200-3000 MZN.
+                </p>
                 <div className="flex flex-wrap gap-6">
                   <label className="flex items-center gap-2 cursor-pointer select-none">
                     <input type="checkbox" checked={form.free_shipping}

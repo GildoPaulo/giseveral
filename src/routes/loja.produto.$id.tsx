@@ -326,6 +326,96 @@ function ProdutoPage() {
               {stockLabel}
             </div>
 
+            {/* Shipping info block */}
+            <div className="rounded-xl border border-border bg-gradient-to-br from-muted/30 to-muted/10 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Truck className="h-4 w-4 text-brand" />
+                <h3 className="font-semibold text-sm text-foreground">Informações de Entrega</h3>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                {/* Shipping type badge */}
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground min-w-20">Modalidade:</span>
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-medium ${
+                    product.shipping_type === "digital" ? "bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400" :
+                    product.shipping_type === "international" ? "bg-purple-100 dark:bg-purple-950/40 text-purple-700 dark:text-purple-400" :
+                    product.shipping_type === "national" ? "bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400" :
+                    "bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400"
+                  }`}>
+                    {product.shipping_type === "digital" && "📥 Download imediato"}
+                    {product.shipping_type === "local" && "🏠 Entrega local"}
+                    {product.shipping_type === "national" && "🇲🇿 Entrega nacional"}
+                    {product.shipping_type === "international" && "🌍 Entrega internacional"}
+                  </span>
+                </div>
+
+                {/* Free shipping / Express badges */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {product.free_shipping && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gold/15 text-gold font-bold text-[10px]">
+                      🎁 FRETE GRÁTIS
+                    </span>
+                  )}
+                  {product.express_available && product.shipping_type !== "digital" && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 font-medium text-[10px]">
+                      ⚡ Entrega rápida disponível
+                    </span>
+                  )}
+                </div>
+
+                {/* ETA estimates */}
+                {product.shipping_type !== "digital" && (
+                  <div className="space-y-1 pt-1 border-t border-border">
+                    <p className="text-muted-foreground">Prazo estimado:</p>
+                    {product.shipping_type === "local" && (
+                      <div className="pl-2 space-y-0.5">
+                        <p className="text-foreground">• Beira: <strong>Hoje ou até 24h</strong></p>
+                      </div>
+                    )}
+                    {product.shipping_type === "national" && (
+                      <div className="pl-2 space-y-0.5">
+                        <p className="text-foreground">• Beira: <strong>Hoje ou até 24h</strong></p>
+                        <p className="text-foreground">• Maputo: <strong>1 a 3 dias úteis</strong></p>
+                        <p className="text-foreground">• Outras cidades: <strong>2 a 5 dias úteis</strong></p>
+                      </div>
+                    )}
+                    {product.shipping_type === "international" && (
+                      <div className="pl-2 space-y-0.5">
+                        <p className="text-foreground">• África do Sul: <strong>5 a 10 dias úteis</strong></p>
+                        <p className="text-foreground">• Portugal: <strong>7 a 14 dias úteis</strong></p>
+                        <p className="text-foreground">• Outros países: <strong>10 a 21 dias úteis</strong></p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Dimensions & weight */}
+                {(product.weight_kg || product.length_cm || product.width_cm || product.height_cm) && (
+                  <div className="pt-1 border-t border-border space-y-1">
+                    <p className="text-muted-foreground">Especificações logísticas:</p>
+                    <div className="pl-2 space-y-0.5">
+                      {product.weight_kg && (
+                        <p className="text-foreground">• Peso: <strong>{product.weight_kg} kg</strong></p>
+                      )}
+                      {(product.length_cm && product.width_cm && product.height_cm) && (
+                        <p className="text-foreground">
+                          • Dimensões: <strong>{product.length_cm} × {product.width_cm} × {product.height_cm} cm</strong>
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Origin */}
+                {product.shipping_origin && product.shipping_origin !== "Beira, Mocambique" && (
+                  <div className="pt-1 border-t border-border">
+                    <p className="text-muted-foreground">Origem: <span className="text-foreground font-medium">{product.shipping_origin}</span></p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Quantity selector */}
             {product.stock > 0 && (
               <div>

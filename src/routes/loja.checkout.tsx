@@ -519,9 +519,29 @@ function Checkout() {
                       <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Frete por produto</p>
                       {shippingSummary.quotes.map((quote) => (
                         <div key={quote.itemId} className="flex items-start justify-between gap-3 text-xs">
-                          <div className="min-w-0">
-                            <p className="truncate font-medium text-foreground">{quote.itemName}</p>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <p className="truncate font-medium text-foreground">{quote.itemName}</p>
+                              {quote.method === "express" && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 text-[10px] font-bold whitespace-nowrap">
+                                  ⚡ Entrega rápida
+                                </span>
+                              )}
+                              {quote.type === "digital" && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold whitespace-nowrap">
+                                  📥 Digital
+                                </span>
+                              )}
+                              {quote.cost === 0 && quote.type !== "digital" && quote.method !== "pickup" && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-400 text-[10px] font-bold whitespace-nowrap">
+                                  🎁 Grátis
+                                </span>
+                              )}
+                            </div>
                             <p className="text-muted-foreground">{quote.carrier} · {quote.eta}</p>
+                            {quote.origin && quote.origin !== "Beira, Mocambique" && (
+                              <p className="text-[10px] text-muted-foreground/70">Origem: {quote.origin}</p>
+                            )}
                           </div>
                           <span className="flex-shrink-0 font-semibold text-foreground">
                             {quote.cost > 0 ? `${quote.cost.toLocaleString("pt-MZ")} MZN` : "Gratis"}
@@ -529,7 +549,9 @@ function Checkout() {
                         </div>
                       ))}
                       {shippingSummary.hasDigital && (
-                        <p className="text-[10px] text-emerald-600">Produtos digitais ficam disponiveis sem frete.</p>
+                        <p className="text-[10px] text-emerald-600 dark:text-emerald-400 pt-1 border-t border-border">
+                          💡 Produtos digitais ficam disponíveis imediatamente sem frete.
+                        </p>
                       )}
                     </div>
                   )}
