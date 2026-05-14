@@ -293,18 +293,15 @@ export function generateBreadcrumbSchema(items: Array<{ name: string; url: strin
 }
 
 /**
- * Componente para injetar JSON-LD no <head>
- * Usar dentro de qualquer componente de página
+ * Helper para serializar JSON-LD (usar com dangerouslySetInnerHTML)
+ * @example
+ * <script
+ *   type="application/ld+json"
+ *   dangerouslySetInnerHTML={{ __html: serializeJSONLD(schema) }}
+ * />
  */
-export function renderJSONLD(schema: Record<string, unknown> | Array<Record<string, unknown>>) {
-  const schemaArray = Array.isArray(schema) ? schema : [schema];
-  return schemaArray.map((s, i) => (
-    <script
-      key={i}
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(s) }}
-    />
-  ));
+export function serializeJSONLD(schema: Record<string, unknown> | Array<Record<string, unknown>>): string {
+  return JSON.stringify(schema);
 }
 
 /**
