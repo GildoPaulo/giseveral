@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SobreRouteImport } from './routes/sobre'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ServicosRouteImport } from './routes/servicos'
 import { Route as RegistoRouteImport } from './routes/registo'
 import { Route as RedesRouteImport } from './routes/redes'
@@ -81,11 +80,6 @@ const TermsRoute = TermsRouteImport.update({
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
   path: '/sobre',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicosRoute = ServicosRouteImport.update({
@@ -403,7 +397,6 @@ export interface FileRoutesByFullPath {
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
   '/servicos': typeof ServicosRouteWithChildren
-  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/terms': typeof TermsRoute
   '/balcao/atividade': typeof BalcaoAtividadeRoute
@@ -466,7 +459,6 @@ export interface FileRoutesByTo {
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/terms': typeof TermsRoute
   '/balcao/atividade': typeof BalcaoAtividadeRoute
@@ -530,7 +522,6 @@ export interface FileRoutesById {
   '/redes': typeof RedesRoute
   '/registo': typeof RegistoRoute
   '/servicos': typeof ServicosRouteWithChildren
-  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/sobre': typeof SobreRoute
   '/terms': typeof TermsRoute
   '/balcao/atividade': typeof BalcaoAtividadeRoute
@@ -597,7 +588,6 @@ export interface FileRouteTypes {
     | '/redes'
     | '/registo'
     | '/servicos'
-    | '/sitemap.xml'
     | '/sobre'
     | '/terms'
     | '/balcao/atividade'
@@ -660,7 +650,6 @@ export interface FileRouteTypes {
     | '/privacy-policy'
     | '/redes'
     | '/registo'
-    | '/sitemap.xml'
     | '/sobre'
     | '/terms'
     | '/balcao/atividade'
@@ -723,7 +712,6 @@ export interface FileRouteTypes {
     | '/redes'
     | '/registo'
     | '/servicos'
-    | '/sitemap.xml'
     | '/sobre'
     | '/terms'
     | '/balcao/atividade'
@@ -789,7 +777,6 @@ export interface RootRouteChildren {
   RedesRoute: typeof RedesRoute
   RegistoRoute: typeof RegistoRoute
   ServicosRoute: typeof ServicosRouteWithChildren
-  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SobreRoute: typeof SobreRoute
   TermsRoute: typeof TermsRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -827,13 +814,6 @@ declare module '@tanstack/react-router' {
       path: '/sobre'
       fullPath: '/sobre'
       preLoaderRoute: typeof SobreRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/servicos': {
@@ -1378,7 +1358,6 @@ const rootRouteChildren: RootRouteChildren = {
   RedesRoute: RedesRoute,
   RegistoRoute: RegistoRoute,
   ServicosRoute: ServicosRouteWithChildren,
-  SitemapDotxmlRoute: SitemapDotxmlRoute,
   SobreRoute: SobreRoute,
   TermsRoute: TermsRoute,
   BlogSlugRoute: BlogSlugRoute,

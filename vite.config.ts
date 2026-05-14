@@ -11,31 +11,11 @@ export default defineConfig({
     build: {
       target: "esnext",
       // Optimize asset handling
-      assetsInlineLimit: 4096, // Inline assets < 4kb
-      rollupOptions: {
-        output: {
-          // Manual chunks for better code splitting and caching
-          manualChunks: {
-            // Core React libraries
-            vendor: ["react", "react-dom"],
-            // Router
-            router: ["@tanstack/react-router"],
-            // Supabase SDK
-            supabase: ["@supabase/supabase-js", "@supabase/auth-helpers-react"],
-            // UI libraries
-            ui: ["framer-motion", "lucide-react"],
-            // Charts (only loaded when needed)
-            recharts: ["recharts"],
-          },
-        },
-      },
+      assetsInlineLimit: 4096, // Inline assets < 4kb as base64
     },
-    // Optimize deps pre-bundling
+    // Optimize deps pre-bundling for faster dev server
     optimizeDeps: {
       include: [
-        "react",
-        "react-dom",
-        "@tanstack/react-router",
         "@supabase/supabase-js",
         "framer-motion",
         "lucide-react",
