@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { Lightbox } from "@/components/Lightbox";
+import { supabase } from "@/lib/supabase";
 import { TypewriterText } from "@/components/TypewriterText";
 import { PromoBanner } from "@/components/promos/PromoBanner";
 import { PromoSlider } from "@/components/promos/PromoSlider";
@@ -16,6 +18,8 @@ import {
   Printer, Laptop, Network, BookOpen, ArrowRight, CheckCircle2, Phone,
   Clock, Zap, ShieldCheck, Award, Star, Users, TrendingUp,
   GraduationCap, FileText, Crown, Calendar, ShoppingBag, Sparkles,
+  Palette, Shirt, Globe, Wrench, Package, Facebook, Instagram, Linkedin,
+  MessageCircle,
 } from "lucide-react";
 import printing from "@/assets/printing.jpg";
 import repair from "@/assets/computer-repair.jpg";
@@ -113,12 +117,98 @@ const platformPillars = [
   },
 ];
 
+const servicesDetailed = [
+  { icon: Printer, title: "Impressão & Reprografia", desc: "Impressão a cores e P&B, fotocópias, encadernação e plastificação profissional.", color: "bg-blue-50 text-blue-600 dark:bg-blue-500/10", tag: "Mais popular" },
+  { icon: Palette, title: "Design Gráfico", desc: "Logótipos, identidade visual, flyers, cartazes e material publicitário criativo.", color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10", tag: "Premium" },
+  { icon: Shirt, title: "Estampagem de Camisetas", desc: "Personalização de camisetas, brindes corporativos e materiais promocionais.", color: "bg-orange-50 text-orange-600 dark:bg-orange-500/10", tag: "Novidade" },
+  { icon: Globe, title: "Desenvolvimento Web", desc: "Sites modernos, e-commerce, aplicações web e manutenção de plataformas digitais.", color: "bg-purple-50 text-purple-600 dark:bg-purple-500/10", tag: "Digital" },
+  { icon: Wrench, title: "Informática & TI", desc: "Formatação, instalação de sistemas, remoção de vírus e assistência técnica.", color: "bg-red-50 text-red-600 dark:bg-red-500/10", tag: "Técnico" },
+  { icon: Package, title: "Papelaria & Loja", desc: "Material escolar, escritório e equipamentos tecnológicos para todas as necessidades.", color: "bg-teal-50 text-teal-600 dark:bg-teal-500/10", tag: "Variedade" },
+];
+
+const socialLinks = [
+  {
+    icon: Facebook,
+    name: "Facebook",
+    handle: "@GiseveralServices",
+    url: "https://facebook.com/GiseveralServices",
+    color: "bg-[#1877F2] hover:bg-[#166FE5]",
+    bgLight: "bg-blue-50 dark:bg-blue-500/10",
+    textColor: "text-[#1877F2]",
+  },
+  {
+    icon: Instagram,
+    name: "Instagram",
+    handle: "@giseveral",
+    url: "https://instagram.com/giseveral",
+    color: "bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#F56040] hover:opacity-90",
+    bgLight: "bg-pink-50 dark:bg-pink-500/10",
+    textColor: "text-[#E1306C]",
+  },
+  {
+    icon: MessageCircle,
+    name: "WhatsApp",
+    handle: "+258 874 383 621",
+    url: "https://wa.me/258874383621",
+    color: "bg-[#25D366] hover:bg-[#20BD5A]",
+    bgLight: "bg-green-50 dark:bg-green-500/10",
+    textColor: "text-[#25D366]",
+  },
+  {
+    icon: Linkedin,
+    name: "LinkedIn",
+    handle: "Giseveral e Services",
+    url: "https://linkedin.com/company/giseveral",
+    color: "bg-[#0A66C2] hover:bg-[#095196]",
+    bgLight: "bg-blue-50 dark:bg-blue-500/10",
+    textColor: "text-[#0A66C2]",
+  },
+];
+
+type GalleryItem = {
+  id: string;
+  image_url: string;
+  title: string;
+  client_name: string | null;
+  category: string;
+};
+
+const galleryCategories = [
+  { value: "todos", label: "Todos" },
+  { value: "logotipos", label: "Logótipos" },
+  { value: "estampagem", label: "Estampagem" },
+  { value: "impressao", label: "Impressão" },
+  { value: "web", label: "Web" },
+  { value: "cartazes", label: "Cartazes" },
+];
+
 function Index() {
   const [news, setNews] = useState<NewsItem[]>(HUB_NEWS.slice(0, 3));
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("todos");
+  const [lightboxImage, setLightboxImage] = useState<{ url: string; title: string } | null>(null);
 
   useEffect(() => {
     fetchHubNews().then((data) => setNews(data.slice(0, 3)));
   }, []);
+
+  // Fetch gallery items
+  useEffect(() => {
+    const fetchGallery = async () => {
+      const { data } = await supabase
+        .from("gallery_items")
+        .select("*")
+        .eq("active", true)
+        .order("display_order", { ascending: true })
+        .limit(12);
+      if (data) setGalleryItems(data);
+    };
+    fetchGallery();
+  }, []);
+
+  const filteredGallery = selectedCategory === "todos"
+    ? galleryItems
+    : galleryItems.filter((item) => item.category === selectedCategory);
 
   return (
     <Layout>
@@ -441,6 +531,193 @@ function Index() {
         </div>
       </section>
 
+      {/* ── SERVIÇOS COMPLETOS ───────────────────────────── */}
+      <section className="bg-muted/30 py-16 md:py-24">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-3 mb-3">
+              <div className="h-px w-10 bg-brand" />
+              <span className="text-xs font-bold tracking-widest text-brand uppercase">Todos os serviços</span>
+              <div className="h-px w-10 bg-brand" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">Soluções completas para<br />cada necessidade</h2>
+            <p className="mt-3 text-muted-foreground">De impressão a tecnologia, oferecemos tudo o que precisa num só lugar.</p>
+          </div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {servicesDetailed.map((service, i) => (
+              <motion.div
+                key={service.title}
+                variants={fadeUp}
+                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-card transition-smooth hover:-translate-y-2 hover:shadow-elegant hover:border-brand/30"
+              >
+                {/* Tag */}
+                {service.tag && (
+                  <span className="absolute top-4 right-4 rounded-full bg-gold/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-gold">
+                    {service.tag}
+                  </span>
+                )}
+
+                {/* Icon */}
+                <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${service.color} transition-smooth group-hover:scale-110`}>
+                  <service.icon className="h-7 w-7" />
+                </div>
+
+                {/* Content */}
+                <h3 className="text-lg font-bold text-foreground">{service.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{service.desc}</p>
+
+                {/* CTA */}
+                <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand opacity-0 transition-smooth group-hover:opacity-100">
+                  Saber mais <ArrowRight className="h-3 w-3" />
+                </span>
+
+                {/* Number badge */}
+                <span className="absolute bottom-4 right-4 text-6xl font-black text-border/10 transition-colors group-hover:text-brand/5 select-none">
+                  0{i + 1}
+                </span>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── GALERIA DE TRABALHOS ─────────────────────────── */}
+      <section className="container mx-auto max-w-6xl px-4 py-16 md:py-24">
+        <div className="text-center max-w-2xl mx-auto mb-12">
+          <div className="inline-flex items-center gap-3 mb-3">
+            <div className="h-px w-10 bg-gold" />
+            <span className="text-xs font-bold tracking-widest text-gold uppercase">Portfolio</span>
+            <div className="h-px w-10 bg-gold" />
+          </div>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground">Galeria de Trabalhos</h2>
+          <p className="mt-3 text-muted-foreground">Explore alguns dos nossos projectos mais recentes</p>
+        </div>
+
+        {/* Category filters */}
+        <div className="mb-10 flex flex-wrap items-center justify-center gap-2">
+          {galleryCategories.map((cat) => (
+            <button
+              key={cat.value}
+              onClick={() => setSelectedCategory(cat.value)}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition-smooth ${
+                selectedCategory === cat.value
+                  ? "border-brand bg-brand text-brand-foreground shadow-card"
+                  : "border-border bg-card text-foreground hover:border-brand/50 hover:bg-brand/5"
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Gallery grid */}
+        {filteredGallery.length > 0 ? (
+          <motion.div
+            key={selectedCategory}
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+            className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {filteredGallery.map((item) => (
+              <motion.div
+                key={item.id}
+                variants={scaleIn}
+                className="group relative aspect-square cursor-pointer overflow-hidden rounded-2xl bg-muted shadow-card transition-smooth hover:shadow-elegant"
+                onClick={() => setLightboxImage({ url: item.image_url, title: item.title })}
+              >
+                <img
+                  src={item.image_url}
+                  alt={item.title}
+                  className="h-full w-full object-cover transition-smooth duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 transition-smooth group-hover:opacity-100" />
+                <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-4 opacity-0 transition-smooth group-hover:translate-y-0 group-hover:opacity-100">
+                  <p className="text-sm font-bold text-white">{item.title}</p>
+                  {item.client_name && (
+                    <p className="text-xs text-white/70 mt-1">{item.client_name}</p>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div
+                key={i}
+                className="flex aspect-square items-center justify-center rounded-2xl border-2 border-dashed border-border bg-muted/30"
+              >
+                <div className="text-center">
+                  <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <Palette className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs font-medium text-muted-foreground">Em breve</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ── REDES SOCIAIS ────────────────────────────────── */}
+      <section className="bg-muted/40 py-16 md:py-20">
+        <div className="container mx-auto max-w-6xl px-4">
+          <div className="text-center max-w-2xl mx-auto mb-14">
+            <div className="inline-flex items-center gap-3 mb-3">
+              <div className="h-px w-10 bg-brand" />
+              <span className="text-xs font-bold tracking-widest text-brand uppercase">Siga-nos</span>
+              <div className="h-px w-10 bg-brand" />
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground">Conecte-se connosco</h2>
+            <p className="mt-3 text-muted-foreground">Acompanhe as nossas novidades e promoções exclusivas</p>
+          </div>
+
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+            className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            {socialLinks.map((social) => (
+              <motion.a
+                key={social.name}
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                variants={fadeUp}
+                className="group relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-card transition-smooth hover:-translate-y-2 hover:shadow-elegant hover:border-brand/30"
+              >
+                {/* Icon background */}
+                <div className={`mb-5 flex h-14 w-14 items-center justify-center rounded-2xl ${social.bgLight} transition-smooth group-hover:scale-110`}>
+                  <social.icon className={`h-7 w-7 ${social.textColor}`} />
+                </div>
+
+                {/* Content */}
+                <h3 className="text-lg font-bold text-foreground">{social.name}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{social.handle}</p>
+
+                {/* CTA */}
+                <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-brand">
+                  Seguir <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
+                </span>
+
+                {/* Hover effect */}
+                <div className="pointer-events-none absolute -bottom-8 -right-8 h-24 w-24 rounded-full bg-brand/5 opacity-0 blur-2xl transition-opacity group-hover:opacity-100" />
+              </motion.a>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
       {/* ── CTA FINAL ────────────────────────────────────── */}
       <section className="container mx-auto max-w-6xl px-4 pb-16">
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
@@ -571,6 +848,15 @@ function Index() {
       <PromoPopup />
 
       <WhatsAppFab />
+
+      {/* ── LIGHTBOX ─────────────────────────────────────── */}
+      {lightboxImage && (
+        <Lightbox
+          image={lightboxImage.url}
+          title={lightboxImage.title}
+          onClose={() => setLightboxImage(null)}
+        />
+      )}
     </Layout>
   );
 }

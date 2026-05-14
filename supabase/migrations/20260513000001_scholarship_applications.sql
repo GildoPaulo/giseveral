@@ -29,11 +29,13 @@ CREATE TABLE IF NOT EXISTS scholarship_applications (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   submitted_at_calculated TIMESTAMPTZ GENERATED ALWAYS AS (
     CASE WHEN status = 'submitted' THEN submitted_at ELSE NULL END
-  ) STORED,
-  
-  -- Unique constraint: one active application per user per scholarship
-  CONSTRAINT one_active_per_scholarship UNIQUE (user_id, scholarship_id) WHERE (status != 'rejected' AND status != 'completed')
+  ) STORED
 );
+
+-- Unique constraint: one active application per user per scholarship (partial index)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_one_active_application_per_scholarship
+  ON scholarship_applications(user_id, scholarship_id)
+  WHERE (status != 'rejected' AND status != 'completed');
 
 -- Document uploads for applications
 CREATE TABLE IF NOT EXISTS application_documents (
