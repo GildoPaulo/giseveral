@@ -38,6 +38,7 @@ import { Route as HubNoticiasRouteImport } from './routes/hub.noticias'
 import { Route as HubFavoritosRouteImport } from './routes/hub.favoritos'
 import { Route as HubExplorarRouteImport } from './routes/hub.explorar'
 import { Route as HubExamesRouteImport } from './routes/hub.exames'
+import { Route as HubDocumentosRouteImport } from './routes/hub.documentos'
 import { Route as HubCvRouteImport } from './routes/hub.cv'
 import { Route as HubCreditosRouteImport } from './routes/hub.creditos'
 import { Route as HubCartasRouteImport } from './routes/hub.cartas'
@@ -218,6 +219,11 @@ const HubExplorarRoute = HubExplorarRouteImport.update({
 const HubExamesRoute = HubExamesRouteImport.update({
   id: '/hub/exames',
   path: '/hub/exames',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubDocumentosRoute = HubDocumentosRouteImport.update({
+  id: '/hub/documentos',
+  path: '/hub/documentos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HubCvRoute = HubCvRouteImport.update({
@@ -445,6 +451,7 @@ export interface FileRoutesByFullPath {
   '/hub/cartas': typeof HubCartasRoute
   '/hub/creditos': typeof HubCreditosRoute
   '/hub/cv': typeof HubCvRoute
+  '/hub/documentos': typeof HubDocumentosRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
   '/hub/favoritos': typeof HubFavoritosRoute
@@ -509,6 +516,7 @@ export interface FileRoutesByTo {
   '/hub/cartas': typeof HubCartasRoute
   '/hub/creditos': typeof HubCreditosRoute
   '/hub/cv': typeof HubCvRoute
+  '/hub/documentos': typeof HubDocumentosRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
   '/hub/favoritos': typeof HubFavoritosRoute
@@ -576,6 +584,7 @@ export interface FileRoutesById {
   '/hub/cartas': typeof HubCartasRoute
   '/hub/creditos': typeof HubCreditosRoute
   '/hub/cv': typeof HubCvRoute
+  '/hub/documentos': typeof HubDocumentosRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
   '/hub/favoritos': typeof HubFavoritosRoute
@@ -645,6 +654,7 @@ export interface FileRouteTypes {
     | '/hub/cartas'
     | '/hub/creditos'
     | '/hub/cv'
+    | '/hub/documentos'
     | '/hub/exames'
     | '/hub/explorar'
     | '/hub/favoritos'
@@ -709,6 +719,7 @@ export interface FileRouteTypes {
     | '/hub/cartas'
     | '/hub/creditos'
     | '/hub/cv'
+    | '/hub/documentos'
     | '/hub/exames'
     | '/hub/explorar'
     | '/hub/favoritos'
@@ -775,6 +786,7 @@ export interface FileRouteTypes {
     | '/hub/cartas'
     | '/hub/creditos'
     | '/hub/cv'
+    | '/hub/documentos'
     | '/hub/exames'
     | '/hub/explorar'
     | '/hub/favoritos'
@@ -820,6 +832,7 @@ export interface RootRouteChildren {
   HubCartasRoute: typeof HubCartasRoute
   HubCreditosRoute: typeof HubCreditosRoute
   HubCvRoute: typeof HubCvRoute
+  HubDocumentosRoute: typeof HubDocumentosRoute
   HubExamesRoute: typeof HubExamesRouteWithChildren
   HubExplorarRoute: typeof HubExplorarRoute
   HubFavoritosRoute: typeof HubFavoritosRoute
@@ -1039,6 +1052,13 @@ declare module '@tanstack/react-router' {
       path: '/hub/exames'
       fullPath: '/hub/exames'
       preLoaderRoute: typeof HubExamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/documentos': {
+      id: '/hub/documentos'
+      path: '/hub/documentos'
+      fullPath: '/hub/documentos'
+      preLoaderRoute: typeof HubDocumentosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub/cv': {
@@ -1437,6 +1457,7 @@ const rootRouteChildren: RootRouteChildren = {
   HubCartasRoute: HubCartasRoute,
   HubCreditosRoute: HubCreditosRoute,
   HubCvRoute: HubCvRoute,
+  HubDocumentosRoute: HubDocumentosRoute,
   HubExamesRoute: HubExamesRouteWithChildren,
   HubExplorarRoute: HubExplorarRoute,
   HubFavoritosRoute: HubFavoritosRoute,

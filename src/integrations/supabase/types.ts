@@ -12,6 +12,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      document_votes: {
+        Row: {
+          id: string
+          document_id: string
+          user_id: string
+          vote: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          document_id: string
+          user_id: string
+          vote: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          document_id?: string
+          user_id?: string
+          vote?: number
+          created_at?: string
+        }
+        Relationships: []
+      }
+      document_bookmarks: {
+        Row: {
+          id: string
+          document_id: string
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          document_id: string
+          user_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          document_id?: string
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       credit_purchases: {
         Row: {
           id: string

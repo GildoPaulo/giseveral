@@ -4,7 +4,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm run build)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(p.dependencies['react-pdf'], p.dependencies['pdfjs-dist']\\)\")"
     ],
     "deny": [],
     "ask": []

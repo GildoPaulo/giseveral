@@ -1,16 +1,17 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Layout } from "@/components/Layout";
-import { PdfViewer } from "@/components/hub/PdfViewer";
+import { DocumentViewer } from "@/components/hub/DocumentViewer";
 import { PrintModal } from "@/components/hub/PrintModal";
 import { DocumentCard } from "@/components/hub/DocumentCard";
 import { HUB_DOCUMENTS, DOC_CATEGORIES, type DocItem } from "@/data/hub-documents";
 import { fetchHubDocumentById, fetchUserCredits, spendCredit } from "@/lib/hub";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  Download, Printer, Share2, Calendar, FileText, Eye, Crown,
-  ChevronLeft, User, Coins, LogIn, CheckCircle2, AlertTriangle, Upload,
+  Download, Printer, Share2, Bookmark, ThumbsUp, Flag, Eye, FileText,
+  Calendar, User, Coins, Crown, Sparkles, Loader2, ArrowRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/hub/documento/$id")({
@@ -37,11 +38,16 @@ function HubDocumentoPage() {
   const { doc: maybeDoc } = Route.useLoaderData();
   const { user } = useAuth();
   const navigate = useNavigate();
+
   const [printOpen, setPrintOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [downloaded, setDownloaded] = useState(false);
   const [credits, setCredits] = useState<number | null>(null);
   const [premium, setPremium] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [voted, setVoted] = useState<1 | -1 | 0>(0);
+  const [bookmarked, setBookmarked] = useState(false);
+  const [voteBusy, setVoteBusy] = useState(false);
+  const [bookmarkBusy, setBookmarkBusy] = useState(false);
 
   useEffect(() => {
     if (!user) { setCredits(null); return; }
@@ -51,6 +57,27 @@ function HubDocumentoPage() {
     });
   }, [user]);
 
+  // Load user-specific reactions for this document.
+  useEffect(() => {
+    if (!user || !maybeDoc) return;
+    const docId = maybeDoc.id;
+    const op = supabase as unknown as {
+      from: (t: string) => {
+        select: (cols: string) => {
+          eq: (k: string, v: unknown) => {
+            eq: (k: string, v: unknown) => {
+              maybeSingle: () => Promise<{ data: { vote?: number } | null }>;
+            };
+          };
+        };
+      };
+    };
+    op.from("document_votes").select("vote").eq("document_id", docId).eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => { if (data?.vote === 1 || data?.vote === -1) setVoted(data.vote as 1 | -1); });
+    op.from("document_bookmarks").select("id").eq("document_id", docId).eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => { setBookmarked(!!data); });
+  }, [user, maybeDoc]);
+
   if (!maybeDoc) {
     return (
       <Layout>
@@ -58,10 +85,7 @@ function HubDocumentoPage() {
           <div className="text-6xl mb-4">📄</div>
           <h1 className="text-2xl font-bold text-brand mb-3">Documento não encontrado</h1>
           <p className="text-muted-foreground mb-6">O documento que procura pode ter sido removido ou o link está incorrecto.</p>
-          <Link
-            to="/hub/explorar"
-            className="inline-flex items-center gap-2 rounded-md bg-gradient-brand px-4 py-2 text-sm font-semibold text-brand-foreground"
-          >
+          <Link to="/hub/documentos" className="inline-flex items-center gap-2 rounded-md bg-gradient-brand px-4 py-2 text-sm font-semibold text-brand-foreground">
             <FileText className="h-4 w-4" /> Voltar a explorar
           </Link>
         </div>
@@ -76,102 +100,167 @@ function HubDocumentoPage() {
     .sort((a, b) => b.downloads - a.downloads)
     .slice(0, 4);
 
+  const totalVotes = (doc as DocItem & { votes_up?: number; votes_down?: number }).votes_up || 0;
+  const totalDown = (doc as DocItem & { votes_up?: number; votes_down?: number }).votes_down || 0;
+  const ratio = totalVotes + totalDown > 0
+    ? Math.round((totalVotes / (totalVotes + totalDown)) * 100)
+    : null;
+
   function handleShare() {
     if (navigator.share) {
-      navigator.share({ title: doc.title, url: window.location.href }).catch(() => {});
-    } else if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href).then(() => toast.success("Link copiado!"));
-    } else {
-      toast.info("Copie o link da barra de endereços.");
+      navigator.share({ title: doc.title, url: window.location.href }).catch(() => undefined);
+      return;
+    }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href).then(() => toast.success("Link copiado"));
+      return;
+    }
+    toast.info("Copie o link da barra de endereços.");
+  }
+
+  async function handleVote(value: 1 | -1) {
+    if (!user) { toast.error("Inicia sessão para votar."); return; }
+    setVoteBusy(true);
+    try {
+      if (voted === value) {
+        // remove vote
+        await (supabase as unknown as {
+          from: (t: string) => {
+            delete: () => {
+              eq: (k: string, v: unknown) => {
+                eq: (k: string, v: unknown) => Promise<{ error: { message: string } | null }>;
+              };
+            };
+          };
+        }).from("document_votes").delete().eq("document_id", doc.id).eq("user_id", user.id);
+        setVoted(0);
+      } else {
+        await (supabase as unknown as {
+          from: (t: string) => {
+            upsert: (payload: unknown, opts?: { onConflict?: string }) => Promise<{ error: { message: string } | null }>;
+          };
+        }).from("document_votes").upsert(
+          { document_id: doc.id, user_id: user.id, vote: value },
+          { onConflict: "document_id,user_id" },
+        );
+        setVoted(value);
+      }
+    } catch (e) {
+      toast.error("Erro ao votar");
+    } finally {
+      setVoteBusy(false);
+    }
+  }
+
+  async function handleBookmark() {
+    if (!user) { toast.error("Inicia sessão para guardar."); return; }
+    setBookmarkBusy(true);
+    try {
+      if (bookmarked) {
+        await (supabase as unknown as {
+          from: (t: string) => {
+            delete: () => {
+              eq: (k: string, v: unknown) => {
+                eq: (k: string, v: unknown) => Promise<{ error: { message: string } | null }>;
+              };
+            };
+          };
+        }).from("document_bookmarks").delete().eq("document_id", doc.id).eq("user_id", user.id);
+        setBookmarked(false);
+        toast.success("Removido dos guardados");
+      } else {
+        await (supabase as unknown as {
+          from: (t: string) => {
+            insert: (payload: unknown) => Promise<{ error: { message: string } | null }>;
+          };
+        }).from("document_bookmarks").insert({ document_id: doc.id, user_id: user.id });
+        setBookmarked(true);
+        toast.success("Guardado");
+      }
+    } catch (e) {
+      toast.error("Erro");
+    } finally {
+      setBookmarkBusy(false);
     }
   }
 
   async function handleDownload() {
     if (!user) {
       toast.error("Precisa de entrar para descarregar.", {
-        description: "Crie uma conta gratuita e receba 3 créditos.",
         action: { label: "Entrar", onClick: () => navigate({ to: "/login" }) },
       });
       return;
     }
-
-    if (!doc.fileUrl) {
-      toast.error("Ficheiro não disponível", {
-        description: "Este documento ainda não tem ficheiro associado.",
-      });
-      return;
-    }
-
-    // Premium documents require premium subscription; normal docs cost 1 credit
+    if (!doc.fileUrl) { toast.error("Ficheiro não disponível."); return; }
     if (doc.premium && !premium) {
-      toast.error("Documento exclusivo Premium", {
-        description: "Torne-se Premium para aceder a este documento sem limite.",
+      toast.error("Documento Premium", {
+        description: "Subscreve Premium para aceder a documentos exclusivos.",
         action: { label: "Ver planos", onClick: () => navigate({ to: "/hub/creditos" }) },
       });
       return;
     }
 
-    const isFree = premium; // only premium subscribers download for free
+    const isFree = premium;
     const currentCredits = credits ?? 0;
-
     if (!isFree && currentCredits <= 0) {
-      toast.error("Sem créditos suficientes.", {
-        description: "Envie um documento para ganhar +2 créditos grátis, ou adquira um plano.",
-        action: { label: "📤 Enviar documento", onClick: () => navigate({ to: "/hub/upload" }) },
+      toast.error("Sem créditos.", {
+        description: "Compra créditos para descarregar.",
+        action: { label: "Comprar", onClick: () => navigate({ to: "/hub/creditos" }) },
       });
       return;
     }
 
     setDownloading(true);
-
     if (!isFree) {
-      const result = await spendCredit(user.id, doc.id, currentCredits);
-      if (!result.success) {
-        toast.error(result.message);
-        setDownloading(false);
-        return;
-      }
-      setCredits(result.remaining);
+      const r = await spendCredit(user.id, doc.id, currentCredits);
+      if (!r.success) { toast.error(r.message); setDownloading(false); return; }
+      setCredits(r.remaining);
     }
 
-    // Use anchor download — avoids popup blocker on async context
+    // Build a fresh signed URL and trigger the download.
+    const path = doc.fileUrl.includes("/hub-documents/")
+      ? doc.fileUrl.split("/hub-documents/")[1].split("?")[0]
+      : doc.fileUrl;
+    const { data, error } = await supabase.storage.from("hub-documents").createSignedUrl(path, 60, { download: `${doc.title}.pdf` });
+    if (error || !data?.signedUrl) {
+      toast.error("Falha a preparar o download");
+      setDownloading(false);
+      return;
+    }
+
     const a = document.createElement("a");
-    a.href = doc.fileUrl;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
+    a.href = data.signedUrl;
+    a.rel = "noopener";
     a.click();
 
-    setDownloaded(true);
-    setDownloading(false);
-    toast.success("Download iniciado!", {
-      description: isFree
-        ? "Download gratuito — crédito não descontado."
-        : `1 crédito descontado. Restam ${(credits ?? 1) - 1} crédito${(credits ?? 1) - 1 !== 1 ? "s" : ""}.`,
+    toast.success("Download iniciado", {
+      description: isFree ? "Acesso Premium · sem custo" : `1 crédito descontado. Restam ${(credits ?? 1) - 1}.`,
     });
+    setDownloading(false);
   }
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-5">
           <Link to="/hub" className="hover:text-brand transition-colors">Hub</Link>
           <span>/</span>
-          <Link to="/hub/explorar" className="hover:text-brand transition-colors">Explorar</Link>
+          <Link to="/hub/documentos" className="hover:text-brand transition-colors">Documentos</Link>
           <span>/</span>
           <span className="text-foreground/70 truncate max-w-[200px]">{doc.title}</span>
         </div>
 
-        <div className="grid lg:grid-cols-[1fr_340px] gap-8">
-          {/* ── MAIN ───────────────────────────────────────────────────────── */}
-          <div>
-            {/* Meta */}
-            <div className="mb-6">
+        <div className="grid lg:grid-cols-[360px_1fr] gap-6 lg:gap-8">
+          {/* ── SIDEBAR ────────────────────────────────────────────────────── */}
+          <aside className="space-y-5">
+            {/* Title + meta */}
+            <div>
               <div className="flex flex-wrap items-center gap-2 mb-3">
                 {cat && (
-                  <Link to="/hub/explorar" search={{ cat: cat.id }}>
+                  <Link to="/hub/documentos" search={{ cat: cat.id }}>
                     <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 text-brand px-2.5 py-0.5 text-xs font-semibold hover:bg-brand/20 transition-smooth">
-                      {cat.icon} {cat.label}
+                      {cat.label}
                     </span>
                   </Link>
                 )}
@@ -180,150 +269,145 @@ function HubDocumentoPage() {
                     <Crown className="h-3 w-3" /> Premium
                   </span>
                 )}
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl font-bold text-brand mb-3 leading-tight">{doc.title}</h1>
-
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5"><User className="h-4 w-4" /> {doc.author}</span>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="h-4 w-4" />
-                  {new Date(doc.uploadedAt).toLocaleDateString("pt-PT", { year: "numeric", month: "long", day: "numeric" })}
+                <span className="inline-flex items-center gap-1 rounded-full bg-foreground/8 text-foreground/70 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                  <Sparkles className="h-3 w-3" /> IA
                 </span>
-                <span className="flex items-center gap-1.5"><FileText className="h-4 w-4" /> {doc.pages} páginas</span>
-                <span className="flex items-center gap-1.5"><Download className="h-4 w-4" /> {doc.downloads.toLocaleString()} downloads</span>
-                <span className="flex items-center gap-1.5"><Eye className="h-4 w-4" /> {doc.views.toLocaleString()} visualizações</span>
+              </div>
+
+              <h1 className="text-xl md:text-2xl font-extrabold text-foreground leading-tight">
+                {doc.title}
+              </h1>
+
+              <div className="mt-3 text-sm text-muted-foreground">
+                <p className={expanded ? "" : "line-clamp-3"}>{doc.description}</p>
+                {doc.description.length > 180 && (
+                  <button
+                    type="button"
+                    onClick={() => setExpanded((v) => !v)}
+                    className="mt-1 text-xs font-semibold text-brand hover:text-gold transition-colors"
+                  >
+                    {expanded ? "Mostrar menos" : "Ver completo"}
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* PDF Preview */}
-            <PdfViewer pages={doc.pages} title={doc.title} previewPages={2} url={doc.fileUrl} />
+            {/* Uploader */}
+            <div className="flex items-center gap-3 rounded-2xl bg-card border border-border p-3">
+              <div className="grid h-9 w-9 place-items-center rounded-full bg-gradient-brand text-brand-foreground font-bold text-sm">
+                {doc.author?.[0]?.toUpperCase() ?? "G"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-muted-foreground">Enviado por</p>
+                <p className="text-sm font-bold text-foreground truncate">{doc.author}</p>
+              </div>
+              <Calendar className="h-4 w-4 text-muted-foreground shrink-0" />
+            </div>
 
-            {/* Description */}
-            <div className="mt-6 rounded-xl bg-card border border-border p-6">
-              <h3 className="font-bold text-base text-brand mb-3">Sobre este documento</h3>
-              <p className="text-muted-foreground leading-relaxed text-sm">{doc.description}</p>
-              {doc.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {doc.tags.map((t) => (
-                    <Link
-                      key={t}
-                      to="/hub/explorar"
-                      search={{ q: t }}
-                      className="px-3 py-1 rounded-full bg-muted text-xs font-medium text-muted-foreground hover:bg-brand/10 hover:text-brand transition-smooth"
-                    >
-                      #{t}
-                    </Link>
-                  ))}
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                {
+                  icon: ThumbsUp,
+                  value: ratio !== null ? `${ratio}%` : "—",
+                  label: "Útil",
+                },
+                {
+                  icon: Eye,
+                  value: doc.views.toLocaleString("pt-MZ"),
+                  label: "Visualizações",
+                },
+                {
+                  icon: FileText,
+                  value: `${doc.pages}`,
+                  label: "Páginas",
+                },
+              ].map(({ icon: Icon, value, label }) => (
+                <div key={label} className="rounded-xl border border-border bg-card p-3 text-center">
+                  <Icon className="h-4 w-4 mx-auto text-brand mb-1" />
+                  <p className="text-sm font-extrabold text-foreground tabular-nums">{value}</p>
+                  <p className="text-[10px] text-muted-foreground">{label}</p>
                 </div>
-              )}
+              ))}
             </div>
 
-            {/* Actions bar (mobile) */}
-            <div className="mt-5 lg:hidden space-y-3">
-              <DownloadButton
-                doc={doc}
-                user={user}
-                credits={credits}
-                premium={premium}
-                downloading={downloading}
-                downloaded={downloaded}
-                onDownload={handleDownload}
-                onPrint={() => setPrintOpen(true)}
-              />
+            {/* Main download button */}
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={downloading || credits === null}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#1E3A8A] hover:bg-[#1e408f] disabled:opacity-50 disabled:cursor-not-allowed px-5 py-3.5 text-sm font-bold text-white shadow-card transition-smooth"
+            >
+              {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              {premium ? "Descarregar PDF · Premium" : `Descarregar PDF · 1 crédito`}
+            </button>
+
+            {/* Print */}
+            <button
+              type="button"
+              onClick={() => setPrintOpen(true)}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold text-foreground hover:bg-muted transition-smooth"
+            >
+              <Printer className="h-4 w-4" /> Imprimir na Giseveral
+            </button>
+
+            {/* Actions grid 2x3 */}
+            <div className="grid grid-cols-3 gap-2">
+              <ActionTile icon={Bookmark} label={bookmarked ? "Guardado" : "Salvar"} onClick={handleBookmark} busy={bookmarkBusy} active={bookmarked} />
+              <ActionTile icon={Share2}  label="Partilhar" onClick={handleShare} />
+              <ActionTile icon={ThumbsUp} label={voted === 1 ? "Votado" : "Votar"} onClick={() => handleVote(1)} busy={voteBusy} active={voted === 1} />
+              <ActionTile icon={Flag}    label="Reportar"  onClick={() => navigate({ to: "/contactos" })} />
+              <ActionTile icon={User}    label="Perfil"    onClick={() => navigate({ to: "/conta" })} />
+              <ActionTile icon={ArrowRight} label="Mais" onClick={() => navigate({ to: "/hub/documentos" })} />
             </div>
-          </div>
 
-          {/* ── SIDEBAR ────────────────────────────────────────────────────── */}
-          <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start space-y-4">
-            <DownloadButton
-              doc={doc}
-              user={user}
-              credits={credits}
-              premium={premium}
-              downloading={downloading}
-              downloaded={downloaded}
-              onDownload={handleDownload}
-              onPrint={() => setPrintOpen(true)}
-            />
-
-            {/* Credits display */}
+            {/* Credits widget */}
             {user && (
-              <div className="rounded-xl bg-card border border-border p-4 flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold/15">
-                  <Coins className="h-5 w-5 text-gold" />
+              <div className="rounded-2xl border border-border bg-card p-4 flex items-center gap-3">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-gold/15 text-gold">
+                  <Coins className="h-5 w-5" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground">{premium ? "Conta Premium" : "Os seus créditos"}</p>
-                  <p className="font-bold text-foreground">
-                    {premium ? "∞ ilimitados" : credits === null ? "A carregar…" : `${credits} crédito${credits !== 1 ? "s" : ""}`}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs text-muted-foreground">{premium ? "Conta" : "Os teus créditos"}</p>
+                  <p className="text-sm font-extrabold text-foreground">
+                    {premium ? "Premium · ilimitado" : credits === null ? "A carregar…" : `${credits} crédito${credits !== 1 ? "s" : ""}`}
                   </p>
                 </div>
                 {!premium && (
-                  <Link
-                    to="/hub/creditos"
-                    className="text-[11px] font-semibold text-brand hover:text-gold transition-colors flex-shrink-0"
-                  >
-                    + Obter
-                  </Link>
+                  <Link to="/hub/creditos" className="text-xs font-bold text-brand hover:text-gold transition-colors">+ Obter</Link>
                 )}
               </div>
             )}
+          </aside>
 
-            {/* Actions */}
-            <div className="rounded-xl bg-card border border-border p-4">
-              <h4 className="font-semibold mb-3 text-sm text-foreground">Acções</h4>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={handleShare}
-                  className="flex items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-foreground hover:bg-accent transition-smooth"
-                >
-                  <Share2 className="h-4 w-4" /> Partilhar
-                </button>
-                <Link
-                  to="/contactos"
-                  className="flex items-center justify-center gap-2 rounded-md border border-border px-3 py-2 text-sm text-foreground hover:bg-accent transition-smooth"
-                >
-                  <AlertTriangle className="h-4 w-4" /> Reportar
-                </Link>
-              </div>
-            </div>
-
-            {/* Premium upsell */}
-            {!premium && (
-              <div className="rounded-xl bg-gradient-hero text-brand-foreground p-5">
-                <div className="flex items-center gap-2 font-bold mb-2">
-                  <Crown className="h-4 w-4 text-gold" /> Torne-se Premium
-                </div>
-                <ul className="space-y-1.5 text-xs opacity-85 mb-4">
-                  {["Downloads ilimitados", "Sem créditos necessários", "Acesso antecipado a novos docs"].map((b) => (
-                    <li key={b} className="flex items-center gap-2">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-gold flex-shrink-0" />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  to="/hub/creditos"
-                  className="flex items-center justify-center rounded-md bg-gradient-gold px-3 py-2 text-sm font-semibold text-gold-foreground"
-                >
-                  Ver planos
-                </Link>
+          {/* ── VIEWER ─────────────────────────────────────────────────────── */}
+          <main className="min-w-0">
+            {doc.fileUrl ? (
+              <DocumentViewer
+                fileUrl={doc.fileUrl}
+                title={doc.title}
+                knownPages={doc.pages}
+              />
+            ) : (
+              <div className="rounded-2xl border-2 border-dashed border-border bg-card/50 p-16 text-center">
+                <FileText className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-sm font-semibold text-foreground">Pré-visualização indisponível</p>
+                <p className="mt-1 text-xs text-muted-foreground">Este documento ainda não tem ficheiro associado.</p>
               </div>
             )}
-          </aside>
+          </main>
         </div>
 
-        {/* Related documents */}
+        {/* Related */}
         {related.length > 0 && (
-          <section className="mt-16">
+          <section className="mt-14">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold text-brand">Documentos relacionados</h2>
-              <Link to="/hub/explorar" search={{ cat: doc.category }} className="text-sm text-gold hover:underline">
-                Ver tudo →
+              <h2 className="text-xl font-bold text-foreground">Documentos relacionados</h2>
+              <Link to="/hub/documentos" search={{ cat: doc.category }} className="text-sm text-brand hover:text-gold transition-colors flex items-center gap-1">
+                Ver tudo <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {related.map((d) => <DocumentCard key={d.id} doc={d} />)}
             </div>
           </section>
@@ -335,102 +419,28 @@ function HubDocumentoPage() {
   );
 }
 
-// ── Download Button ─────────────────────────────────────────────────────────
-
-function DownloadButton({
-  doc, user, credits, premium, downloading, downloaded, onDownload, onPrint,
+function ActionTile({
+  icon: Icon, label, onClick, busy, active,
 }: {
-  doc: DocItem;
-  user: unknown;
-  credits: number | null;
-  premium: boolean;
-  downloading: boolean;
-  downloaded: boolean;
-  onDownload: () => void;
-  onPrint: () => void;
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  onClick: () => void;
+  busy?: boolean;
+  active?: boolean;
 }) {
-  const resolvedCredits = credits ?? 0;
-  // Premium docs: only premium users; normal docs: anyone with ≥1 credit or premium user
-  const hasAccess = premium || (!doc.premium && resolvedCredits > 0);
-  const canDownload = !!user && hasAccess && credits !== null; // null = still loading
-
   return (
-    <div className="rounded-2xl bg-gradient-hero text-brand-foreground p-6 shadow-elegant">
-      <div className="text-xs font-semibold uppercase tracking-wider opacity-80 mb-2">Descarregar documento</div>
-      <div className="flex items-baseline gap-2 mb-5">
-        {premium ? (
-          <>
-            <Crown className="h-6 w-6 text-gold" />
-            <span className="text-lg font-bold text-gold">Ilimitado</span>
-          </>
-        ) : doc.premium ? (
-          <>
-            <Crown className="h-6 w-6 text-gold" />
-            <span className="text-lg font-bold text-gold">Premium</span>
-          </>
-        ) : (
-          <>
-            <span className="text-5xl font-bold text-gold">1</span>
-            <span className="opacity-75">crédito</span>
-          </>
-        )}
-      </div>
-
-      {!user ? (
-        <>
-          <Link
-            to="/login"
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/15 px-4 py-3 text-sm font-semibold text-brand-foreground hover:bg-white/25 transition-smooth mb-2"
-          >
-            <LogIn className="h-4 w-4" /> Entrar para descarregar
-          </Link>
-          <p className="text-[11px] opacity-60 text-center">Conta gratuita · 3 créditos de boas-vindas</p>
-        </>
-      ) : (
-        <>
-          <button
-            onClick={onDownload}
-            disabled={downloading || !canDownload}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-3 text-sm font-semibold text-gold-foreground shadow-card hover:shadow-glow transition-smooth mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {downloading ? (
-              <><span className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" /> A preparar…</>
-            ) : downloaded ? (
-              <><CheckCircle2 className="h-4 w-4" /> Descarregado!</>
-            ) : (
-              <><Download className="h-4 w-4" /> Descarregar PDF</>
-            )}
-          </button>
-
-          {!canDownload && credits === 0 && (
-            <div className="rounded-xl bg-white/10 border border-white/20 p-3 mb-2 text-center">
-              <p className="text-xs font-semibold mb-2 opacity-90">Sem créditos disponíveis</p>
-              <div className="flex flex-col gap-1.5">
-                <Link
-                  to="/hub/upload"
-                  className="flex items-center justify-center gap-1.5 rounded-lg bg-white/20 hover:bg-white/30 px-3 py-2 text-xs font-semibold text-brand-foreground transition-smooth"
-                >
-                  <Upload className="h-3 w-3" /> Enviar documento (+2 créditos)
-                </Link>
-                <Link
-                  to="/hub/creditos"
-                  className="text-[11px] opacity-70 hover:opacity-100 underline transition-smooth"
-                >
-                  ou comprar créditos
-                </Link>
-              </div>
-            </div>
-          )}
-        </>
-      )}
-
-      <button
-        onClick={onPrint}
-        className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-semibold text-brand-foreground hover:bg-white/20 transition-smooth"
-      >
-        <Printer className="h-4 w-4" /> Imprimir na Giseveral
-      </button>
-      <p className="text-[10px] opacity-55 mt-3 text-center">Premium = downloads ilimitados</p>
-    </div>
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={busy}
+      className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border p-3 transition-smooth disabled:opacity-50 ${
+        active
+          ? "border-brand bg-brand/10 text-brand"
+          : "border-border bg-card text-foreground hover:bg-muted"
+      }`}
+    >
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Icon className="h-4 w-4" />}
+      <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+    </button>
   );
 }

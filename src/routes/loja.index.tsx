@@ -714,9 +714,9 @@ function LojaIndex() {
 
           <motion.div variants={stagger} className="grid sm:grid-cols-3 gap-4">
             {[
-              { icon: Package, badge: "📦", title: "Entrega local · Beira", desc: "Motoboy no mesmo dia", price: "a partir de 80 MZN", color: "from-blue-500/15 to-card border-blue-200" },
-              { icon: Truck,   badge: "🚚", title: "Entrega nacional",       desc: "Todo Moçambique",       price: "3–5 dias úteis",     color: "from-emerald-500/15 to-card border-emerald-200" },
-              { icon: Plane,   badge: "✈️", title: "Envio internacional",   desc: "DHL / FedEx",           price: "cotação por pedido", color: "from-purple-500/15 to-card border-purple-200" },
+              { icon: Package, badge: "", title: "Entrega local · Beira", desc: "Motoboy no mesmo dia", price: "a partir de 80 MZN", color: "from-blue-500/15 to-card border-blue-200" },
+              { icon: Truck,   badge: "", title: "Entrega nacional",       desc: "Todo Moçambique",       price: "3–5 dias úteis",     color: "from-emerald-500/15 to-card border-emerald-200" },
+              { icon: Plane,   badge: "", title: "Envio internacional",   desc: "DHL / FedEx",           price: "cotação por pedido", color: "from-purple-500/15 to-card border-purple-200" },
             ].map(({ icon: Icon, badge, title, desc, price, color }) => (
               <motion.div key={title} variants={cardIn} whileHover={{ y: -4 }} className={`group rounded-2xl border bg-gradient-to-br ${color} p-6 shadow-card hover:shadow-elegant transition-smooth`}>
                 <div className="flex items-center gap-3 mb-3">
