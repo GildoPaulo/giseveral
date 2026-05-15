@@ -11,10 +11,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+// Worker is bundled by Vite from the local install so it doesn't depend on
+// unpkg/CDN availability (which was triggering "Falha ao carregar o documento").
+// eslint-disable-next-line import/no-unresolved
+import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
-// Worker setup — only runs in the browser.
 if (typeof window !== "undefined" && !pdfjs.GlobalWorkerOptions.workerSrc) {
-  pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+  pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 }
 
 const BUCKET = "hub-documents";
@@ -120,10 +123,9 @@ export function DocumentViewer({ fileUrl, title, initialScale = 1, knownPages }:
   }, []);
 
   const pages = useMemo(() => Array.from({ length: numPages }, (_, i) => i + 1), [numPages]);
-  const pdfOptions = useMemo(() => ({
-    cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
-    cMapPacked: true,
-  }), []);
+  // No cMap URL: most ASCII/Latin PDFs render fine without it, and external
+  // unpkg dependency was a single point of failure.
+  const pdfOptions = useMemo(() => ({}), []);
 
   return (
     <div

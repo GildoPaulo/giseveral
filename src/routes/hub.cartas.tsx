@@ -29,6 +29,28 @@ export const Route = createFileRoute("/hub/cartas")({
 type Method = "giseveral" | "upload";
 type Step = "select" | "method" | "form" | "preview";
 
+type LetterTone = "formal" | "moderno" | "corporativo" | "criativo" | "jovem" | "tech" | "executivo";
+
+const TONE_OPTIONS: { id: LetterTone; label: string; description: string }[] = [
+  { id: "formal",       label: "Formal",       description: "Clássico, respeitoso" },
+  { id: "moderno",      label: "Moderno",      description: "Profissional descontraído" },
+  { id: "corporativo",  label: "Corporativo",  description: "Grande empresa" },
+  { id: "criativo",     label: "Criativo",     description: "Voz pessoal, marcante" },
+  { id: "jovem",        label: "Jovem",        description: "Estágios, primeiro emprego" },
+  { id: "tech",         label: "Tech",         description: "Startups e tecnologia" },
+  { id: "executivo",    label: "Executivo",    description: "Cargos de chefia" },
+];
+
+const TONE_INSTRUCTIONS: Record<LetterTone, string> = {
+  formal:       "Linguagem formal e tradicional, tratamento respeitoso (V. Exas.), estrutura clássica de carta institucional.",
+  moderno:      "Tom profissional mas natural, frases directas, evita formalismos pesados, transmite confiança contemporânea.",
+  corporativo:  "Vocabulário corporativo, foco em resultados mensuráveis, KPIs, alinhamento estratégico e cultura empresarial.",
+  criativo:     "Voz pessoal e marcante, abre com uma frase que prende, mostra personalidade sem perder profissionalismo.",
+  jovem:        "Tom entusiasta, foca na motivação para aprender, energia e abertura a novos desafios.",
+  tech:         "Linguagem de startup tech: produto, impacto, growth, stack, mindset de builder.",
+  executivo:    "Tom autoritário e estratégico, foca em liderança, visão de negócio, transformação e resultados de equipa.",
+};
+
 type CustomTemplate = {
   name: string;
   content: string;
@@ -60,7 +82,9 @@ function HubCartasPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
   const [improving, setImproving] = useState(false);
+  const [improveVariant, setImproveVariant] = useState<string | null>(null);
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [tom, setTom] = useState<LetterTone>("formal");
   const [supportingDocs, setSupportingDocs] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
@@ -322,24 +346,38 @@ ${rtfLines}
     window.open(`https://wa.me/?text=${text}`, "_blank");
   }
 
-  async function handleImprove() {
+  async function handleImprove(variant: "polir" | "curto" | "convincente" | "profissional" | "ats" = "polir") {
     if (!generated.trim()) return;
     setImproving(true);
+    setImproveVariant(variant);
     try {
       const letterType = method === "upload"
         ? "personalizado"
         : (selectedType?.title ?? "profissional");
-      const prompt = `Melhora e poliza este texto de carta ${letterType}, mantendo a sua estrutura e intenção mas tornando-o mais profissional e elegante:\n\n${generated}`;
+      const variantInstruction: Record<typeof variant, string> = {
+        polir: "Mantém a estrutura e intenção mas torna o texto mais elegante e fluente.",
+        curto: "Encurta o texto pelo menos 30%, mantendo apenas o essencial e os pontos fortes.",
+        convincente: "Reescreve para soar mais convincente, com verbos de acção e evidências de impacto.",
+        profissional: "Eleva o registo para um tom altamente profissional, executivo e maduro.",
+        ats: "Optimiza para sistemas ATS: inclui palavras-chave relevantes da área, evita imagens/tabelas mentais, usa termos padrão da indústria.",
+      };
+      const prompt = `Reescreve esta carta ${letterType} com TOM "${tom}" (${TONE_INSTRUCTIONS[tom]}).
+${variantInstruction[variant]}
+Mantém português correcto e estrutura de carta (saudação, corpo, encerramento, assinatura).
+
+Carta actual:
+${generated}`;
       const improved = await callGemini("letter_generate", prompt);
       setFormValues((prev) => ({ ...prev, "__improved__": improved }));
-      toast.success("Carta melhorada com IA!", { description: "Texto revisto e polido automaticamente." });
+      toast.success("Carta actualizada", { description: "Versão revista pela IA." });
     } catch (error) {
       const description = error instanceof Error ? error.message : String(error);
-      toast.error("Não foi possível melhorar a carta.", {
+      toast.error("Não foi possível actualizar a carta.", {
         description: description || "Verifique a configuração da API.",
       });
     } finally {
       setImproving(false);
+      setImproveVariant(null);
     }
   }
 
@@ -354,12 +392,17 @@ ${rtfLines}
         .map((f) => `${f.label}: ${formValues[f.key] ?? "(não preenchido)"}`)
         .join("\n");
 
-      const prompt = `Gera uma ${letterTitle} profissional com os seguintes dados:\n\n${fieldsSummary}\n\nCria uma carta completa, formal e bem estruturada.`;
+      const prompt = `Gera uma ${letterTitle} com TOM "${tom}" (${TONE_INSTRUCTIONS[tom]}).
+Dados:
+${fieldsSummary}
+
+Estrutura: data, saudação, 3-4 parágrafos (introdução com gancho, corpo com evidências/motivação, conclusão com call-to-action), despedida formal e nome.
+Português de Moçambique, claro, sem clichés. Comprimento: 250–400 palavras.`;
 
       const text = await callGemini("letter_generate", prompt);
       setFormValues((prev) => ({ ...prev, "__improved__": text }));
       setStep("preview");
-      toast.success("Carta gerada com IA!", { description: "Reveja e exporte quando estiver pronto." });
+      toast.success("Carta gerada com IA", { description: `Tom ${tom}. Reveja e exporte.` });
     } catch (error) {
       const description = error instanceof Error ? error.message : String(error);
       toast.error("Não foi possível gerar a carta com IA.", {
@@ -740,7 +783,35 @@ Atentamente,
               )}
             </div>
 
-            <div className="flex items-center justify-between mt-8 pt-6 border-t border-border gap-3">
+            {/* Tom selector — controls IA voice */}
+            <div className="mt-8 pt-6 border-t border-border">
+              <div className="mb-3">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tom da carta</p>
+                <p className="text-[11px] text-muted-foreground/80 mt-0.5">A IA usa este tom para gerar e ajustar o texto.</p>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {TONE_OPTIONS.map((t) => {
+                  const active = tom === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => setTom(t.id)}
+                      title={t.description}
+                      className={`rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        active
+                          ? "bg-foreground text-background"
+                          : "bg-card border border-border text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between mt-6 pt-6 border-t border-border gap-3">
               <button
                 onClick={() => setStep("method")}
                 className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
@@ -751,11 +822,11 @@ Atentamente,
                 <button
                   onClick={handleAIGenerate}
                   disabled={aiGenerating}
-                  title="Gerar carta automaticamente com IA Gemini (sem preencher todos os campos)"
+                  title="Gerar carta automaticamente com IA"
                   className="inline-flex items-center gap-2 rounded-xl border border-gold/40 bg-gold/10 px-4 py-2.5 text-sm font-semibold text-gold hover:bg-gold/20 shadow-card transition-smooth disabled:opacity-50"
                 >
                   {aiGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <BrainCircuit className="h-4 w-4" />}
-                  {aiGenerating ? "A gerar…" : "✨ IA Gemini"}
+                  {aiGenerating ? "A gerar…" : "✨ Gerar com IA"}
                 </button>
                 <button
                   onClick={handleGenerate}
@@ -800,18 +871,32 @@ Atentamente,
                   <><span>{selectedType?.icon}</span> {selectedType?.title}</>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={handleImprove}
-                  disabled={improving}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-smooth disabled:opacity-60"
-                >
-                  {improving ? (
-                    <><span className="animate-spin inline-block h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full" /> Melhorando…</>
-                  ) : (
-                    <><Star className="h-3.5 w-3.5 text-gold" /> Melhorar com IA</>
-                  )}
-                </button>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {[
+                  { id: "polir",        label: "Polir",        title: "Polir texto, manter intenção" },
+                  { id: "curto",        label: "Mais curto",   title: "Reduzir comprimento ~30%" },
+                  { id: "convincente",  label: "Convincente",  title: "Mais persuasivo, verbos de acção" },
+                  { id: "profissional", label: "Profissional", title: "Eleva o registo para executivo" },
+                  { id: "ats",          label: "ATS",          title: "Optimizar para sistemas de recrutamento" },
+                ].map((v) => {
+                  const busy = improving && improveVariant === v.id;
+                  return (
+                    <button
+                      key={v.id}
+                      onClick={() => handleImprove(v.id as "polir" | "curto" | "convincente" | "profissional" | "ats")}
+                      disabled={improving}
+                      title={v.title}
+                      className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
+                    >
+                      {busy ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3 w-3 text-gold" />
+                      )}
+                      {v.label}
+                    </button>
+                  );
+                })}
                 <button
                   onClick={handleCopy}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-smooth"

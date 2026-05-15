@@ -144,14 +144,17 @@ export function SiteHeader() {
   return (
     <>
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
-      <div className="container mx-auto flex h-14 items-center justify-between gap-3 px-4">
+      <div className="container mx-auto flex h-[4.25rem] items-center justify-between gap-3 px-4">
 
-        {/* Logo */}
+        {/* Logo — original size */}
         <Link to="/" className="flex items-center gap-2.5 shrink-0" onClick={() => setOpen(false)}>
-          <img src={logo} alt="Giseveral" className="h-9 w-9 rounded-lg object-cover ring-1 ring-border shadow-sm" />
+          <span className="relative">
+            <img src={logo} alt="Giseveral e Services" className="h-10 w-10 rounded-lg object-cover ring-1 ring-border shadow-card" />
+            <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-background bg-emerald-500" />
+          </span>
           <div className="hidden sm:flex flex-col leading-tight">
-            <span className="text-sm font-extrabold tracking-tight text-foreground">Giseveral</span>
-            <span className="text-[9px] tracking-[0.18em] text-muted-foreground uppercase">e Services</span>
+            <span className="text-sm font-extrabold tracking-tight text-brand">GISEVERAL</span>
+            <span className="text-[10px] tracking-widest text-gold">E SERVICES</span>
           </div>
         </Link>
 
