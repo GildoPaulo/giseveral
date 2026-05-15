@@ -1,50 +1,45 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import useEmblaCarousel from "embla-carousel-react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  BookOpen, Pen, FolderOpen, GraduationCap, FileText,
-  Printer, Laptop, Wifi, Palette, ArrowRight, ShoppingBag,
-  Star, Truck, Shield, ShoppingCart, Zap, Package,
-  Heart, GitCompareArrows, Globe, Store,
+  ArrowRight, ShoppingBag, Star, Truck, ShoppingCart, Zap, Package,
+  Heart, Store, Plane, MapPin, ShieldCheck, Facebook, Instagram, MessageCircle,
+  Check, Flame,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { useCart } from "@/contexts/CartContext";
 import { SkeletonCard } from "@/components/Skeleton";
+import { formatMZN } from "@/lib/format";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
-import stationeryBg from "@/assets/stationery.jpg";
 
 export const Route = createFileRoute("/loja/")({
   head: () => ({
     meta: [
-      { title: "Loja Giseveral — Marketplace" },
+      { title: "Loja Giseveral — Marketplace premium em Moçambique" },
       {
         name: "description",
         content:
-          "Loja online Giseveral: papelaria, eletrónicos, moda por encomenda, impressão, informática e design. Entregas na Beira, em Moçambique e envios internacionais.",
+          "Marketplace Giseveral: impressão, design, estampagem, informática, redes, papelaria, web e serviços. Vendedores verificados, entregas na Beira e em todo Moçambique.",
       },
     ],
   }),
   component: LojaIndex,
 });
 
-// ── Variants ──────────────────────────────────────────────────────────────────
+// ── Motion variants ───────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const fadeUp: any = {
   hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1, y: 0,
-    transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
-  },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } },
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const stagger: any = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.04 } },
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -55,74 +50,111 @@ const cardIn: any = {
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  BookOpen, Pen, FolderOpen, GraduationCap, FileText,
-  Printer, Laptop, Wifi, Palette,
-};
-
 type Product = Tables<"products"> & {
   product_categories: { name: string; slug: string } | null;
 };
 
-type CategorySlide = {
-  emoji: string;
-  label: string;
-  blurb: string;
-  accent: string;
-  onClick: () => void;
-};
+// ── Top category bar (Section 1) ──────────────────────────────────────────────
 
-function CategoryDotsCarousel({ slides }: { slides: CategorySlide[] }) {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" });
-  const [selected, setSelected] = useState(0);
-  const scrollTo = useCallback((i: number) => emblaApi?.scrollTo(i), [emblaApi]);
+const TOP_CATS = [
+  { id: "all",            emoji: "🛒", label: "Tudo",        slugMatch: null },
+  { id: "impressao",      emoji: "🖨️", label: "Impressão",   slugMatch: ["impressao"] },
+  { id: "design",         emoji: "🎨", label: "Design",      slugMatch: ["design-grafico"] },
+  { id: "estampagem",     emoji: "👕", label: "Estampagem",  slugMatch: ["estampagem"] },
+  { id: "informatica",    emoji: "💻", label: "Informática", slugMatch: ["formatacao-pc"] },
+  { id: "redes",          emoji: "📶", label: "Redes",       slugMatch: ["redes-wifi"] },
+  { id: "papelaria",      emoji: "📚", label: "Papelaria",   slugMatch: ["cadernos", "canetas-lapis", "pastas-arquivos", "material-escolar", "papel-blocos"] },
+  { id: "web",            emoji: "🌐", label: "Web",         slugMatch: ["web"] },
+  { id: "digitais",       emoji: "📄", label: "Digitais",    slugMatch: ["digitais"] },
+  { id: "servicos",       emoji: "🛠️", label: "Serviços",    slugMatch: ["impressao", "formatacao-pc", "redes-wifi", "design-grafico"] },
+] as const;
 
+type TopCatId = (typeof TOP_CATS)[number]["id"];
+
+// ── Hero slides (Section 2) ───────────────────────────────────────────────────
+
+const HERO_SLIDES = [
+  {
+    eyebrow: "⚡ Flash Sale — Termina em:",
+    title: "Até 40% de desconto",
+    subtitle: "Em impressão e design — só hoje.",
+    cta: "Ver ofertas",
+    image: "/images/hero-1.jpg",
+    bg: "bg-gradient-to-br from-[#0F2557] via-[#163469] to-[#1E3A8A]",
+    accent: "bg-amber-400 hover:bg-amber-300 text-slate-900",
+    showCountdown: true,
+    href: "#flash-sales",
+  },
+  {
+    eyebrow: "🛍️ Marketplace aberto",
+    title: "Qualquer pessoa pode vender",
+    subtitle: "Regista a tua loja e chega a milhares de clientes em Moçambique.",
+    cta: "Começar a vender",
+    image: "/images/hero-2.jpg",
+    bg: "bg-gradient-to-br from-[#064E3B] via-[#066047] to-[#065F46]",
+    accent: "bg-white hover:bg-slate-100 text-emerald-900",
+    showCountdown: false,
+    href: "/vendedor/registar",
+  },
+  {
+    eyebrow: "📍 Serviços locais na Beira",
+    title: "Entrega no mesmo dia",
+    subtitle: "Impressão expressa, design rápido, TI ao domicílio.",
+    cta: "Pedir agora",
+    image: "/images/hero-3.jpg",
+    bg: "bg-gradient-to-br from-[#3B0764] via-[#5B21B6] to-[#6D28D9]",
+    accent: "bg-white hover:bg-slate-100 text-purple-900",
+    showCountdown: false,
+    href: "/orcamento",
+  },
+];
+
+// ── Category cards (Section 3) ────────────────────────────────────────────────
+
+const CATEGORY_CARDS = [
+  { id: "impressao",   label: "Impressão",       image: "/images/hero-1.jpg", emoji: "🖨️", tint: "" },
+  { id: "design",      label: "Design Gráfico",  image: "/images/hero-2.jpg", emoji: "🎨", tint: "" },
+  { id: "estampagem",  label: "Estampagem",      image: "/images/hero-3.jpg", emoji: "👕", tint: "" },
+  { id: "informatica", label: "Informática",     image: "/images/hero-0.jpg", emoji: "💻", tint: "" },
+  { id: "papelaria",   label: "Papelaria",       image: null,                 emoji: "📚", tint: "bg-[#EFF6FF] text-blue-900" },
+  { id: "redes",       label: "Redes & TI",      image: null,                 emoji: "📶", tint: "bg-[#F0FDF4] text-emerald-900" },
+  { id: "web",         label: "Web & Digital",   image: null,                 emoji: "🌐", tint: "bg-[#FAF5FF] text-purple-900" },
+  { id: "servicos",    label: "Serviços",        image: null,                 emoji: "🛠️", tint: "bg-[#FFF7ED] text-orange-900" },
+] as const;
+
+// ── Countdown ─────────────────────────────────────────────────────────────────
+
+function useCountdown(targetMs: number) {
+  const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (!emblaApi) return;
-    const onSelect = () => setSelected(emblaApi.selectedScrollSnap());
-    emblaApi.on("select", onSelect);
-    onSelect();
-    return () => emblaApi.off("select", onSelect);
-  }, [emblaApi]);
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const diff = Math.max(0, targetMs - now);
+  const hours = Math.floor(diff / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+  const seconds = Math.floor((diff % 60_000) / 1000);
+  return { hours, minutes, seconds };
+}
 
+function CountdownDigits({ targetMs, compact = false }: { targetMs: number; compact?: boolean }) {
+  const { hours, minutes, seconds } = useCountdown(targetMs);
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  const size = compact ? "px-2 py-1 text-sm md:text-base" : "px-3 py-2 text-xl md:text-2xl";
   return (
-    <div className="relative">
-      <div ref={emblaRef} className="overflow-hidden">
-        <div className="flex -ml-3">
-          {slides.map((s, i) => (
-            <div
-              key={i}
-              className="min-w-0 shrink-0 grow-0 basis-[88%] pl-3 sm:basis-[52%] md:basis-[38%] lg:basis-[28%]"
-            >
-              <button
-                type="button"
-                onClick={s.onClick}
-                className={`w-full text-left rounded-2xl border border-border bg-gradient-to-br ${s.accent} bg-card p-5 shadow-card transition-smooth hover:border-gold/40 hover:shadow-elegant`}
-              >
-                <div className="text-4xl mb-3">{s.emoji}</div>
-                <div className="font-bold text-brand text-sm md:text-base leading-snug">{s.label}</div>
-                <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{s.blurb}</p>
-                <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-gold">
-                  Explorar <ArrowRight className="h-3.5 w-3.5" />
-                </span>
-              </button>
-            </div>
-          ))}
+    <div className="inline-flex items-center gap-1.5 font-mono">
+      {[
+        { v: pad(hours),   l: "h" },
+        { v: pad(minutes), l: "m" },
+        { v: pad(seconds), l: "s" },
+      ].map((b, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          <span className={`rounded-md bg-black/40 backdrop-blur-sm font-extrabold tabular-nums ${size}`}>
+            {b.v}
+          </span>
+          {i < 2 && <span className="text-base font-bold opacity-70">:</span>}
         </div>
-      </div>
-      <div className="mt-4 flex justify-center gap-1.5">
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            type="button"
-            aria-label={`Categoria ${i + 1}`}
-            onClick={() => scrollTo(i)}
-            className={`h-2 rounded-full transition-all ${
-              selected === i ? "w-7 bg-gold" : "w-2 bg-border hover:bg-muted-foreground/40"
-            }`}
-          />
-        ))}
-      </div>
+      ))}
     </div>
   );
 }
@@ -131,475 +163,712 @@ function CategoryDotsCarousel({ slides }: { slides: CategorySlide[] }) {
 
 function LojaIndex() {
   const navigate = useNavigate();
-  const [featured, setFeatured] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
   const { addItem } = useCart();
 
+  const [activeCat, setActiveCat] = useState<TopCatId>("all");
+  const [slide, setSlide] = useState(0);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [flashSales, setFlashSales] = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [loadingFlash, setLoadingFlash] = useState(true);
+
+  // Countdown target: 24 hours from first mount (stable per session).
+  const countdownTarget = useMemo(() => Date.now() + 24 * 60 * 60 * 1000, []);
+
+  // Auto-rotate hero slides every 4 seconds.
   useEffect(() => {
+    const id = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 4000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Load all active products.
+  useEffect(() => {
+    setLoadingProducts(true);
     supabase
       .from("products")
       .select("*, product_categories(name, slug)")
       .eq("active", true)
       .order("created_at", { ascending: false })
-      .limit(8)
+      .limit(30)
       .then(({ data }) => {
-        setFeatured((data as Product[]) ?? []);
-        setLoading(false);
+        setProducts((data as Product[] | null) ?? []);
+        setLoadingProducts(false);
       });
   }, []);
 
-  const categorySlides: CategorySlide[] = useMemo(
-    () => [
-      {
-        emoji: "👕",
-        label: "Moda e acessórios",
-        blurb: "Vestuário e peças sob encomenda — envie a sua ideia e cotamos.",
-        accent: "from-rose-500/15 to-card",
-        onClick: () => navigate({ to: "/orcamento" }),
-      },
-      {
-        emoji: "📱",
-        label: "Eletrónicos",
-        blurb: "Gadgets, telemóveis e acessórios — stock variável, consulte disponibilidade.",
-        accent: "from-sky-500/15 to-card",
-        onClick: () => navigate({ to: "/orcamento" }),
-      },
-      {
-        emoji: "🖨️",
-        label: "Impressão & papel",
-        blurb: "Impressão a cores, cópias, encadernação e material de escritório.",
-        accent: "from-amber-500/15 to-card",
-        onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "impressao" } }),
-      },
-      {
-        emoji: "💻",
-        label: "Informática",
-        blurb: "Formatação, reparação, software e assistência técnica.",
-        accent: "from-emerald-500/15 to-card",
-        onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "formatacao-pc" } }),
-      },
-      {
-        emoji: "📦",
-        label: "Papelaria & escolar",
-        blurb: "Cadernos, canetas, pastas e tudo para a escola ou escritório.",
-        accent: "from-brand/15 to-card",
-        onClick: () => navigate({ to: "/loja/papelaria" }),
-      },
-      {
-        emoji: "✨",
-        label: "Design & digital",
-        blurb: "Branding, artes finais, conteúdos e apoio a marketing.",
-        accent: "from-purple-500/15 to-card",
-        onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "design-grafico" } }),
-      },
-    ],
-    [navigate],
-  );
+  // Load flash sales (any product with discount).
+  useEffect(() => {
+    setLoadingFlash(true);
+    supabase
+      .from("products")
+      .select("*, product_categories(name, slug)")
+      .eq("active", true)
+      .gt("discount_percent", 0)
+      .order("discount_percent", { ascending: false })
+      .limit(10)
+      .then(({ data }) => {
+        setFlashSales((data as Product[] | null) ?? []);
+        setLoadingFlash(false);
+      });
+  }, []);
 
-  const wideCategories = useMemo(
-    () => [
-      { label: "Moda e acessórios", onClick: () => navigate({ to: "/orcamento" }) },
-      { label: "Eletrónicos e gadgets", onClick: () => navigate({ to: "/orcamento" }) },
-      { label: "Impressão profissional", onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "impressao" } }) },
-      { label: "Informática & PCs", onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "formatacao-pc" } }) },
-      { label: "Papelaria & escolar", onClick: () => navigate({ to: "/loja/papelaria" }) },
-      { label: "Serviços digitais", onClick: () => navigate({ to: "/orcamento" }) },
-      { label: "Blog & dicas", onClick: () => navigate({ to: "/blog" }) },
-      { label: "Design & branding", onClick: () => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: "design-grafico" } }) },
-    ],
-    [navigate],
-  );
-
-  const handleAdd = (p: Product) => {
-    addItem({
-      id: p.id,
-      type: "produto",
-      productId: p.id,
-      name: p.name,
-      price: p.price,
-      unit: p.unit,
-      brand: p.brand ?? undefined,
-      image: p.image_url ?? undefined,
-      weightKg: p.weight_kg,
-      lengthCm: p.length_cm,
-      widthCm: p.width_cm,
-      heightCm: p.height_cm,
-      shippingType: p.shipping_type as "local" | "national" | "international" | "digital",
-      shippingOrigin: p.shipping_origin,
-      freeShipping: p.free_shipping,
-      expressAvailable: p.express_available,
-      shippingFee: p.shipping_fee,
-      internationalShippingFee: p.international_shipping_fee,
+  const visibleProducts = useMemo(() => {
+    if (activeCat === "all") return products;
+    const def = TOP_CATS.find((c) => c.id === activeCat);
+    const slugs = def?.slugMatch ?? null;
+    if (!slugs) return products;
+    return products.filter((p) => {
+      const slug = p.product_categories?.slug;
+      return slug ? slugs.includes(slug) : false;
     });
-    toast.success(`"${p.name}" adicionado ao carrinho`);
+  }, [products, activeCat]);
+
+  const handleAdd = useCallback(
+    (p: Product) => {
+      addItem({
+        id: p.id,
+        type: "produto",
+        productId: p.id,
+        name: p.name,
+        price: p.price,
+        unit: p.unit,
+        brand: p.brand ?? undefined,
+        image: p.image_url ?? undefined,
+        weightKg: p.weight_kg,
+        lengthCm: p.length_cm,
+        widthCm: p.width_cm,
+        heightCm: p.height_cm,
+        shippingType: p.shipping_type as "local" | "national" | "international" | "digital",
+        shippingOrigin: p.shipping_origin,
+        freeShipping: p.free_shipping,
+        expressAvailable: true,
+        shippingFee: p.shipping_fee,
+        internationalShippingFee: p.international_shipping_fee,
+      });
+      toast.success(`"${p.name}" no carrinho`);
+    },
+    [addItem],
+  );
+
+  const goCategoryCard = (id: string) => {
+    if (id === "papelaria") {
+      navigate({ to: "/loja/papelaria" });
+      return;
+    }
+    if (["impressao", "design", "estampagem", "informatica", "redes", "web", "servicos"].includes(id)) {
+      const slug =
+        id === "design" ? "design-grafico" :
+        id === "informatica" ? "formatacao-pc" :
+        id === "redes" ? "redes-wifi" :
+        id;
+      navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: slug } });
+      return;
+    }
+    setActiveCat(id as TopCatId);
   };
 
-  const productCategories = [
-    { slug: "cadernos",       icon: "BookOpen",    label: "Cadernos",        color: "bg-blue-500/10 text-blue-600" },
-    { slug: "canetas-lapis",  icon: "Pen",         label: "Canetas & Lápis", color: "bg-purple-500/10 text-purple-600" },
-    { slug: "pastas-arquivos",icon: "FolderOpen",  label: "Pastas",          color: "bg-amber-500/10 text-amber-700" },
-    { slug: "material-escolar",icon: "GraduationCap",label: "Mat. Escolar",  color: "bg-emerald-500/10 text-emerald-600" },
-    { slug: "papel-blocos",   icon: "FileText",    label: "Papel & Blocos",  color: "bg-brand/10 text-brand" },
-  ];
-
-  const serviceCategories = [
-    { slug: "impressao",     icon: "Printer", label: "Impressão",     price: "A partir de 5 MZN/pág",  desc: "Impressão a cores e P&B, encadernação, plastificação" },
-    { slug: "formatacao-pc", icon: "Laptop",  label: "Formatação PC", price: "A partir de 500 MZN",    desc: "Formatação, instalação, reparação e manutenção" },
-    { slug: "redes-wifi",    icon: "Wifi",    label: "Redes & Wi-Fi", price: "A partir de 1.500 MZN",  desc: "Instalação e configuração de redes domésticas e empresariais" },
-    { slug: "design-grafico",icon: "Palette", label: "Design Gráfico",price: "A partir de 300 MZN",    desc: "Logotipos, cartazes, banners e materiais de marketing" },
-  ];
-
-  const benefits = [
-    { icon: Globe, text: "Moçambique & internacional", sub: "Entregas nacionais e cotação para o exterior" },
-    { icon: Package, text: "Marketplace alargado", sub: "Papelaria, tech, moda por encomenda e serviços" },
-    { icon: Shield, text: "Compra com apoio humano", sub: "Marcas reconhecidas e stock verificado" },
-    { icon: Star, text: "Clientes satisfeitos", sub: "Avaliação 4.9/5" },
-  ];
+  const currentSlide = HERO_SLIDES[slide];
 
   return (
     <Layout>
 
-      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-hero text-brand-foreground">
-        {/* Background photo */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-25"
-          style={{ backgroundImage: `url(${stationeryBg})` }}
-        />
-        <div className="absolute -top-20 -right-20 h-80 w-80 rounded-full bg-gold/20 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-
-        <div className="container mx-auto px-4 py-16 md:py-24 max-w-6xl relative">
-          <motion.div initial="hidden" animate="visible" variants={stagger} className="grid md:grid-cols-[1fr_auto] gap-8 items-center">
-            <div>
-              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-bold mb-5">
-                <Store className="h-3.5 w-3.5" /> LOJA GISEVERAL
-              </motion.div>
-              <motion.h1 variants={fadeUp} className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight mb-4">
-                Marketplace<br /><span className="text-gold">completo</span>
-              </motion.h1>
-              <motion.p variants={fadeUp} className="text-lg text-brand-foreground/80 max-w-xl mb-8">
-                Tudo num só lugar — papelaria, eletrónicos, moda por encomenda, impressão, informática e design.
-                Entregas na Beira, em todo Moçambique e envios internacionais sob cotação.
-              </motion.p>
-              <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
+      {/* ═════════════════════════════════════════════════════════════
+          SECTION 1 — TOP CATEGORY BAR
+          ═════════════════════════════════════════════════════════════ */}
+      <section className="sticky top-0 z-30 border-b border-border bg-white/95 dark:bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+        <div className="container mx-auto max-w-6xl px-2 md:px-4">
+          <div className="flex gap-1 overflow-x-auto py-3 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+            {TOP_CATS.map((c) => {
+              const active = activeCat === c.id;
+              return (
                 <button
+                  key={c.id}
                   type="button"
-                  onClick={() => navigate({ to: "/loja/papelaria" })}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gold px-6 py-3 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth"
+                  onClick={() => setActiveCat(c.id)}
+                  className={`flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-3 py-2 min-w-[68px] transition-smooth ${
+                    active
+                      ? "bg-brand/10 text-brand"
+                      : "text-foreground hover:bg-muted hover:text-brand"
+                  }`}
+                  aria-pressed={active}
                 >
-                  <ShoppingBag className="h-4 w-4" /> Explorar loja
+                  <span className="text-2xl leading-none">{c.emoji}</span>
+                  <span className={`text-[11px] font-semibold leading-tight ${active ? "text-brand" : ""}`}>
+                    {c.label}
+                  </span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigate({ to: "/orcamento" })}
-                  className="inline-flex items-center gap-2 rounded-xl bg-white/15 px-6 py-3 text-sm font-semibold text-brand-foreground hover:bg-white/25 transition-smooth"
-                >
-                  Pedir orçamento <ArrowRight className="h-4 w-4" />
-                </button>
-              </motion.div>
-            </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-            {/* Mini stats card */}
-            <motion.div variants={fadeUp} className="hidden md:grid grid-cols-2 gap-3 shrink-0">
-              {[
-                { label: "Produtos", value: "200+", icon: <Package className="h-5 w-5" /> },
-                { label: "Clientes", value: "1 200+", icon: <Star className="h-5 w-5" /> },
-                { label: "Categorias", value: "8+", icon: <Zap className="h-5 w-5" /> },
-                { label: "Anos",     value: "5+",    icon: <Shield className="h-5 w-5" /> },
-              ].map((s) => (
-                <div key={s.label} className="rounded-2xl bg-white/10 backdrop-blur-sm p-5 text-center">
-                  <div className="flex justify-center mb-1 text-gold">{s.icon}</div>
-                  <div className="text-2xl font-extrabold">{s.value}</div>
-                  <div className="text-xs opacity-70">{s.label}</div>
+      {/* ═════════════════════════════════════════════════════════════
+          SECTION 2 — HERO SLIDER + COUNTDOWN
+          ═════════════════════════════════════════════════════════════ */}
+      <section className="relative overflow-hidden">
+        <div className="relative h-[420px] md:h-[460px] w-full">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={slide}
+              initial={{ opacity: 0, scale: 1.02 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.99 }}
+              transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className={`absolute inset-0 ${currentSlide.bg} text-white`}
+            >
+              <div className="container mx-auto h-full max-w-6xl px-4">
+                <div className="grid h-full md:grid-cols-2 gap-6 md:gap-10 items-center">
+
+                  {/* Left content */}
+                  <div className="py-8 md:py-0">
+                    <motion.p
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2, duration: 0.5 }}
+                      className="text-sm md:text-base font-semibold text-white/85 mb-3 flex flex-wrap items-center gap-2"
+                    >
+                      {currentSlide.eyebrow}
+                      {currentSlide.showCountdown && (
+                        <CountdownDigits targetMs={countdownTarget} />
+                      )}
+                    </motion.p>
+
+                    <motion.h1
+                      initial={{ opacity: 0, y: 24 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3, duration: 0.55 }}
+                      className="text-3xl md:text-5xl font-extrabold leading-[1.05] mb-4"
+                    >
+                      {currentSlide.title}
+                    </motion.h1>
+
+                    <motion.p
+                      initial={{ opacity: 0, y: 24 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4, duration: 0.55 }}
+                      className="text-base md:text-lg text-white/85 mb-6 max-w-lg"
+                    >
+                      {currentSlide.subtitle}
+                    </motion.p>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 24 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.5, duration: 0.55 }}
+                    >
+                      {currentSlide.href.startsWith("#") ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const el = document.getElementById(currentSlide.href.slice(1));
+                            el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }}
+                          className={`inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold shadow-card hover:shadow-elegant transition-smooth ${currentSlide.accent}`}
+                        >
+                          {currentSlide.cta} <ArrowRight className="h-4 w-4" />
+                        </button>
+                      ) : (
+                        <a
+                          href={currentSlide.href}
+                          className={`inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold shadow-card hover:shadow-elegant transition-smooth ${currentSlide.accent}`}
+                        >
+                          {currentSlide.cta} <ArrowRight className="h-4 w-4" />
+                        </a>
+                      )}
+                    </motion.div>
+                  </div>
+
+                  {/* Right image */}
+                  <motion.div
+                    initial={{ opacity: 0, x: 40, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    transition={{ delay: 0.3, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    className="relative hidden md:block"
+                  >
+                    <div className="relative aspect-[4/3] w-full max-w-md ml-auto">
+                      <img
+                        src={currentSlide.image}
+                        alt={currentSlide.title}
+                        className="absolute inset-0 h-full w-full rounded-2xl object-cover shadow-2xl border-4 border-white/15"
+                      />
+                      <div className="absolute -top-3 -right-3 rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold text-slate-900 shadow-lg">
+                        NEW
+                      </div>
+                    </div>
+                  </motion.div>
                 </div>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Dots */}
+          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+            {HERO_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setSlide(i)}
+                aria-label={`Slide ${i + 1}`}
+                className={`h-2 rounded-full transition-all ${
+                  slide === i ? "w-8 bg-white" : "w-2 bg-white/40 hover:bg-white/70"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═════════════════════════════════════════════════════════════
+          SECTION 3 — CATEGORY CARDS (AliExpress-style)
+          ═════════════════════════════════════════════════════════════ */}
+      <section className="bg-muted/40 py-12">
+        <div className="container mx-auto max-w-6xl px-4">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={stagger}>
+            <motion.div variants={fadeUp} className="mb-6 flex items-end justify-between gap-4">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-foreground">Explorar categorias</h2>
+                <p className="text-sm text-muted-foreground mt-1">Encontra o que procuras em segundos.</p>
+              </div>
+            </motion.div>
+
+            <motion.div variants={stagger} className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+              {CATEGORY_CARDS.map((c) => (
+                <motion.button
+                  key={c.id}
+                  type="button"
+                  onClick={() => goCategoryCard(c.id)}
+                  variants={cardIn}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group relative h-[140px] overflow-hidden rounded-2xl shadow-card hover:shadow-elegant transition-smooth text-left"
+                >
+                  {c.image ? (
+                    <>
+                      <img
+                        src={c.image}
+                        alt={c.label}
+                        className="absolute inset-0 h-full w-full object-cover transition-smooth duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent transition-smooth group-hover:from-black/60" />
+                      <div className="relative h-full flex flex-col justify-end p-4">
+                        <span className="text-3xl mb-1">{c.emoji}</span>
+                        <p className="text-white font-bold text-base drop-shadow">{c.label}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <div className={`relative h-full p-4 flex flex-col justify-between ${c.tint}`}>
+                      <span className="text-4xl">{c.emoji}</span>
+                      <div>
+                        <p className="font-extrabold text-base leading-tight">{c.label}</p>
+                        <span className="mt-1 inline-flex items-center gap-1 text-xs font-semibold opacity-80">
+                          Ver tudo <ArrowRight className="h-3 w-3" />
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </motion.button>
               ))}
             </motion.div>
           </motion.div>
         </div>
       </section>
 
-      {/* ── BENEFITS BAR ─────────────────────────────────────────────────────── */}
-      <section className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4 max-w-6xl">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {benefits.map(({ icon: Icon, text, sub }) => (
-              <div key={text} className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gold/10 text-gold shrink-0">
-                  <Icon className="h-4 w-4" />
+      {/* ═════════════════════════════════════════════════════════════
+          SECTION 4 — FLASH SALES
+          ═════════════════════════════════════════════════════════════ */}
+      <section id="flash-sales" className="bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-12 border-y border-amber-200/60">
+        <div className="container mx-auto max-w-6xl px-4">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.1 }} variants={fadeUp}>
+            <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-amber-500 to-rose-500 text-white shadow-lg">
+                  <Flame className="h-6 w-6" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-foreground">{text}</div>
-                  <div className="text-[11px] text-muted-foreground">{sub}</div>
+                  <h2 className="text-2xl md:text-3xl font-extrabold text-foreground leading-tight">Ofertas do dia</h2>
+                  <p className="text-sm text-muted-foreground">Preços reduzidos só por hoje.</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CATEGORIAS (carrossel + atalhos) ─────────────────────────────────── */}
-      <section className="border-b border-border bg-muted/30 py-12">
-        <div className="container mx-auto max-w-6xl px-4">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-            <motion.div variants={fadeUp} className="mb-8 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 rounded-full bg-gold/10 px-3 py-1 text-xs font-bold text-gold mb-3">
-                <Store className="h-3.5 w-3.5" /> CATEGORIAS
+              <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-card">
+                <span className="text-xs font-bold text-rose-600 uppercase tracking-wider">Acaba em</span>
+                <div className="text-rose-700">
+                  <CountdownDigits targetMs={countdownTarget} compact />
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-brand">Explore por área</h2>
-              <p className="text-sm text-muted-foreground mt-1 max-w-2xl mx-auto md:mx-0">
-                Deslize o carrossel (pontos em baixo) — papelaria, tecnologia, impressão, design e pedidos especiais.
-              </p>
-            </motion.div>
-            <motion.div variants={fadeUp}>
-              <CategoryDotsCarousel slides={categorySlides} />
-            </motion.div>
-            <motion.div variants={fadeUp} className="mt-10">
-              <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3 text-center md:text-left">
-                Também na loja
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                {wideCategories.map((c) => (
-                  <button
-                    key={c.label}
-                    type="button"
-                    onClick={c.onClick}
-                    className="rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground hover:border-gold/50 hover:text-brand transition-smooth"
-                  >
-                    {c.label}
-                  </button>
+            </div>
+
+            {loadingFlash ? (
+              <div className="flex gap-4 overflow-x-auto pb-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="w-[180px] md:w-[200px] shrink-0">
+                    <SkeletonCard />
+                  </div>
                 ))}
               </div>
-            </motion.div>
+            ) : flashSales.length === 0 ? (
+              <div className="rounded-2xl border-2 border-dashed border-amber-300 bg-white/60 p-8 text-center">
+                <Flame className="mx-auto mb-3 h-8 w-8 text-amber-500" />
+                <p className="text-sm font-semibold text-foreground">Ofertas a caminho.</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Estamos a preparar descontos exclusivos — volte em breve.
+                </p>
+              </div>
+            ) : (
+              <div className="flex gap-4 overflow-x-auto pb-4 -mx-2 px-2 snap-x snap-mandatory">
+                {flashSales.map((p) => (
+                  <FlashSaleCard key={p.id} product={p} onAdd={handleAdd} onOpen={() => navigate({ to: "/loja/produto/$id", params: { id: p.id } })} />
+                ))}
+              </div>
+            )}
           </motion.div>
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-14 max-w-6xl">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-          <motion.div variants={fadeUp} className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-brand">Papelaria & escritório</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">Atalhos rápidos para o catálogo online</p>
+      {/* ═════════════════════════════════════════════════════════════
+          SECTION 5 — MULTI-VENDOR BANNER
+          ═════════════════════════════════════════════════════════════ */}
+      <section className="container mx-auto max-w-6xl px-4 py-12">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={stagger} className="grid md:grid-cols-2 gap-4">
+
+          <motion.div variants={fadeUp} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0F2557] to-[#1E3A8A] text-white p-7 md:p-9">
+            <div className="absolute -top-12 -right-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wide">
+                <ShieldCheck className="h-3.5 w-3.5" /> Comprador
+              </span>
+              <h3 className="mt-3 text-2xl font-extrabold leading-tight">
+                Compra de vendedores<br />locais verificados
+              </h3>
+              <ul className="mt-4 space-y-2 text-sm text-white/90">
+                {["Entrega rápida na Beira", "Pagamento seguro M-Pesa / e-Mola / cartão", "Suporte humano 24 h"].map((t) => (
+                  <li key={t} className="flex items-center gap-2">
+                    <Check className="h-4 w-4 text-amber-300" /> {t}
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to="/loja/papelaria"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-[#1E3A8A] hover:bg-slate-100 transition-smooth"
+              >
+                Comprar agora <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
-            <button
-              type="button"
-              onClick={() => navigate({ to: "/loja/papelaria" })}
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-gold transition-smooth"
-            >
-              Ver todos <ArrowRight className="h-4 w-4" />
-            </button>
           </motion.div>
 
-          <motion.div variants={stagger} className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-            {productCategories.map(({ slug, icon, label, color }) => {
-              const Icon = iconMap[icon];
-              return (
-                <motion.div key={slug} variants={cardIn} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-                  <button
-                    type="button"
-                    onClick={() => navigate({ to: "/loja/papelaria", search: { categoria: slug } })}
-                    className="group w-full flex flex-col items-center gap-2.5 rounded-2xl border border-border bg-card p-4 text-center transition-smooth hover:border-gold/40 hover:shadow-elegant"
-                  >
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl transition-smooth group-hover:bg-gold group-hover:text-gold-foreground ${color}`}>
-                      {Icon && <Icon className="h-5 w-5" />}
-                    </div>
-                    <span className="text-xs font-semibold text-foreground leading-tight">{label}</span>
-                  </button>
-                </motion.div>
-              );
-            })}
+          <motion.div variants={fadeUp} className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#064E3B] to-[#065F46] text-white p-7 md:p-9">
+            <div className="absolute -bottom-12 -left-12 h-44 w-44 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wide">
+                <Store className="h-3.5 w-3.5" /> Vendedor
+              </span>
+              <h3 className="mt-3 text-2xl font-extrabold leading-tight">
+                Vende os teus produtos<br />aqui na Giseveral
+              </h3>
+              <p className="mt-3 text-sm text-white/85 max-w-md">
+                Regista a tua loja grátis e começa a vender hoje. Sem custos fixos — pagas apenas comissão sobre vendas.
+              </p>
+              <a
+                href="/vendedor/registar"
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-amber-400 px-5 py-3 text-sm font-bold text-emerald-900 hover:bg-amber-300 transition-smooth"
+              >
+                Criar loja <ArrowRight className="h-4 w-4" />
+              </a>
+            </div>
           </motion.div>
         </motion.div>
       </section>
 
-      {/* ── PRODUTOS EM DESTAQUE ──────────────────────────────────────────────── */}
-      {(loading || featured.length > 0) && (
-        <section className="bg-muted/40 py-14">
-          <div className="container mx-auto px-4 max-w-6xl">
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-              <motion.div variants={fadeUp} className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-2xl font-bold text-brand">Produtos em Destaque</h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">Até 8 produtos mais recentes — mistura de categorias</p>
-                </div>
+      {/* ═════════════════════════════════════════════════════════════
+          SECTION 6 — POPULAR PRODUCTS
+          ═════════════════════════════════════════════════════════════ */}
+      <section className="bg-muted/30 py-14">
+        <div className="container mx-auto max-w-6xl px-4">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.05 }} variants={stagger}>
+            <motion.div variants={fadeUp} className="mb-7 flex items-end justify-between gap-4 flex-wrap">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-extrabold text-foreground">Produtos populares</h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {activeCat === "all"
+                    ? "Os preferidos da comunidade Giseveral."
+                    : `A filtrar por: ${TOP_CATS.find((c) => c.id === activeCat)?.label ?? ""}`}
+                </p>
+              </div>
+              <Link
+                to="/loja/papelaria"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-gold transition-smooth"
+              >
+                Ver tudo <ArrowRight className="h-4 w-4" />
+              </Link>
+            </motion.div>
+
+            {loadingProducts ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                {Array.from({ length: 10 }).map((_, i) => <SkeletonCard key={i} />)}
+              </div>
+            ) : visibleProducts.length === 0 ? (
+              <div className="rounded-2xl border-2 border-dashed border-border bg-card p-10 text-center">
+                <Package className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
+                <p className="text-sm font-semibold text-foreground">Sem produtos nesta categoria.</p>
+                <p className="text-xs text-muted-foreground mt-1">Tente outra ou volte ao topo.</p>
                 <button
                   type="button"
-                  onClick={() => navigate({ to: "/loja/papelaria" })}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand hover:text-gold transition-smooth"
+                  onClick={() => setActiveCat("all")}
+                  className="mt-4 rounded-xl bg-brand px-4 py-2 text-xs font-bold text-brand-foreground hover:opacity-90 transition-smooth"
                 >
-                  Ver tudo <ArrowRight className="h-4 w-4" />
+                  Ver todos os produtos
                 </button>
-              </motion.div>
-
-              {loading ? (
-                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                  {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
-                </div>
-              ) : (
-              <motion.div variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {featured.map((p) => (
-                  <motion.div key={p.id} variants={cardIn} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
-                    <div className="group flex flex-col rounded-2xl border border-border bg-card shadow-card overflow-hidden h-full">
-                      <button
-                        type="button"
-                        onClick={() => navigate({ to: "/loja/produto/$id", params: { id: p.id } })}
-                        className="block relative aspect-square overflow-hidden bg-muted"
-                      >
-                        {p.image_url ? (
-                          <img
-                            src={p.image_url}
-                            alt={p.name}
-                            className="h-full w-full object-cover group-hover:scale-105 transition-smooth"
-                          />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center">
-                            <ShoppingBag className="h-14 w-14 text-muted-foreground/30" />
-                          </div>
-                        )}
-                        {p.stock === 0 && (
-                          <div className="absolute inset-0 bg-background/70 grid place-items-center">
-                            <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">Esgotado</span>
-                          </div>
-                        )}
-                        <div className="absolute right-3 top-3 flex flex-col gap-2 opacity-0 transition-smooth group-hover:opacity-100">
-                          <span className="grid h-9 w-9 place-items-center rounded-full bg-background/90 text-foreground shadow-card backdrop-blur" title="Guardar na wishlist">
-                            <Heart className="h-4 w-4" />
-                          </span>
-                          <span className="grid h-9 w-9 place-items-center rounded-full bg-background/90 text-foreground shadow-card backdrop-blur" title="Comparar produto">
-                            <GitCompareArrows className="h-4 w-4" />
-                          </span>
-                        </div>
-                        {p.stock > 0 && (
-                          <span className="absolute left-3 top-3 rounded-full bg-emerald-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-card">
-                            Entrega rapida
-                          </span>
-                        )}
-                      </button>
-
-                      <div className="flex flex-col flex-1 p-4">
-                        {p.product_categories && (
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-gold mb-1">
-                            {p.product_categories.name}
-                          </span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => navigate({ to: "/loja/produto/$id", params: { id: p.id } })}
-                          className="text-sm font-semibold text-foreground line-clamp-2 hover:text-brand transition-colors text-left leading-snug mb-1"
-                        >
-                          {p.name}
-                        </button>
-                        {p.brand && <p className="text-xs text-muted-foreground mb-3">{p.brand}</p>}
-
-                        <div className="mt-auto">
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-lg font-extrabold text-brand">
-                              {p.price.toLocaleString("pt-MZ", { minimumFractionDigits: 2 })} MZN
-                            </span>
-                            <StockBadge stock={p.stock} />
-                          </div>
-                          <button
-                            onClick={() => handleAdd(p)}
-                            disabled={p.stock === 0}
-                            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-brand py-2.5 text-xs font-bold text-brand-foreground transition-smooth hover:shadow-card disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            <ShoppingCart className="h-3.5 w-3.5" /> Adicionar
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
+              </div>
+            ) : (
+              <motion.div variants={stagger} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                {visibleProducts.slice(0, 15).map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    onAdd={() => handleAdd(p)}
+                    onOpen={() => navigate({ to: "/loja/produto/$id", params: { id: p.id } })}
+                  />
                 ))}
               </motion.div>
-              )}
-            </motion.div>
-          </div>
-        </section>
-      )}
+            )}
+          </motion.div>
+        </div>
+      </section>
 
-      {/* ── SERVIÇOS ─────────────────────────────────────────────────────────── */}
-      <section className="container mx-auto px-4 py-14 max-w-6xl">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={stagger}>
-          <motion.div variants={fadeUp} className="mb-8">
-            <h2 className="text-2xl font-bold text-brand">Serviços Disponíveis</h2>
-            <p className="text-sm text-muted-foreground mt-0.5">Impressão, informática, redes e design</p>
+      {/* ═════════════════════════════════════════════════════════════
+          SECTION 7 — LOCAL / NATIONAL / INTERNATIONAL SHIPPING
+          ═════════════════════════════════════════════════════════════ */}
+      <section className="container mx-auto max-w-6xl px-4 py-14">
+        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} variants={stagger}>
+          <motion.div variants={fadeUp} className="mb-8 text-center max-w-2xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-foreground">Entregamos onde estiveres</h2>
+            <p className="text-sm text-muted-foreground mt-2">Da Beira ao resto do mundo, com opções para cada bolso.</p>
           </motion.div>
 
-          <motion.div variants={stagger} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {serviceCategories.map(({ slug, icon, label, price, desc }) => {
-              const Icon = iconMap[icon];
-              return (
-                <motion.div key={slug} variants={cardIn} whileHover={{ y: -4, transition: { duration: 0.2 } }}>
-                  <button
-                    type="button"
-                    onClick={() => navigate({ to: "/loja/papelaria", search: { tipo: "servico", categoria: slug } })}
-                    className="group w-full text-left rounded-2xl border border-border bg-card p-6 transition-smooth hover:shadow-elegant hover:border-gold/40"
-                  >
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-brand text-brand-foreground mb-4 transition-smooth group-hover:bg-gradient-gold group-hover:text-gold-foreground">
-                      {Icon && <Icon className="h-5 w-5" />}
-                    </div>
-                    <h3 className="font-bold text-base text-brand mb-1">{label}</h3>
-                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2 leading-relaxed">{desc}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-gold">{price}</span>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-brand transition-smooth" />
-                    </div>
-                  </button>
-                </motion.div>
-              );
-            })}
+          <motion.div variants={stagger} className="grid sm:grid-cols-3 gap-4">
+            {[
+              { icon: Package, badge: "📦", title: "Entrega local · Beira", desc: "Motoboy no mesmo dia", price: "a partir de 80 MZN", color: "from-blue-500/15 to-card border-blue-200" },
+              { icon: Truck,   badge: "🚚", title: "Entrega nacional",       desc: "Todo Moçambique",       price: "3–5 dias úteis",     color: "from-emerald-500/15 to-card border-emerald-200" },
+              { icon: Plane,   badge: "✈️", title: "Envio internacional",   desc: "DHL / FedEx",           price: "cotação por pedido", color: "from-purple-500/15 to-card border-purple-200" },
+            ].map(({ icon: Icon, badge, title, desc, price, color }) => (
+              <motion.div key={title} variants={cardIn} whileHover={{ y: -4 }} className={`group rounded-2xl border bg-gradient-to-br ${color} p-6 shadow-card hover:shadow-elegant transition-smooth`}>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="grid h-11 w-11 place-items-center rounded-xl bg-white shadow-card text-brand">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className="text-2xl">{badge}</span>
+                </div>
+                <h3 className="text-base font-extrabold text-foreground">{title}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{desc}</p>
+                <p className="mt-3 inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-brand">
+                  <MapPin className="h-3.5 w-3.5" /> {price}
+                </p>
+              </motion.div>
+            ))}
           </motion.div>
         </motion.div>
       </section>
 
-      {/* ── CTA ENTREGA ──────────────────────────────────────────────────────── */}
-      <section className="container mx-auto px-4 pb-20 max-w-6xl">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={fadeUp}
-          className="relative overflow-hidden rounded-3xl bg-gradient-hero text-brand-foreground p-8 sm:p-12"
-        >
-          <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-gold/25 blur-3xl pointer-events-none" />
-          <div className="grid md:grid-cols-[1fr_auto] gap-8 items-center relative">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/20 text-gold text-xs font-bold mb-3">
-                <Globe className="h-3.5 w-3.5" /> ENVIOS NACIONAIS E INTERNACIONAIS
-              </div>
-              <h2 className="text-2xl md:text-3xl font-bold mb-2">Entregamos em todo Moçambique</h2>
-              <p className="text-brand-foreground/80 max-w-lg">
-                Beira: entrega rápida ao domicílio (30 min–2 h). Resto do país por transportadora ou acordo.
-                Encomendas volumosas ou para o exterior — cotação personalizada.
-              </p>
-            </div>
-            <div className="flex flex-col sm:flex-row md:flex-col gap-3 shrink-0">
-              <button
-                type="button"
-                onClick={() => navigate({ to: "/loja/papelaria" })}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-7 py-4 text-sm font-bold text-gold-foreground shadow-card hover:shadow-glow transition-smooth whitespace-nowrap"
+      {/* ═════════════════════════════════════════════════════════════
+          SECTION 8 — SOCIAL + STORE FOOTER
+          ═════════════════════════════════════════════════════════════ */}
+      <section className="bg-gradient-to-br from-brand to-brand/80 text-brand-foreground py-14">
+        <div className="container mx-auto max-w-4xl px-4 text-center">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+            <p className="text-xs font-bold uppercase tracking-widest text-amber-300 mb-3">Comunidade Giseveral</p>
+            <h2 className="text-2xl md:text-3xl font-extrabold mb-3">Segue-nos para novidades e promoções diárias</h2>
+            <p className="text-sm text-brand-foreground/80 max-w-xl mx-auto mb-7">
+              Ofertas relâmpago, novos vendedores e bastidores dos nossos serviços — tudo em primeira mão.
+            </p>
+
+            <div className="flex flex-wrap justify-center gap-3">
+              <a
+                href="https://facebook.com/GiseveralServices"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#1877F2] px-5 py-3 text-sm font-bold hover:bg-[#166FE5] transition-smooth shadow-card"
               >
-                <ShoppingBag className="h-4 w-4" /> Explorar produtos
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate({ to: "/orcamento" })}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/15 px-7 py-4 text-sm font-semibold text-brand-foreground hover:bg-white/25 transition-smooth whitespace-nowrap"
+                <Facebook className="h-4 w-4" /> Facebook
+              </a>
+              <a
+                href="https://instagram.com/giseveral"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-[#833AB4] via-[#E1306C] to-[#F56040] px-5 py-3 text-sm font-bold hover:opacity-90 transition-smooth shadow-card"
               >
-                <Truck className="h-4 w-4" /> Métodos de envio
-              </button>
+                <Instagram className="h-4 w-4" /> Instagram
+              </a>
+              <a
+                href="https://wa.me/258874383621"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-5 py-3 text-sm font-bold hover:bg-[#20BD5A] transition-smooth shadow-card"
+              >
+                <MessageCircle className="h-4 w-4" /> WhatsApp
+              </a>
             </div>
-          </div>
-        </motion.div>
+
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-6 text-xs text-brand-foreground/70">
+              <Link to="/loja/papelaria" className="hover:text-amber-300 transition-smooth">Catálogo</Link>
+              <Link to="/loja/carrinho" className="hover:text-amber-300 transition-smooth">Carrinho</Link>
+              <Link to="/orcamento" className="hover:text-amber-300 transition-smooth">Orçamento</Link>
+              <Link to="/contactos" className="hover:text-amber-300 transition-smooth">Contactos</Link>
+            </div>
+          </motion.div>
+        </div>
       </section>
 
     </Layout>
   );
 }
 
-function StockBadge({ stock }: { stock: number }) {
-  if (stock > 5) return <span className="text-[10px] font-semibold rounded-full bg-emerald-500/15 text-emerald-600 px-2 py-0.5">Em stock</span>;
-  if (stock > 0) return <span className="text-[10px] font-semibold rounded-full bg-amber-500/15 text-amber-700 px-2 py-0.5">Pouco stock</span>;
-  return <span className="text-[10px] font-semibold rounded-full bg-red-500/15 text-red-600 px-2 py-0.5">Esgotado</span>;
+// ── Product cards ─────────────────────────────────────────────────────────────
+
+function FlashSaleCard({
+  product,
+  onAdd,
+  onOpen,
+}: {
+  product: Product;
+  onAdd: (p: Product) => void;
+  onOpen: () => void;
+}) {
+  const discount = product.discount_percent ?? 0;
+  const original = product.compare_price ?? (discount > 0 ? product.price / (1 - discount / 100) : null);
+  const soldPct = Math.min(95, 25 + (product.sales_count ?? 0) * 2);
+  return (
+    <motion.div
+      variants={cardIn}
+      whileHover={{ y: -3 }}
+      className="w-[180px] md:w-[210px] shrink-0 snap-start rounded-2xl bg-white shadow-card overflow-hidden border border-amber-200/60"
+    >
+      <button type="button" onClick={onOpen} className="relative block aspect-square w-full bg-muted overflow-hidden">
+        {product.image_url ? (
+          <img src={product.image_url} alt={product.name} className="h-full w-full object-cover transition-smooth hover:scale-105" />
+        ) : (
+          <div className="h-full w-full grid place-items-center text-muted-foreground">
+            <ShoppingBag className="h-10 w-10 opacity-40" />
+          </div>
+        )}
+        {discount > 0 && (
+          <span className="absolute top-2 left-2 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-extrabold text-white shadow">
+            −{discount}%
+          </span>
+        )}
+      </button>
+      <div className="p-3">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="text-xs font-semibold text-foreground truncate w-full text-left hover:text-brand transition-colors"
+          title={product.name}
+        >
+          {product.name}
+        </button>
+        <div className="mt-1.5 flex items-baseline gap-2">
+          <span className="text-sm font-extrabold text-rose-600">{formatMZN(product.price)}</span>
+          {original && original > product.price && (
+            <span className="text-[10px] text-muted-foreground line-through">{formatMZN(original)}</span>
+          )}
+        </div>
+        <div className="mt-2.5">
+          <div className="h-1.5 rounded-full bg-amber-100 overflow-hidden">
+            <div className="h-full rounded-full bg-gradient-to-r from-amber-500 to-rose-500 transition-all" style={{ width: `${soldPct}%` }} />
+          </div>
+          <p className="mt-1 text-[10px] font-bold text-rose-600">{soldPct}% vendido</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => onAdd(product)}
+          disabled={product.stock === 0}
+          className="mt-2.5 w-full rounded-lg bg-gradient-to-r from-amber-500 to-rose-500 py-2 text-[11px] font-bold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-smooth"
+        >
+          {product.stock === 0 ? "Esgotado" : "Comprar"}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+function ProductCard({
+  product,
+  onAdd,
+  onOpen,
+}: {
+  product: Product;
+  onAdd: () => void;
+  onOpen: () => void;
+}) {
+  const rating = product.rating ?? 0;
+  const reviewCount = product.review_count ?? 0;
+  const seller = product.seller_name ?? "Giseveral";
+  return (
+    <motion.div variants={cardIn} whileHover={{ y: -4 }} className="group rounded-2xl bg-card shadow-card overflow-hidden border border-border hover:border-brand/30 hover:shadow-elegant transition-smooth flex flex-col">
+      <button type="button" onClick={onOpen} className="relative block aspect-square w-full bg-muted overflow-hidden">
+        {product.image_url ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            loading="lazy"
+            className="h-full w-full object-cover transition-smooth duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="h-full w-full grid place-items-center text-muted-foreground">
+            <ShoppingBag className="h-12 w-12 opacity-30" />
+          </div>
+        )}
+        {product.stock === 0 && (
+          <div className="absolute inset-0 bg-white/70 grid place-items-center">
+            <span className="rounded-full bg-muted px-2.5 py-1 text-[10px] font-bold uppercase">Esgotado</span>
+          </div>
+        )}
+        {(product.discount_percent ?? 0) > 0 && (
+          <span className="absolute top-2 left-2 rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-extrabold text-white shadow">
+            −{product.discount_percent}%
+          </span>
+        )}
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); /* future wishlist */ }}
+          className="absolute top-2 right-2 grid h-8 w-8 place-items-center rounded-full bg-white/90 text-foreground shadow opacity-0 group-hover:opacity-100 hover:bg-white transition-smooth"
+          aria-label="Adicionar à wishlist"
+          title="Wishlist"
+        >
+          <Heart className="h-4 w-4" />
+        </button>
+      </button>
+
+      <div className="flex flex-col flex-1 p-3">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-brand/80 truncate" title={seller}>
+          {seller}
+        </span>
+        <button
+          type="button"
+          onClick={onOpen}
+          className="mt-1 text-sm font-semibold text-foreground line-clamp-2 leading-snug text-left hover:text-brand transition-colors min-h-[2.5rem]"
+          title={product.name}
+        >
+          {product.name}
+        </button>
+
+        <div className="mt-1.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+          <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+          <span className="font-semibold text-foreground">{rating > 0 ? rating.toFixed(1) : "Novo"}</span>
+          {reviewCount > 0 && <span>({reviewCount})</span>}
+        </div>
+
+        <div className="mt-auto pt-3">
+          <p className="text-base font-extrabold text-brand">{formatMZN(product.price)}</p>
+          <button
+            type="button"
+            onClick={onAdd}
+            disabled={product.stock === 0}
+            className="mt-2 w-full flex items-center justify-center gap-1.5 rounded-lg bg-brand py-2 text-[11px] font-bold text-brand-foreground hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-smooth"
+          >
+            <ShoppingCart className="h-3.5 w-3.5" /> Adicionar
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
 }

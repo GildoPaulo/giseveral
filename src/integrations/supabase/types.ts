@@ -214,6 +214,7 @@ export type Database = {
           compare_price: number | null
           created_at: string
           description: string | null
+          discount_percent: number
           featured: boolean
           free_shipping: boolean
           height_cm: number | null
@@ -223,6 +224,11 @@ export type Database = {
           length_cm: number | null
           name: string
           price: number
+          rating: number
+          review_count: number
+          sales_count: number
+          seller_id: string | null
+          seller_name: string | null
           shipping_fee: number | null
           shipping_origin: string
           shipping_type: string
@@ -240,6 +246,7 @@ export type Database = {
           compare_price?: number | null
           created_at?: string
           description?: string | null
+          discount_percent?: number
           featured?: boolean
           free_shipping?: boolean
           height_cm?: number | null
@@ -249,6 +256,11 @@ export type Database = {
           length_cm?: number | null
           name: string
           price: number
+          rating?: number
+          review_count?: number
+          sales_count?: number
+          seller_id?: string | null
+          seller_name?: string | null
           shipping_fee?: number | null
           shipping_origin?: string
           shipping_type?: string
@@ -266,6 +278,7 @@ export type Database = {
           compare_price?: number | null
           created_at?: string
           description?: string | null
+          discount_percent?: number
           featured?: boolean
           free_shipping?: boolean
           height_cm?: number | null
@@ -275,6 +288,11 @@ export type Database = {
           length_cm?: number | null
           name?: string
           price?: number
+          rating?: number
+          review_count?: number
+          sales_count?: number
+          seller_id?: string | null
+          seller_name?: string | null
           shipping_fee?: number | null
           shipping_origin?: string
           shipping_type?: string

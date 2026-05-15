@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/Layout";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
 import { Lightbox } from "@/components/Lightbox";
@@ -10,7 +10,7 @@ import { PromoSlider } from "@/components/promos/PromoSlider";
 import { MiniBanner } from "@/components/promos/MiniBanner";
 import { PromoPopup } from "@/components/promos/PromoPopup";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { StatCounter } from "@/components/StatCounter";
 import { fetchHubNews } from "@/lib/hub";
 import { HUB_NEWS, type NewsItem } from "@/data/hub-bolsas";
@@ -213,66 +213,41 @@ function Index() {
       {/* ── HERO ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden bg-gradient-to-br from-brand/5 via-background to-blue-50/60 dark:from-brand/10 dark:via-background dark:to-background">
 
-        {/* Decorative rings */}
-        <div className="pointer-events-none absolute -left-24 top-1/4 h-80 w-80 rounded-full border border-brand/10" />
-        <div className="pointer-events-none absolute -left-16 top-1/4 h-56 w-56 rounded-full border border-brand/8" />
-        <div className="pointer-events-none absolute -bottom-20 right-1/3 h-64 w-64 rounded-full border border-gold/10" />
-        <div className="pointer-events-none absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-brand/5 blur-[80px]" />
-
-        {/* Dot grid — right side */}
-        <div
-          className="pointer-events-none absolute right-0 top-0 h-full w-1/3 opacity-[0.06] dark:opacity-[0.04]"
-          style={{ backgroundImage: "radial-gradient(circle, var(--brand) 1.5px, transparent 1.5px)", backgroundSize: "28px 28px" }}
-        />
+        {/* Soft decorative blob — opacity reduced (0.2 per spec) */}
+        <div className="pointer-events-none absolute top-0 right-0 h-[500px] w-[500px] rounded-full bg-brand/5 blur-[80px] opacity-20" />
+        <div className="pointer-events-none absolute -bottom-20 -left-10 h-[400px] w-[400px] rounded-full bg-gold/5 blur-[80px] opacity-20" />
 
         <div className="container mx-auto max-w-6xl px-4 py-16 md:py-24 relative">
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } } }}
+            className="grid lg:grid-cols-2 gap-10 items-center"
+          >
 
             {/* ── Left: Text ── */}
-            <motion.div className="order-2 lg:order-1" initial="hidden" animate="visible">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1 text-[11px] font-bold tracking-widest text-brand uppercase"
-              >
+            <div className="order-2 lg:order-1">
+              <motion.div variants={fadeUp} className="inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand/8 px-3 py-1 text-[11px] font-bold tracking-widest text-brand uppercase">
                 ✦ Soluções Profissionais · Beira, Moçambique
               </motion.div>
 
               <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.15 }}
+                variants={fadeUp}
                 className="mt-5 text-4xl font-extrabold leading-[1.1] text-foreground sm:text-5xl lg:text-6xl"
               >
                 A Empresa Líder<br />em Impressão e<br />
                 <span className="text-brand">Tecnologia</span>
               </motion.h1>
 
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="mt-5 text-base text-muted-foreground min-h-[1.6rem]"
-              >
+              <motion.p variants={fadeUp} className="mt-5 text-base text-muted-foreground min-h-[1.6rem]">
                 <TypewriterText phrases={typewriterPhrases} className="font-semibold text-brand" />
               </motion.p>
 
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.25 }}
-                className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground"
-              >
+              <motion.p variants={fadeUp} className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
                 Mais de 10 anos a servir estudantes, empresas e famílias na Beira com qualidade, rapidez e preços honestos.
               </motion.p>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="mt-8 flex flex-wrap items-center gap-4"
-              >
+              <motion.div variants={fadeUp} className="mt-8 flex flex-wrap items-center gap-4">
                 <Link
                   to="/servicos"
                   className="inline-flex items-center gap-2 rounded-lg bg-gradient-brand px-7 py-3.5 text-sm font-bold text-brand-foreground shadow-card hover:shadow-elegant hover:-translate-y-0.5 transition-smooth"
@@ -291,68 +266,84 @@ function Index() {
                 </a>
               </motion.div>
 
-              {/* Trust badges */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.35 }}
-                className="mt-8 flex flex-wrap items-center gap-5 text-xs text-muted-foreground"
-              >
+              {/* Live metrics with count-up */}
+              <motion.div variants={fadeUp} className="mt-8 grid grid-cols-4 gap-2 max-w-md">
+                {stats.map((s) => (
+                  <HeroMetric key={s.label} value={s.numValue} suffix={s.suffix} label={s.label} />
+                ))}
+              </motion.div>
+
+              <motion.div variants={fadeUp} className="mt-6 flex flex-wrap items-center gap-5 text-xs text-muted-foreground">
                 {["✓ Atendimento personalizado", "✓ Entrega no mesmo dia", "✓ Orçamento grátis"].map((b) => (
                   <span key={b} className="text-foreground/70 font-medium">{b}</span>
                 ))}
               </motion.div>
-            </motion.div>
+            </div>
 
-            {/* ── Right: Images Stack ── */}
-            <motion.div
-              className="order-1 lg:order-2 relative flex items-center justify-center py-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              {/* Main image */}
+            {/* ── Right: Photo Collage — 4 real images, no AI ── */}
+            <div className="order-1 lg:order-2 relative h-[440px] md:h-[520px]">
+
+              {/* Top-left — small */}
               <motion.div
-                className="relative z-10 w-full max-w-[420px]"
-                animate={{ y: [0, -8, 0] }}
-                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                className="absolute top-0 left-0 w-[30%] h-[160px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-10"
+                initial={{ opacity: 0, y: -20, rotate: -6 }}
+                animate={{ opacity: 1, y: [0, -6, 0], rotate: -3 }}
+                transition={{
+                  opacity: { duration: 0.6, delay: 0.5 },
+                  y: { repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.5 },
+                  rotate: { duration: 0.6, delay: 0.5 },
+                }}
               >
-                <img
-                  src="/images/hero-1.jpg"
-                  alt="Técnico Giseveral a trabalhar"
-                  className="w-full h-auto rounded-2xl shadow-elegant object-cover"
-                />
+                <img src="/images/hero-0.jpg" alt="Trabalho Giseveral em destaque" className="h-full w-full object-cover" />
+              </motion.div>
 
-                {/* Secondary image overlapped */}
-                <motion.div
-                  className="absolute -bottom-6 -left-6 w-[45%] z-20"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.6 }}
-                >
-                  <img
-                    src="/images/hero-2.jpg"
-                    alt="Equipa Giseveral"
-                    className="w-full h-auto rounded-xl border-[3px] border-white shadow-elegant object-cover"
-                  />
-                </motion.div>
+              {/* Top-right — large */}
+              <motion.div
+                className="absolute top-2 right-0 w-[68%] h-[320px] rounded-3xl overflow-hidden border-[3px] border-white shadow-elegant z-20"
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
+                transition={{
+                  opacity: { duration: 0.6, delay: 0.35 },
+                  x: { duration: 0.6, delay: 0.35 },
+                  y: { repeat: Infinity, duration: 6, ease: "easeInOut" },
+                }}
+              >
+                <img src="/images/hero-1.jpg" alt="Equipa Giseveral a trabalhar" className="h-full w-full object-cover" />
+              </motion.div>
+
+              {/* Bottom-left — medium */}
+              <motion.div
+                className="absolute bottom-2 left-0 w-[42%] h-[220px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-30"
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
+                transition={{
+                  opacity: { duration: 0.6, delay: 0.6 },
+                  x: { duration: 0.6, delay: 0.6 },
+                  y: { repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1 },
+                }}
+              >
+                <img src="/images/hero-2.jpg" alt="Atendimento Giseveral" className="h-full w-full object-cover" />
+              </motion.div>
+
+              {/* Bottom-right — medium */}
+              <motion.div
+                className="absolute bottom-6 right-6 w-[45%] h-[200px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-20"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: [0, -6, 0] }}
+                transition={{
+                  opacity: { duration: 0.6, delay: 0.75 },
+                  y: { repeat: Infinity, duration: 5.5, ease: "easeInOut", delay: 1.5 },
+                }}
+              >
+                <img src="/images/hero-3.jpg" alt="Reprografia Giseveral" className="h-full w-full object-cover" />
               </motion.div>
 
               {/* Floating badge — experience */}
               <motion.div
-                className="absolute bottom-4 right-0 md:bottom-10 md:-right-6 z-30"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                style={{
-                  background: 'white',
-                  borderRadius: 16,
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                  padding: '12px 16px',
-                  display: 'flex',
-                  gap: 10,
-                  alignItems: 'center'
-                }}
+                className="absolute top-[140px] -left-2 md:-left-6 z-40 rounded-2xl bg-white px-4 py-3 shadow-elegant flex items-center gap-3"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.95 }}
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-gold">
                   <Award className="h-5 w-5 text-gold-foreground" />
@@ -365,19 +356,10 @@ function Index() {
 
               {/* Floating badge — clients */}
               <motion.div
-                className="absolute top-4 left-0 md:top-8 md:-left-6 z-30"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.9 }}
-                style={{
-                  background: 'white',
-                  borderRadius: 16,
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                  padding: '12px 16px',
-                  display: 'flex',
-                  gap: 10,
-                  alignItems: 'center'
-                }}
+                className="absolute bottom-2 -right-2 md:-right-4 z-40 rounded-2xl bg-white px-4 py-3 shadow-elegant flex items-center gap-3"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, delay: 1.05 }}
               >
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
                   <Users className="h-5 w-5 text-brand" />
@@ -387,14 +369,8 @@ function Index() {
                   <p className="text-[11px] text-muted-foreground">clientes</p>
                 </div>
               </motion.div>
-
-              {/* Accent dots */}
-              <div className="absolute top-10 right-8 h-4 w-4 rounded-full bg-gold" />
-              <div className="absolute top-16 right-6 h-2.5 w-2.5 rounded-full bg-brand/40" />
-              <div className="absolute bottom-20 left-8 h-3 w-3 rounded-full bg-brand" />
-              <div className="absolute bottom-24 left-12 h-2 w-2 rounded-full bg-gold/60" />
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -955,5 +931,32 @@ function Index() {
         />
       )}
     </Layout>
+  );
+}
+
+function HeroMetric({ value, suffix, label }: { value: number; suffix: string; label: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  const [displayed, setDisplayed] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / 1400, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplayed(Math.round(eased * value));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [inView, value]);
+
+  return (
+    <div ref={ref} className="rounded-xl border border-border bg-card/60 px-2 py-2.5 text-center">
+      <p className="text-base md:text-lg font-extrabold text-brand leading-none tabular-nums">
+        {displayed.toLocaleString()}{suffix}
+      </p>
+      <p className="mt-1 text-[10px] text-muted-foreground leading-tight">{label}</p>
+    </div>
   );
 }
