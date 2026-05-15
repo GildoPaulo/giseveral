@@ -111,9 +111,9 @@ export function Chatbot() {
         <button
           onClick={() => setOpen(true)}
           aria-label="Abrir assistente IA"
-          className="fixed bottom-24 right-4 sm:right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-brand text-brand-foreground shadow-elegant transition-smooth hover:scale-110 hover:shadow-glow"
+          className="fixed bottom-[140px] right-3 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-gradient-brand text-brand-foreground shadow-elegant transition-smooth hover:scale-110 hover:shadow-glow md:bottom-24 md:right-6 md:h-14 md:w-14"
         >
-          <MessageSquare className="h-6 w-6" />
+          <MessageSquare className="h-5 w-5 md:h-6 md:w-6" />
           <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[8px] font-bold text-gold-foreground">
             AI
           </span>
@@ -122,7 +122,7 @@ export function Chatbot() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-4 sm:right-6 z-50 w-[calc(100vw-2rem)] sm:w-[380px] max-h-[calc(100vh-7rem)] flex flex-col rounded-2xl border border-border bg-card shadow-elegant overflow-hidden">
+        <div className="fixed bottom-20 right-3 sm:bottom-24 sm:right-6 z-40 w-[calc(100vw-1.5rem)] sm:w-[380px] max-h-[calc(100vh-7rem)] flex flex-col rounded-2xl border border-border bg-card shadow-elegant overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between bg-gradient-hero px-4 py-3 text-brand-foreground">
             <div className="flex items-center gap-2.5">

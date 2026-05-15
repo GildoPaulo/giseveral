@@ -39,7 +39,7 @@ export const Route = createRootRoute({
       { name: "keywords", content: "reprografia Beira, impressão Moçambique, papelaria Beira, informática Beira, redes Moçambique, documentos académicos, bolsas de estudo" },
       { name: "author", content: "Giseveral e Services" },
       { name: "robots", content: "index, follow, max-image-preview:large" },
-      { name: "theme-color", content: "#1a3a6b" },
+      { name: "theme-color", content: "#1E3A8A" },
       // Open Graph
       { property: "og:site_name", content: "Giseveral e Services" },
       { property: "og:title", content: "Giseveral e Services — Beira, Moçambique" },
@@ -73,9 +73,10 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: appCss ?? "/assets/styles.css" },
       { rel: "canonical", href: "https://giseveral.com" },
-      { rel: "icon", type: "image/jpeg", href: "/logo.jpeg" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "alternate icon", type: "image/jpeg", href: "/logo.jpeg" },
       { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/icon.jpeg" },
+      { rel: "apple-touch-icon", href: "/favicon.svg" },
     ],
   }),
   shellComponent: RootShell,

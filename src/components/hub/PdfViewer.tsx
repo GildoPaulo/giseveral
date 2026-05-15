@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, ChevronLeft, ChevronRight, Lock, ZoomIn, ExternalLink } from "lucide-react";
+import { FileText, ChevronLeft, ChevronRight, Lock, ZoomIn } from "lucide-react";
 
 interface Props {
   pages?: number;
@@ -85,17 +85,6 @@ export function PdfViewer({ pages = 1, title, previewPages = 3, url }: Props) {
           <span className="truncate max-w-[200px] sm:max-w-none">Pré-visualização · {title}</span>
         </span>
         <div className="flex items-center gap-3 flex-shrink-0">
-          {url && !embedError && (
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity"
-              title="Abrir PDF"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-            </a>
-          )}
           {!url && (
             <div className="flex items-center gap-1 opacity-80">
               <button
@@ -121,13 +110,26 @@ export function PdfViewer({ pages = 1, title, previewPages = 3, url }: Props) {
 
       {/* Content */}
       {url && !embedError ? (
-        /* Real PDF embed */
-        <div className="relative bg-muted/30 w-full" style={{ height: "640px" }}>
+        /* Real PDF embed — right-click blocked; only the official Download button is allowed */
+        <div
+          className="relative bg-muted/30 w-full"
+          style={{ height: "640px" }}
+          onContextMenu={(e) => e.preventDefault()}
+        >
           <iframe
             src={`${url}#toolbar=0&navpanes=0&scrollbar=1`}
             title={title}
             className="w-full h-full border-0"
+            sandbox="allow-same-origin allow-scripts"
+            onContextMenu={(e) => e.preventDefault()}
             onError={() => setEmbedError(true)}
+          />
+          {/* Transparent overlay along the top to swallow right-click in the iframe header area */}
+          <div
+            className="absolute inset-x-0 top-0 h-10 z-10"
+            onContextMenu={(e) => e.preventDefault()}
+            onMouseDown={(e) => { if (e.button === 2) e.preventDefault(); }}
+            aria-hidden="true"
           />
           <div className="absolute inset-0 grid place-items-center pointer-events-none select-none">
             <span

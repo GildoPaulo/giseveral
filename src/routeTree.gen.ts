@@ -49,6 +49,7 @@ import { Route as BalcaoServicosRouteImport } from './routes/balcao.servicos'
 import { Route as BalcaoProdutosRouteImport } from './routes/balcao.produtos'
 import { Route as BalcaoPrecosRouteImport } from './routes/balcao.precos'
 import { Route as BalcaoPedidosRouteImport } from './routes/balcao.pedidos'
+import { Route as BalcaoPagamentosRouteImport } from './routes/balcao.pagamentos'
 import { Route as BalcaoNotificacoesRouteImport } from './routes/balcao.notificacoes'
 import { Route as BalcaoNoticiasRouteImport } from './routes/balcao.noticias'
 import { Route as BalcaoNewsletterRouteImport } from './routes/balcao.newsletter'
@@ -274,6 +275,11 @@ const BalcaoPedidosRoute = BalcaoPedidosRouteImport.update({
   path: '/pedidos',
   getParentRoute: () => BalcaoRoute,
 } as any)
+const BalcaoPagamentosRoute = BalcaoPagamentosRouteImport.update({
+  id: '/pagamentos',
+  path: '/pagamentos',
+  getParentRoute: () => BalcaoRoute,
+} as any)
 const BalcaoNotificacoesRoute = BalcaoNotificacoesRouteImport.update({
   id: '/notificacoes',
   path: '/notificacoes',
@@ -427,6 +433,7 @@ export interface FileRoutesByFullPath {
   '/balcao/newsletter': typeof BalcaoNewsletterRoute
   '/balcao/noticias': typeof BalcaoNoticiasRoute
   '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
+  '/balcao/pagamentos': typeof BalcaoPagamentosRoute
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
@@ -491,6 +498,7 @@ export interface FileRoutesByTo {
   '/balcao/newsletter': typeof BalcaoNewsletterRoute
   '/balcao/noticias': typeof BalcaoNoticiasRoute
   '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
+  '/balcao/pagamentos': typeof BalcaoPagamentosRoute
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
@@ -556,6 +564,7 @@ export interface FileRoutesById {
   '/balcao/newsletter': typeof BalcaoNewsletterRoute
   '/balcao/noticias': typeof BalcaoNoticiasRoute
   '/balcao/notificacoes': typeof BalcaoNotificacoesRoute
+  '/balcao/pagamentos': typeof BalcaoPagamentosRoute
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
@@ -624,6 +633,7 @@ export interface FileRouteTypes {
     | '/balcao/newsletter'
     | '/balcao/noticias'
     | '/balcao/notificacoes'
+    | '/balcao/pagamentos'
     | '/balcao/pedidos'
     | '/balcao/precos'
     | '/balcao/produtos'
@@ -688,6 +698,7 @@ export interface FileRouteTypes {
     | '/balcao/newsletter'
     | '/balcao/noticias'
     | '/balcao/notificacoes'
+    | '/balcao/pagamentos'
     | '/balcao/pedidos'
     | '/balcao/precos'
     | '/balcao/produtos'
@@ -752,6 +763,7 @@ export interface FileRouteTypes {
     | '/balcao/newsletter'
     | '/balcao/noticias'
     | '/balcao/notificacoes'
+    | '/balcao/pagamentos'
     | '/balcao/pedidos'
     | '/balcao/precos'
     | '/balcao/produtos'
@@ -1106,6 +1118,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoPedidosRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/pagamentos': {
+      id: '/balcao/pagamentos'
+      path: '/pagamentos'
+      fullPath: '/balcao/pagamentos'
+      preLoaderRoute: typeof BalcaoPagamentosRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
     '/balcao/notificacoes': {
       id: '/balcao/notificacoes'
       path: '/notificacoes'
@@ -1294,6 +1313,7 @@ interface BalcaoRouteChildren {
   BalcaoNewsletterRoute: typeof BalcaoNewsletterRoute
   BalcaoNoticiasRoute: typeof BalcaoNoticiasRoute
   BalcaoNotificacoesRoute: typeof BalcaoNotificacoesRoute
+  BalcaoPagamentosRoute: typeof BalcaoPagamentosRoute
   BalcaoPedidosRoute: typeof BalcaoPedidosRoute
   BalcaoPrecosRoute: typeof BalcaoPrecosRoute
   BalcaoProdutosRoute: typeof BalcaoProdutosRoute
@@ -1319,6 +1339,7 @@ const BalcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoNewsletterRoute: BalcaoNewsletterRoute,
   BalcaoNoticiasRoute: BalcaoNoticiasRoute,
   BalcaoNotificacoesRoute: BalcaoNotificacoesRoute,
+  BalcaoPagamentosRoute: BalcaoPagamentosRoute,
   BalcaoPedidosRoute: BalcaoPedidosRoute,
   BalcaoPrecosRoute: BalcaoPrecosRoute,
   BalcaoProdutosRoute: BalcaoProdutosRoute,

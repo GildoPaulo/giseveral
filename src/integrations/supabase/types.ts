@@ -12,6 +12,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      credit_purchases: {
+        Row: {
+          id: string
+          user_id: string
+          credits_amount: number
+          price_mzn: number
+          payment_method: string
+          reference_code: string
+          proof_url: string | null
+          status: string
+          admin_notes: string | null
+          approved_by: string | null
+          approved_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          credits_amount: number
+          price_mzn: number
+          payment_method: string
+          reference_code: string
+          proof_url?: string | null
+          status?: string
+          admin_notes?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          credits_amount?: number
+          price_mzn?: number
+          payment_method?: string
+          reference_code?: string
+          proof_url?: string | null
+          status?: string
+          admin_notes?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hero_images: {
         Row: {
           id: string
