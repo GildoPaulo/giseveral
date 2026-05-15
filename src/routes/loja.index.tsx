@@ -58,16 +58,16 @@ type Product = Tables<"products"> & {
 // ── Top category bar (Section 1) ──────────────────────────────────────────────
 
 const TOP_CATS = [
-  { id: "all",            emoji: "🛒", label: "Tudo",        slugMatch: null },
-  { id: "impressao",      emoji: "🖨️", label: "Impressão",   slugMatch: ["impressao"] },
-  { id: "design",         emoji: "🎨", label: "Design",      slugMatch: ["design-grafico"] },
-  { id: "estampagem",     emoji: "👕", label: "Estampagem",  slugMatch: ["estampagem"] },
-  { id: "informatica",    emoji: "💻", label: "Informática", slugMatch: ["formatacao-pc"] },
-  { id: "redes",          emoji: "📶", label: "Redes",       slugMatch: ["redes-wifi"] },
-  { id: "papelaria",      emoji: "📚", label: "Papelaria",   slugMatch: ["cadernos", "canetas-lapis", "pastas-arquivos", "material-escolar", "papel-blocos"] },
-  { id: "web",            emoji: "🌐", label: "Web",         slugMatch: ["web"] },
-  { id: "digitais",       emoji: "📄", label: "Digitais",    slugMatch: ["digitais"] },
-  { id: "servicos",       emoji: "🛠️", label: "Serviços",    slugMatch: ["impressao", "formatacao-pc", "redes-wifi", "design-grafico"] },
+  { id: "all",            label: "Tudo",        slugMatch: null },
+  { id: "impressao",      label: "Impressão",   slugMatch: ["impressao"] },
+  { id: "design",         label: "Design",      slugMatch: ["design-grafico"] },
+  { id: "estampagem",     label: "Estampagem",  slugMatch: ["estampagem"] },
+  { id: "informatica",    label: "Informática", slugMatch: ["formatacao-pc"] },
+  { id: "redes",          label: "Redes",       slugMatch: ["redes-wifi"] },
+  { id: "papelaria",      label: "Papelaria",   slugMatch: ["cadernos", "canetas-lapis", "pastas-arquivos", "material-escolar", "papel-blocos"] },
+  { id: "web",            label: "Web",         slugMatch: ["web"] },
+  { id: "digitais",       label: "Digitais",    slugMatch: ["digitais"] },
+  { id: "servicos",       label: "Serviços",    slugMatch: ["impressao", "formatacao-pc", "redes-wifi", "design-grafico"] },
 ] as const;
 
 type TopCatId = (typeof TOP_CATS)[number]["id"];
@@ -318,11 +318,14 @@ function LojaIndex() {
     <Layout>
 
       {/* ═════════════════════════════════════════════════════════════
-          SECTION 1 — TOP CATEGORY BAR
+          SECTION 1 — MINIMAL CATEGORY PILLS
           ═════════════════════════════════════════════════════════════ */}
       <section className="sticky top-0 z-30 border-b border-border bg-white/95 dark:bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
-        <div className="container mx-auto max-w-6xl px-2 md:px-4">
-          <div className="flex gap-1 overflow-x-auto py-3 scrollbar-hide" style={{ scrollbarWidth: "none" }}>
+        <div className="container mx-auto max-w-6xl px-3 md:px-4">
+          <div
+            className="flex gap-2 overflow-x-auto py-3 [&::-webkit-scrollbar]:hidden"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
             {TOP_CATS.map((c) => {
               const active = activeCat === c.id;
               return (
@@ -330,17 +333,15 @@ function LojaIndex() {
                   key={c.id}
                   type="button"
                   onClick={() => setActiveCat(c.id)}
-                  className={`flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-3 py-2 min-w-[68px] transition-smooth ${
-                    active
-                      ? "bg-brand/10 text-brand"
-                      : "text-foreground hover:bg-muted hover:text-brand"
-                  }`}
                   aria-pressed={active}
+                  className={`shrink-0 rounded-full px-4 py-1.5 font-medium transition-colors duration-150 ${
+                    active
+                      ? "bg-[#1E3A8A] text-white border border-[#1E3A8A]"
+                      : "bg-transparent text-muted-foreground border border-border hover:bg-secondary hover:text-foreground"
+                  }`}
+                  style={{ fontSize: "13px", borderWidth: active ? "1px" : "0.5px" }}
                 >
-                  <span className="text-2xl leading-none">{c.emoji}</span>
-                  <span className={`text-[11px] font-semibold leading-tight ${active ? "text-brand" : ""}`}>
-                    {c.label}
-                  </span>
+                  {c.label}
                 </button>
               );
             })}
