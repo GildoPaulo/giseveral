@@ -11,6 +11,7 @@ import { Layout } from "@/components/Layout";
 import { useCart } from "@/contexts/CartContext";
 import { SkeletonCard } from "@/components/Skeleton";
 import { formatMZN } from "@/lib/format";
+import { useHeroImages, type HeroImage } from "@/hooks/useHeroImages";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -71,41 +72,69 @@ const TOP_CATS = [
 
 type TopCatId = (typeof TOP_CATS)[number]["id"];
 
-// ── Hero slides (Section 2) ───────────────────────────────────────────────────
+// ── Hero slide style variants (cycled by position) ───────────────────────────
 
-const HERO_SLIDES = [
+const SLIDE_VARIANTS = [
   {
     eyebrow: "⚡ Flash Sale — Termina em:",
-    title: "Até 40% de desconto",
-    subtitle: "Em impressão e design — só hoje.",
-    cta: "Ver ofertas",
-    image: "/images/hero-1.jpg",
     bg: "bg-gradient-to-br from-[#0F2557] via-[#163469] to-[#1E3A8A]",
     accent: "bg-amber-400 hover:bg-amber-300 text-slate-900",
     showCountdown: true,
-    href: "#flash-sales",
   },
   {
     eyebrow: "🛍️ Marketplace aberto",
-    title: "Qualquer pessoa pode vender",
-    subtitle: "Regista a tua loja e chega a milhares de clientes em Moçambique.",
-    cta: "Começar a vender",
-    image: "/images/hero-2.jpg",
     bg: "bg-gradient-to-br from-[#064E3B] via-[#066047] to-[#065F46]",
     accent: "bg-white hover:bg-slate-100 text-emerald-900",
     showCountdown: false,
-    href: "/vendedor/registar",
   },
   {
     eyebrow: "📍 Serviços locais na Beira",
-    title: "Entrega no mesmo dia",
-    subtitle: "Impressão expressa, design rápido, TI ao domicílio.",
-    cta: "Pedir agora",
-    image: "/images/hero-3.jpg",
     bg: "bg-gradient-to-br from-[#3B0764] via-[#5B21B6] to-[#6D28D9]",
     accent: "bg-white hover:bg-slate-100 text-purple-900",
     showCountdown: false,
-    href: "/orcamento",
+  },
+] as const;
+
+// Static fallback when the admin hasn't seeded `hero_images` for loja yet.
+const FALLBACK_SLIDES: HeroImage[] = [
+  {
+    id: "fallback-1",
+    title: "Até 40% de desconto",
+    subtitle: "Em impressão e design — só hoje.",
+    cta_label: "Ver ofertas",
+    cta_url: "#flash-sales",
+    image_url: "/images/hero-1.jpg",
+    position: 1,
+    active: true,
+    page: "loja",
+    created_at: "",
+    updated_at: "",
+  },
+  {
+    id: "fallback-2",
+    title: "Qualquer pessoa pode vender",
+    subtitle: "Regista a tua loja e chega a milhares de clientes em Moçambique.",
+    cta_label: "Começar a vender",
+    cta_url: "/vendedor/registar",
+    image_url: "/images/hero-2.jpg",
+    position: 2,
+    active: true,
+    page: "loja",
+    created_at: "",
+    updated_at: "",
+  },
+  {
+    id: "fallback-3",
+    title: "Entrega no mesmo dia",
+    subtitle: "Impressão expressa, design rápido, TI ao domicílio.",
+    cta_label: "Pedir agora",
+    cta_url: "/orcamento",
+    image_url: "/images/hero-3.jpg",
+    position: 3,
+    active: true,
+    page: "loja",
+    created_at: "",
+    updated_at: "",
   },
 ];
 
@@ -172,14 +201,26 @@ function LojaIndex() {
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingFlash, setLoadingFlash] = useState(true);
 
+  const { images: lojaHeroes, isLoading: heroesLoading } = useHeroImages("loja");
+  const slides = useMemo<HeroImage[]>(() => {
+    if (heroesLoading) return [];
+    return lojaHeroes.length > 0 ? lojaHeroes : FALLBACK_SLIDES;
+  }, [lojaHeroes, heroesLoading]);
+
   // Countdown target: 24 hours from first mount (stable per session).
   const countdownTarget = useMemo(() => Date.now() + 24 * 60 * 60 * 1000, []);
 
   // Auto-rotate hero slides every 4 seconds.
   useEffect(() => {
-    const id = setInterval(() => setSlide((s) => (s + 1) % HERO_SLIDES.length), 4000);
+    if (slides.length <= 1) return;
+    const id = setInterval(() => setSlide((s) => (s + 1) % slides.length), 4000);
     return () => clearInterval(id);
-  }, []);
+  }, [slides.length]);
+
+  // Reset slide index when slides change so we never point past the end.
+  useEffect(() => {
+    if (slide >= slides.length) setSlide(0);
+  }, [slide, slides.length]);
 
   // Load all active products.
   useEffect(() => {
@@ -267,7 +308,11 @@ function LojaIndex() {
     setActiveCat(id as TopCatId);
   };
 
-  const currentSlide = HERO_SLIDES[slide];
+  const safeIndex = slides.length > 0 ? slide % slides.length : 0;
+  const currentSlide = slides[safeIndex] ?? null;
+  const currentVariant = SLIDE_VARIANTS[safeIndex % SLIDE_VARIANTS.length];
+  const ctaHref = currentSlide?.cta_url ?? "";
+  const ctaIsAnchor = ctaHref.startsWith("#");
 
   return (
     <Layout>
@@ -308,114 +353,135 @@ function LojaIndex() {
           ═════════════════════════════════════════════════════════════ */}
       <section className="relative overflow-hidden">
         <div className="relative h-[420px] md:h-[460px] w-full">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={slide}
-              initial={{ opacity: 0, scale: 1.02 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.99 }}
-              transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className={`absolute inset-0 ${currentSlide.bg} text-white`}
-            >
-              <div className="container mx-auto h-full max-w-6xl px-4">
-                <div className="grid h-full md:grid-cols-2 gap-6 md:gap-10 items-center">
+          {heroesLoading ? (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0F2557] to-[#1E3A8A] animate-pulse" />
+          ) : currentSlide ? (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSlide.id}
+                initial={{ opacity: 0, scale: 1.02 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.99 }}
+                transition={{ duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+                className={`absolute inset-0 ${currentVariant.bg} text-white`}
+              >
+                <div className="container mx-auto h-full max-w-6xl px-4">
+                  <div className="grid h-full md:grid-cols-2 gap-6 md:gap-10 items-center">
 
-                  {/* Left content */}
-                  <div className="py-8 md:py-0">
-                    <motion.p
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2, duration: 0.5 }}
-                      className="text-sm md:text-base font-semibold text-white/85 mb-3 flex flex-wrap items-center gap-2"
-                    >
-                      {currentSlide.eyebrow}
-                      {currentSlide.showCountdown && (
-                        <CountdownDigits targetMs={countdownTarget} />
+                    {/* Left content */}
+                    <div className="py-8 md:py-0">
+                      <motion.p
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2, duration: 0.5 }}
+                        className="text-sm md:text-base font-semibold text-white/85 mb-3 flex flex-wrap items-center gap-2"
+                      >
+                        {currentVariant.eyebrow}
+                        {currentVariant.showCountdown && (
+                          <CountdownDigits targetMs={countdownTarget} />
+                        )}
+                      </motion.p>
+
+                      {currentSlide.title && (
+                        <motion.h1
+                          initial={{ opacity: 0, y: 24 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3, duration: 0.55 }}
+                          className="text-3xl md:text-5xl font-extrabold leading-[1.05] mb-4"
+                        >
+                          {currentSlide.title}
+                        </motion.h1>
                       )}
-                    </motion.p>
 
-                    <motion.h1
-                      initial={{ opacity: 0, y: 24 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3, duration: 0.55 }}
-                      className="text-3xl md:text-5xl font-extrabold leading-[1.05] mb-4"
-                    >
-                      {currentSlide.title}
-                    </motion.h1>
+                      {currentSlide.subtitle && (
+                        <motion.p
+                          initial={{ opacity: 0, y: 24 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4, duration: 0.55 }}
+                          className="text-base md:text-lg text-white/85 mb-6 max-w-lg"
+                        >
+                          {currentSlide.subtitle}
+                        </motion.p>
+                      )}
 
-                    <motion.p
-                      initial={{ opacity: 0, y: 24 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4, duration: 0.55 }}
-                      className="text-base md:text-lg text-white/85 mb-6 max-w-lg"
-                    >
-                      {currentSlide.subtitle}
-                    </motion.p>
+                      {currentSlide.cta_label && ctaHref && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 24 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.5, duration: 0.55 }}
+                        >
+                          {ctaIsAnchor ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const el = document.getElementById(ctaHref.slice(1));
+                                el?.scrollIntoView({ behavior: "smooth", block: "start" });
+                              }}
+                              className={`inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold shadow-card hover:shadow-elegant transition-smooth ${currentVariant.accent}`}
+                            >
+                              {currentSlide.cta_label} <ArrowRight className="h-4 w-4" />
+                            </button>
+                          ) : (
+                            <a
+                              href={ctaHref}
+                              className={`inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold shadow-card hover:shadow-elegant transition-smooth ${currentVariant.accent}`}
+                            >
+                              {currentSlide.cta_label} <ArrowRight className="h-4 w-4" />
+                            </a>
+                          )}
+                        </motion.div>
+                      )}
+                    </div>
 
+                    {/* Right image */}
                     <motion.div
-                      initial={{ opacity: 0, y: 24 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5, duration: 0.55 }}
+                      initial={{ opacity: 0, x: 40, scale: 0.95 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      transition={{ delay: 0.3, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+                      className="relative hidden md:block"
                     >
-                      {currentSlide.href.startsWith("#") ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const el = document.getElementById(currentSlide.href.slice(1));
-                            el?.scrollIntoView({ behavior: "smooth", block: "start" });
-                          }}
-                          className={`inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold shadow-card hover:shadow-elegant transition-smooth ${currentSlide.accent}`}
-                        >
-                          {currentSlide.cta} <ArrowRight className="h-4 w-4" />
-                        </button>
-                      ) : (
-                        <a
-                          href={currentSlide.href}
-                          className={`inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-sm font-bold shadow-card hover:shadow-elegant transition-smooth ${currentSlide.accent}`}
-                        >
-                          {currentSlide.cta} <ArrowRight className="h-4 w-4" />
-                        </a>
-                      )}
+                      <div className="relative aspect-[4/3] w-full max-w-md ml-auto">
+                        <img
+                          src={currentSlide.image_url}
+                          alt={currentSlide.title ?? "Hero"}
+                          className="absolute inset-0 h-full w-full rounded-2xl object-cover shadow-2xl border-4 border-white/15"
+                        />
+                        <div className="absolute -top-3 -right-3 rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold text-slate-900 shadow-lg">
+                          NEW
+                        </div>
+                      </div>
                     </motion.div>
                   </div>
-
-                  {/* Right image */}
-                  <motion.div
-                    initial={{ opacity: 0, x: 40, scale: 0.95 }}
-                    animate={{ opacity: 1, x: 0, scale: 1 }}
-                    transition={{ delay: 0.3, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    className="relative hidden md:block"
-                  >
-                    <div className="relative aspect-[4/3] w-full max-w-md ml-auto">
-                      <img
-                        src={currentSlide.image}
-                        alt={currentSlide.title}
-                        className="absolute inset-0 h-full w-full rounded-2xl object-cover shadow-2xl border-4 border-white/15"
-                      />
-                      <div className="absolute -top-3 -right-3 rounded-full bg-amber-400 px-3 py-1 text-xs font-extrabold text-slate-900 shadow-lg">
-                        NEW
-                      </div>
-                    </div>
-                  </motion.div>
                 </div>
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0F2557] to-[#1E3A8A] text-white grid place-items-center p-8 text-center">
+              <div>
+                <p className="text-xl font-bold">Sem banners configurados</p>
+                <p className="mt-2 text-sm text-white/75">
+                  Adiciona imagens em <span className="font-mono">/balcao/hero</span> para esta página.
+                </p>
               </div>
-            </motion.div>
-          </AnimatePresence>
+            </div>
+          )}
 
           {/* Dots */}
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex gap-2">
-            {HERO_SLIDES.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setSlide(i)}
-                aria-label={`Slide ${i + 1}`}
-                className={`h-2 rounded-full transition-all ${
-                  slide === i ? "w-8 bg-white" : "w-2 bg-white/40 hover:bg-white/70"
-                }`}
-              />
-            ))}
-          </div>
+          {slides.length > 1 && (
+            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+              {slides.map((s, i) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSlide(i)}
+                  aria-label={`Slide ${i + 1}`}
+                  className={`h-2 rounded-full transition-all ${
+                    safeIndex === i ? "w-8 bg-white" : "w-2 bg-white/40 hover:bg-white/70"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

@@ -12,6 +12,7 @@ import { PromoPopup } from "@/components/promos/PromoPopup";
 import { NewsletterSignup } from "@/components/NewsletterSignup";
 import { motion, useInView } from "framer-motion";
 import { StatCounter } from "@/components/StatCounter";
+import { useHeroImages } from "@/hooks/useHeroImages";
 import { fetchHubNews } from "@/lib/hub";
 import { HUB_NEWS, type NewsItem } from "@/data/hub-bolsas";
 import { GALLERY_CATEGORIES, categoryLabel } from "@/data/gallery-categories";
@@ -280,96 +281,8 @@ function Index() {
               </motion.div>
             </div>
 
-            {/* ── Right: Photo Collage — 4 real images, no AI ── */}
-            <div className="order-1 lg:order-2 relative h-[440px] md:h-[520px]">
-
-              {/* Top-left — small */}
-              <motion.div
-                className="absolute top-0 left-0 w-[30%] h-[160px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-10"
-                initial={{ opacity: 0, y: -20, rotate: -6 }}
-                animate={{ opacity: 1, y: [0, -6, 0], rotate: -3 }}
-                transition={{
-                  opacity: { duration: 0.6, delay: 0.5 },
-                  y: { repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.5 },
-                  rotate: { duration: 0.6, delay: 0.5 },
-                }}
-              >
-                <img src="/images/hero-0.jpg" alt="Trabalho Giseveral em destaque" className="h-full w-full object-cover" />
-              </motion.div>
-
-              {/* Top-right — large */}
-              <motion.div
-                className="absolute top-2 right-0 w-[68%] h-[320px] rounded-3xl overflow-hidden border-[3px] border-white shadow-elegant z-20"
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
-                transition={{
-                  opacity: { duration: 0.6, delay: 0.35 },
-                  x: { duration: 0.6, delay: 0.35 },
-                  y: { repeat: Infinity, duration: 6, ease: "easeInOut" },
-                }}
-              >
-                <img src="/images/hero-1.jpg" alt="Equipa Giseveral a trabalhar" className="h-full w-full object-cover" />
-              </motion.div>
-
-              {/* Bottom-left — medium */}
-              <motion.div
-                className="absolute bottom-2 left-0 w-[42%] h-[220px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-30"
-                initial={{ opacity: 0, x: -30 }}
-                animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
-                transition={{
-                  opacity: { duration: 0.6, delay: 0.6 },
-                  x: { duration: 0.6, delay: 0.6 },
-                  y: { repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1 },
-                }}
-              >
-                <img src="/images/hero-2.jpg" alt="Atendimento Giseveral" className="h-full w-full object-cover" />
-              </motion.div>
-
-              {/* Bottom-right — medium */}
-              <motion.div
-                className="absolute bottom-6 right-6 w-[45%] h-[200px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-20"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: [0, -6, 0] }}
-                transition={{
-                  opacity: { duration: 0.6, delay: 0.75 },
-                  y: { repeat: Infinity, duration: 5.5, ease: "easeInOut", delay: 1.5 },
-                }}
-              >
-                <img src="/images/hero-3.jpg" alt="Reprografia Giseveral" className="h-full w-full object-cover" />
-              </motion.div>
-
-              {/* Floating badge — experience */}
-              <motion.div
-                className="absolute top-[140px] -left-2 md:-left-6 z-40 rounded-2xl bg-white px-4 py-3 shadow-elegant flex items-center gap-3"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.95 }}
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-gold">
-                  <Award className="h-5 w-5 text-gold-foreground" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-foreground">+10 anos</p>
-                  <p className="text-[11px] text-muted-foreground">de experiência</p>
-                </div>
-              </motion.div>
-
-              {/* Floating badge — clients */}
-              <motion.div
-                className="absolute bottom-2 -right-2 md:-right-4 z-40 rounded-2xl bg-white px-4 py-3 shadow-elegant flex items-center gap-3"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 1.05 }}
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
-                  <Users className="h-5 w-5 text-brand" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-foreground">5 000+</p>
-                  <p className="text-[11px] text-muted-foreground">clientes</p>
-                </div>
-              </motion.div>
-            </div>
+            {/* ── Right: Dynamic Photo Collage ── */}
+            <HomeHeroCollage />
           </motion.div>
         </div>
       </section>
@@ -931,6 +844,217 @@ function Index() {
         />
       )}
     </Layout>
+  );
+}
+
+function HomeHeroCollage() {
+  const { images, isLoading } = useHeroImages("home");
+  const count = images.length;
+
+  if (isLoading) {
+    return (
+      <div className="order-1 lg:order-2 relative h-[440px] md:h-[520px]">
+        <div className="absolute top-0 left-0 w-[30%] h-[160px] rounded-2xl bg-muted animate-pulse" />
+        <div className="absolute top-2 right-0 w-[68%] h-[320px] rounded-3xl bg-muted animate-pulse" />
+        <div className="absolute bottom-2 left-0 w-[42%] h-[220px] rounded-2xl bg-muted animate-pulse" />
+        <div className="absolute bottom-6 right-6 w-[45%] h-[200px] rounded-2xl bg-muted animate-pulse" />
+      </div>
+    );
+  }
+
+  if (count === 0) {
+    return (
+      <div className="order-1 lg:order-2 relative h-[440px] md:h-[520px]">
+        <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-brand via-brand/80 to-blue-700 grid place-items-center text-center p-8">
+          <div>
+            <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-white/15 backdrop-blur text-white">
+              <Sparkles className="h-7 w-7" />
+            </div>
+            <p className="text-white font-bold text-lg">Sem imagens ainda</p>
+            <p className="mt-2 text-sm text-white/80 max-w-xs mx-auto">
+              Adiciona imagens no painel admin em <span className="font-mono font-bold">/balcao/hero</span>.
+            </p>
+            <Link
+              to="/balcao/hero"
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-brand hover:bg-slate-100 transition-smooth"
+            >
+              Abrir gestor <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (count === 1) {
+    const img = images[0];
+    return (
+      <div className="order-1 lg:order-2 relative h-[440px] md:h-[520px] flex items-center justify-center">
+        <motion.div
+          className="relative w-full h-[400px] md:h-[480px] rounded-3xl overflow-hidden border-[3px] border-white shadow-elegant"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
+          transition={{
+            opacity: { duration: 0.6, delay: 0.4 },
+            scale: { duration: 0.6, delay: 0.4 },
+            y: { repeat: Infinity, duration: 6, ease: "easeInOut" },
+          }}
+        >
+          <img src={img.image_url} alt={img.title ?? "Hero"} className="h-full w-full object-cover" />
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (count === 2) {
+    return (
+      <div className="order-1 lg:order-2 relative h-[440px] md:h-[520px] grid grid-cols-2 gap-4">
+        {images.slice(0, 2).map((img, i) => (
+          <motion.div
+            key={img.id}
+            className="relative rounded-3xl overflow-hidden border-[3px] border-white shadow-elegant"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: [0, i === 0 ? -8 : -10, 0] }}
+            transition={{
+              opacity: { duration: 0.6, delay: 0.4 + i * 0.15 },
+              y: { repeat: Infinity, duration: 5 + i, ease: "easeInOut", delay: i * 0.8 },
+            }}
+          >
+            <img src={img.image_url} alt={img.title ?? "Hero"} className="h-full w-full object-cover" />
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
+
+  if (count === 3) {
+    const [a, b, c] = images;
+    return (
+      <div className="order-1 lg:order-2 relative h-[440px] md:h-[520px]">
+        <motion.div
+          className="absolute top-2 right-0 w-[60%] h-[320px] rounded-3xl overflow-hidden border-[3px] border-white shadow-elegant z-20"
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
+          transition={{
+            opacity: { duration: 0.6, delay: 0.35 },
+            x: { duration: 0.6, delay: 0.35 },
+            y: { repeat: Infinity, duration: 6, ease: "easeInOut" },
+          }}
+        >
+          <img src={a.image_url} alt={a.title ?? "Hero"} className="h-full w-full object-cover" />
+        </motion.div>
+        <motion.div
+          className="absolute bottom-2 left-0 w-[48%] h-[240px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-30"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
+          transition={{
+            opacity: { duration: 0.6, delay: 0.55 },
+            x: { duration: 0.6, delay: 0.55 },
+            y: { repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1 },
+          }}
+        >
+          <img src={b.image_url} alt={b.title ?? "Hero"} className="h-full w-full object-cover" />
+        </motion.div>
+        <motion.div
+          className="absolute bottom-8 right-4 w-[42%] h-[180px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-20"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: [0, -6, 0] }}
+          transition={{
+            opacity: { duration: 0.6, delay: 0.75 },
+            y: { repeat: Infinity, duration: 5.5, ease: "easeInOut", delay: 1.5 },
+          }}
+        >
+          <img src={c.image_url} alt={c.title ?? "Hero"} className="h-full w-full object-cover" />
+        </motion.div>
+      </div>
+    );
+  }
+
+  // 4+ images — full collage
+  const [a, b, c, d] = images;
+  return (
+    <div className="order-1 lg:order-2 relative h-[440px] md:h-[520px]">
+      <motion.div
+        className="absolute top-0 left-0 w-[30%] h-[160px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-10"
+        initial={{ opacity: 0, y: -20, rotate: -6 }}
+        animate={{ opacity: 1, y: [0, -6, 0], rotate: -3 }}
+        transition={{
+          opacity: { duration: 0.6, delay: 0.5 },
+          y: { repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.5 },
+          rotate: { duration: 0.6, delay: 0.5 },
+        }}
+      >
+        <img src={d.image_url} alt={d.title ?? "Hero"} className="h-full w-full object-cover" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-2 right-0 w-[68%] h-[320px] rounded-3xl overflow-hidden border-[3px] border-white shadow-elegant z-20"
+        initial={{ opacity: 0, x: 30 }}
+        animate={{ opacity: 1, x: 0, y: [0, -10, 0] }}
+        transition={{
+          opacity: { duration: 0.6, delay: 0.35 },
+          x: { duration: 0.6, delay: 0.35 },
+          y: { repeat: Infinity, duration: 6, ease: "easeInOut" },
+        }}
+      >
+        <img src={a.image_url} alt={a.title ?? "Hero"} className="h-full w-full object-cover" />
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-2 left-0 w-[42%] h-[220px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-30"
+        initial={{ opacity: 0, x: -30 }}
+        animate={{ opacity: 1, x: 0, y: [0, -8, 0] }}
+        transition={{
+          opacity: { duration: 0.6, delay: 0.6 },
+          x: { duration: 0.6, delay: 0.6 },
+          y: { repeat: Infinity, duration: 7, ease: "easeInOut", delay: 1 },
+        }}
+      >
+        <img src={b.image_url} alt={b.title ?? "Hero"} className="h-full w-full object-cover" />
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-6 right-6 w-[45%] h-[200px] rounded-2xl overflow-hidden border-[3px] border-white shadow-elegant z-20"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: [0, -6, 0] }}
+        transition={{
+          opacity: { duration: 0.6, delay: 0.75 },
+          y: { repeat: Infinity, duration: 5.5, ease: "easeInOut", delay: 1.5 },
+        }}
+      >
+        <img src={c.image_url} alt={c.title ?? "Hero"} className="h-full w-full object-cover" />
+      </motion.div>
+
+      <motion.div
+        className="absolute top-[140px] -left-2 md:-left-6 z-40 rounded-2xl bg-white px-4 py-3 shadow-elegant flex items-center gap-3"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.95 }}
+      >
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-gold">
+          <Award className="h-5 w-5 text-gold-foreground" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-foreground">+10 anos</p>
+          <p className="text-[11px] text-muted-foreground">de experiência</p>
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-2 -right-2 md:-right-4 z-40 rounded-2xl bg-white px-4 py-3 shadow-elegant flex items-center gap-3"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 1.05 }}
+      >
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand/10">
+          <Users className="h-5 w-5 text-brand" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-foreground">5 000+</p>
+          <p className="text-[11px] text-muted-foreground">clientes</p>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 

@@ -12,6 +12,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      hero_images: {
+        Row: {
+          id: string
+          title: string | null
+          subtitle: string | null
+          cta_label: string | null
+          cta_url: string | null
+          image_url: string
+          position: number
+          active: boolean
+          page: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title?: string | null
+          subtitle?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          image_url: string
+          position?: number
+          active?: boolean
+          page?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string | null
+          subtitle?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          image_url?: string
+          position?: number
+          active?: boolean
+          page?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       delivery_zones: {
         Row: {
           active: boolean

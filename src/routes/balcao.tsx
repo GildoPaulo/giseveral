@@ -6,7 +6,7 @@ import {
   LogOut, Menu, X, ChevronRight, BoxesIcon, BookOpen,
   Wrench, Images, Megaphone, GraduationCap, Award,
   FileText, Newspaper, Mail, DollarSign, Bell, TrendingUp, SendHorizonal,
-  LayoutTemplate, Coins, Layers,
+  LayoutTemplate, Coins, Layers, ImageIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +28,7 @@ const navItems = [
   { to: "/balcao/entregas", label: "Entregas", icon: Truck },
   { to: "/balcao/servicos", label: "Serviços", icon: Wrench },
   { to: "/balcao/galeria", label: "Galeria", icon: Images },
+  { to: "/balcao/hero", label: "Imagens Hero", icon: ImageIcon },
   { to: "/balcao/campanhas", label: "Campanhas", icon: Megaphone },
   { to: "/balcao/newsletter", label: "Newsletter", icon: SendHorizonal },
   { to: "/balcao/notificacoes", label: "Push Notifications", icon: Bell },

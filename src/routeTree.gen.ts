@@ -53,6 +53,7 @@ import { Route as BalcaoNotificacoesRouteImport } from './routes/balcao.notifica
 import { Route as BalcaoNoticiasRouteImport } from './routes/balcao.noticias'
 import { Route as BalcaoNewsletterRouteImport } from './routes/balcao.newsletter'
 import { Route as BalcaoHubRouteImport } from './routes/balcao.hub'
+import { Route as BalcaoHeroRouteImport } from './routes/balcao.hero'
 import { Route as BalcaoGaleriaRouteImport } from './routes/balcao.galeria'
 import { Route as BalcaoExamesRouteImport } from './routes/balcao.exames'
 import { Route as BalcaoEntregasRouteImport } from './routes/balcao.entregas'
@@ -293,6 +294,11 @@ const BalcaoHubRoute = BalcaoHubRouteImport.update({
   path: '/hub',
   getParentRoute: () => BalcaoRoute,
 } as any)
+const BalcaoHeroRoute = BalcaoHeroRouteImport.update({
+  id: '/hero',
+  path: '/hero',
+  getParentRoute: () => BalcaoRoute,
+} as any)
 const BalcaoGaleriaRoute = BalcaoGaleriaRouteImport.update({
   id: '/galeria',
   path: '/galeria',
@@ -416,6 +422,7 @@ export interface FileRoutesByFullPath {
   '/balcao/entregas': typeof BalcaoEntregasRoute
   '/balcao/exames': typeof BalcaoExamesRoute
   '/balcao/galeria': typeof BalcaoGaleriaRoute
+  '/balcao/hero': typeof BalcaoHeroRoute
   '/balcao/hub': typeof BalcaoHubRoute
   '/balcao/newsletter': typeof BalcaoNewsletterRoute
   '/balcao/noticias': typeof BalcaoNoticiasRoute
@@ -479,6 +486,7 @@ export interface FileRoutesByTo {
   '/balcao/entregas': typeof BalcaoEntregasRoute
   '/balcao/exames': typeof BalcaoExamesRoute
   '/balcao/galeria': typeof BalcaoGaleriaRoute
+  '/balcao/hero': typeof BalcaoHeroRoute
   '/balcao/hub': typeof BalcaoHubRoute
   '/balcao/newsletter': typeof BalcaoNewsletterRoute
   '/balcao/noticias': typeof BalcaoNoticiasRoute
@@ -543,6 +551,7 @@ export interface FileRoutesById {
   '/balcao/entregas': typeof BalcaoEntregasRoute
   '/balcao/exames': typeof BalcaoExamesRoute
   '/balcao/galeria': typeof BalcaoGaleriaRoute
+  '/balcao/hero': typeof BalcaoHeroRoute
   '/balcao/hub': typeof BalcaoHubRoute
   '/balcao/newsletter': typeof BalcaoNewsletterRoute
   '/balcao/noticias': typeof BalcaoNoticiasRoute
@@ -610,6 +619,7 @@ export interface FileRouteTypes {
     | '/balcao/entregas'
     | '/balcao/exames'
     | '/balcao/galeria'
+    | '/balcao/hero'
     | '/balcao/hub'
     | '/balcao/newsletter'
     | '/balcao/noticias'
@@ -673,6 +683,7 @@ export interface FileRouteTypes {
     | '/balcao/entregas'
     | '/balcao/exames'
     | '/balcao/galeria'
+    | '/balcao/hero'
     | '/balcao/hub'
     | '/balcao/newsletter'
     | '/balcao/noticias'
@@ -736,6 +747,7 @@ export interface FileRouteTypes {
     | '/balcao/entregas'
     | '/balcao/exames'
     | '/balcao/galeria'
+    | '/balcao/hero'
     | '/balcao/hub'
     | '/balcao/newsletter'
     | '/balcao/noticias'
@@ -1122,6 +1134,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoHubRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/hero': {
+      id: '/balcao/hero'
+      path: '/hero'
+      fullPath: '/balcao/hero'
+      preLoaderRoute: typeof BalcaoHeroRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
     '/balcao/galeria': {
       id: '/balcao/galeria'
       path: '/galeria'
@@ -1270,6 +1289,7 @@ interface BalcaoRouteChildren {
   BalcaoEntregasRoute: typeof BalcaoEntregasRoute
   BalcaoExamesRoute: typeof BalcaoExamesRoute
   BalcaoGaleriaRoute: typeof BalcaoGaleriaRoute
+  BalcaoHeroRoute: typeof BalcaoHeroRoute
   BalcaoHubRoute: typeof BalcaoHubRoute
   BalcaoNewsletterRoute: typeof BalcaoNewsletterRoute
   BalcaoNoticiasRoute: typeof BalcaoNoticiasRoute
@@ -1294,6 +1314,7 @@ const BalcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoEntregasRoute: BalcaoEntregasRoute,
   BalcaoExamesRoute: BalcaoExamesRoute,
   BalcaoGaleriaRoute: BalcaoGaleriaRoute,
+  BalcaoHeroRoute: BalcaoHeroRoute,
   BalcaoHubRoute: BalcaoHubRoute,
   BalcaoNewsletterRoute: BalcaoNewsletterRoute,
   BalcaoNoticiasRoute: BalcaoNoticiasRoute,
