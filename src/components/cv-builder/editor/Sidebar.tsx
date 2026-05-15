@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useRef, useState, useCallback } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -9,7 +9,9 @@ import {
   GripVertical,
   Sparkles,
   Loader2,
+  Upload,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { callGemini } from "@/services/gemini";
 import type {
   CvData,
@@ -22,6 +24,7 @@ import type {
   CvSectionKey,
   SkillLevel,
 } from "../types";
+import { SKILL_PCT } from "../types";
 
 interface Props {
   data: CvData;
@@ -92,8 +95,19 @@ export function Sidebar({ data, onChange }: Props) {
   };
 
   // Helpers
-  const setPersonal = (k: keyof CvData["personal"], v: string) =>
+  const setPersonal = (k: keyof CvData["personal"], v: string | boolean) =>
     onChange({ ...data, personal: { ...data.personal, [k]: v } });
+
+  const fotoInputRef = useRef<HTMLInputElement>(null);
+  const handleFotoFile = (file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result === "string") setPersonal("foto", result);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const setObjetivo = (v: string) => onChange({ ...data, objetivo: v });
 
@@ -176,14 +190,76 @@ export function Sidebar({ data, onChange }: Props) {
     <div className="w-[35%] min-w-[300px] max-w-[520px] shrink-0 border-r border-border bg-card overflow-y-auto flex flex-col">
       {/* Personal */}
       <Panel label="Informação Pessoal" open={open.personal} onToggle={() => toggle("personal")}>
-        <Field label="Nome completo" value={data.personal.nome} onChange={v => setPersonal("nome", v)} />
-        <Field label="Título / Cargo" value={data.personal.titulo} onChange={v => setPersonal("titulo", v)} />
-        <Field label="Email" value={data.personal.email} onChange={v => setPersonal("email", v)} type="email" />
-        <Field label="Telefone" value={data.personal.telefone} onChange={v => setPersonal("telefone", v)} />
-        <Field label="Localização" value={data.personal.localizacao} onChange={v => setPersonal("localizacao", v)} />
-        <Field label="LinkedIn" value={data.personal.linkedin} onChange={v => setPersonal("linkedin", v)} />
-        <Field label="Website" value={data.personal.website} onChange={v => setPersonal("website", v)} />
-        <Field label="Foto (URL)" value={data.personal.foto} onChange={v => setPersonal("foto", v)} />
+        {/* Foto upload */}
+        <div className="flex items-center gap-3 rounded-xl border border-border bg-background p-3">
+          {data.personal.foto ? (
+            <img src={data.personal.foto} alt="Foto" className="h-14 w-14 rounded-full object-cover ring-1 ring-border" />
+          ) : (
+            <div className="h-14 w-14 rounded-full bg-muted grid place-items-center text-muted-foreground text-[10px] font-semibold">FOTO</div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-semibold text-foreground">Foto de perfil</p>
+            <p className="text-[10px] text-muted-foreground">JPG/PNG · 1:1 recomendado</p>
+            <div className="mt-1.5 flex gap-1.5">
+              <button
+                type="button"
+                onClick={() => fotoInputRef.current?.click()}
+                className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-semibold hover:bg-muted transition-colors"
+              >
+                <Upload size={10} /> Carregar
+              </button>
+              {data.personal.foto && (
+                <button
+                  type="button"
+                  onClick={() => setPersonal("foto", "")}
+                  className="rounded-md border border-border bg-card px-2 py-1 text-[10px] font-semibold text-muted-foreground hover:text-destructive hover:border-destructive/40 transition-colors"
+                >
+                  Remover
+                </button>
+              )}
+            </div>
+            <input
+              ref={fotoInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFotoFile(f); }}
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Nome" value={data.personal.nome} onChange={v => setPersonal("nome", v)} placeholder="Maria Joana" />
+          <Field label="Apelido" value={data.personal.apelido ?? ""} onChange={v => setPersonal("apelido", v)} placeholder="Santos" />
+        </div>
+        <Field label="Título profissional" value={data.personal.titulo} onChange={v => setPersonal("titulo", v)} placeholder="Engenheira de Software" />
+
+        <Field label="Email" value={data.personal.email} onChange={v => setPersonal("email", v)} type="email" placeholder="nome@email.com" />
+        <Field label="Telefone" value={data.personal.telefone} onChange={v => setPersonal("telefone", v)} placeholder="+258 84 000 0000" />
+
+        <Field label="Endereço" value={data.personal.endereco ?? ""} onChange={v => setPersonal("endereco", v)} placeholder="Rua, número" />
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="Código postal" value={data.personal.codigoPostal ?? ""} onChange={v => setPersonal("codigoPostal", v)} placeholder="1100" />
+          <Field label="Cidade" value={data.personal.cidade ?? data.personal.localizacao} onChange={v => setPersonal("cidade", v)} placeholder="Maputo" />
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Field label="País" value={data.personal.pais ?? ""} onChange={v => setPersonal("pais", v)} placeholder="Moçambique" />
+          <Field label="Nacionalidade" value={data.personal.nacionalidade ?? ""} onChange={v => setPersonal("nacionalidade", v)} placeholder="Moçambicana" />
+        </div>
+
+        <Field label="LinkedIn" value={data.personal.linkedin} onChange={v => setPersonal("linkedin", v)} placeholder="linkedin.com/in/…" />
+        <Field label="Website" value={data.personal.website} onChange={v => setPersonal("website", v)} placeholder="meusite.com" />
+        <Field label="Portfolio" value={data.personal.portfolio ?? ""} onChange={v => setPersonal("portfolio", v)} placeholder="github.com/…" />
+
+        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer rounded-md border border-border bg-background px-2.5 py-1.5">
+          <input
+            type="checkbox"
+            checked={!!data.personal.cartaConducao}
+            onChange={(e) => setPersonal("cartaConducao", e.target.checked)}
+            className="rounded"
+          />
+          Tenho carta de condução
+        </label>
       </Panel>
 
       {/* Objetivo */}
@@ -297,16 +373,39 @@ export function Sidebar({ data, onChange }: Props) {
             canUp={i > 0}
             canDown={i < data.skills.length - 1}
           >
-            <Field label="Competência" value={sk.nome} onChange={v => setSk(i, "nome", v)} />
+            <Field label="Competência" value={sk.nome} onChange={v => setSk(i, "nome", v)} placeholder="React, Python…" />
             <div>
               <label className="block text-[10px] text-muted-foreground mb-1">Nível</label>
-              <select
-                value={sk.nivel}
-                onChange={e => setSk(i, "nivel", e.target.value)}
-                className="w-full text-xs bg-background border border-input rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring"
-              >
-                {SKILL_LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
-              </select>
+              <div className="grid grid-cols-4 gap-1">
+                {SKILL_LEVELS.map((l) => {
+                  const active = sk.nivel === l;
+                  return (
+                    <button
+                      key={l}
+                      type="button"
+                      onClick={() => setSk(i, "nivel", l)}
+                      className={`rounded-md px-1.5 py-1 text-[10px] font-bold transition-colors ${
+                        active
+                          ? "bg-brand text-brand-foreground"
+                          : "bg-muted text-muted-foreground hover:bg-muted/70"
+                      }`}
+                    >
+                      {l}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="h-1.5 flex-1 rounded-full bg-muted overflow-hidden">
+                  <motion.div
+                    initial={false}
+                    animate={{ width: `${SKILL_PCT[sk.nivel]}%` }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                    className="h-full rounded-full bg-gradient-to-r from-brand to-gold"
+                  />
+                </div>
+                <span className="text-[10px] font-bold tabular-nums text-muted-foreground w-8 text-right">{SKILL_PCT[sk.nivel]}%</span>
+              </div>
             </div>
           </ItemCard>
         ))}
@@ -415,35 +514,60 @@ interface PanelProps {
 function Panel({ label, open, onToggle, visible, onToggleVisible, onAdd, children }: PanelProps) {
   return (
     <div className="border-b border-border">
-      <div className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors" onClick={onToggle}>
-        {open ? <ChevronDown size={14} className="text-muted-foreground shrink-0" /> : <ChevronRight size={14} className="text-muted-foreground shrink-0" />}
-        <span className="text-xs font-semibold flex-1 select-none">{label}</span>
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center gap-2 px-4 py-3 hover:bg-muted/50 transition-colors text-left"
+      >
+        <motion.span
+          animate={{ rotate: open ? 0 : -90 }}
+          transition={{ duration: 0.2 }}
+          className="text-muted-foreground shrink-0"
+        >
+          <ChevronDown size={14} />
+        </motion.span>
+        <span className="text-xs font-semibold flex-1 select-none uppercase tracking-wider">{label}</span>
         {onToggleVisible !== undefined && (
-          <button
-            type="button"
+          <span
+            role="button"
+            tabIndex={0}
             onClick={e => { e.stopPropagation(); onToggleVisible(); }}
+            onKeyDown={e => { if (e.key === "Enter") { e.stopPropagation(); onToggleVisible(); } }}
             className="p-1 rounded hover:bg-muted text-muted-foreground"
             title={visible ? "Ocultar secção no CV" : "Mostrar secção no CV"}
           >
             {visible ? <Eye size={13} /> : <EyeOff size={13} />}
-          </button>
+          </span>
         )}
         {onAdd && (
-          <button
-            type="button"
+          <span
+            role="button"
+            tabIndex={0}
             onClick={e => { e.stopPropagation(); onAdd(); }}
+            onKeyDown={e => { if (e.key === "Enter") { e.stopPropagation(); onAdd(); } }}
             className="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
             title="Adicionar"
           >
             <Plus size={13} />
-          </button>
+          </span>
         )}
-      </div>
-      {open && (
-        <div className="px-4 pb-4 flex flex-col gap-3">
-          {children}
-        </div>
-      )}
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="px-4 pb-4 pt-1 flex flex-col gap-3">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -462,41 +586,65 @@ function ItemCard({ title, onDelete, onMoveUp, onMoveDown, canUp, canDown, child
   const [expanded, setExpanded] = useState(true);
 
   return (
-    <div className="rounded-lg border border-border bg-background">
-      <div
-        className="flex items-center gap-2 px-3 py-2.5 cursor-pointer hover:bg-muted/40 transition-colors rounded-t-lg"
+    <motion.div
+      layout
+      whileHover={{ borderColor: "hsl(var(--brand) / 0.4)" }}
+      transition={{ layout: { duration: 0.2 }, borderColor: { duration: 0.15 } }}
+      className="rounded-xl border border-border bg-background shadow-sm hover:shadow-md transition-shadow"
+    >
+      <button
+        type="button"
         onClick={() => setExpanded(p => !p)}
+        className="w-full flex items-center gap-2 px-3 py-2.5 cursor-pointer hover:bg-muted/40 transition-colors rounded-t-xl"
       >
         <GripVertical size={12} className="text-muted-foreground/40 shrink-0" />
-        <span className="text-[11px] font-medium flex-1 truncate">{title}</span>
+        <span className="text-[11px] font-semibold flex-1 truncate text-left">{title}</span>
         <div className="flex items-center gap-0.5">
-          <button
-            type="button"
+          <span
+            role="button"
+            tabIndex={0}
             onClick={e => { e.stopPropagation(); if (canUp) onMoveUp(); }}
-            disabled={!canUp}
-            className="p-0.5 rounded text-muted-foreground hover:text-foreground disabled:opacity-25"
-          >▲</button>
-          <button
-            type="button"
+            onKeyDown={e => { if (e.key === "Enter" && canUp) onMoveUp(); }}
+            className={`p-0.5 rounded text-muted-foreground hover:text-foreground ${canUp ? "" : "opacity-25 pointer-events-none"}`}
+            aria-label="Mover para cima"
+          >▲</span>
+          <span
+            role="button"
+            tabIndex={0}
             onClick={e => { e.stopPropagation(); if (canDown) onMoveDown(); }}
-            disabled={!canDown}
-            className="p-0.5 rounded text-muted-foreground hover:text-foreground disabled:opacity-25"
-          >▼</button>
-          <button
-            type="button"
+            onKeyDown={e => { if (e.key === "Enter" && canDown) onMoveDown(); }}
+            className={`p-0.5 rounded text-muted-foreground hover:text-foreground ${canDown ? "" : "opacity-25 pointer-events-none"}`}
+            aria-label="Mover para baixo"
+          >▼</span>
+          <span
+            role="button"
+            tabIndex={0}
             onClick={e => { e.stopPropagation(); onDelete(); }}
+            onKeyDown={e => { if (e.key === "Enter") onDelete(); }}
             className="p-1 rounded text-muted-foreground hover:text-destructive"
+            aria-label="Eliminar"
           >
             <Trash2 size={11} />
-          </button>
+          </span>
         </div>
-      </div>
-      {expanded && (
-        <div className="px-3 pb-3 flex flex-col gap-2.5 border-t border-border">
-          {children}
-        </div>
-      )}
-    </div>
+      </button>
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="px-3 pb-3 pt-2 flex flex-col gap-2.5 border-t border-border">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 

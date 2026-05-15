@@ -13,6 +13,7 @@ import {
   Preview,
 } from "@/components/cv-builder";
 import type { CvData, CvTemplate, CvDesign } from "@/components/cv-builder";
+import { useCvAutoSave, loadCvDraft, clearCvDraft } from "@/components/cv-builder/useCvAutoSave";
 import { fetchAPITemplates, generateAPIPdf } from "@/services/reactiveApi";
 import type { APITemplate } from "@/services/reactiveApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,28 @@ function CVBuilderPage() {
   const [templateSource, setTemplateSource] = useState<TemplateSource>("local");
   const [cvData, setCvData] = useState<CvData>(DEFAULT_CV_DATA);
   const [exporting, setExporting] = useState(false);
+  const [draftFound, setDraftFound] = useState<CvData | null>(null);
+  const { savedAt, saving } = useCvAutoSave(cvData);
+
+  // On first mount, peek at a previously-saved draft so we can offer recovery.
+  useEffect(() => {
+    const draft = loadCvDraft();
+    if (draft && draft.personal?.nome) setDraftFound(draft);
+  }, []);
+
+  function applyDraft() {
+    if (draftFound) {
+      setCvData(draftFound);
+      setView("editor");
+      toast.success("Rascunho restaurado");
+    }
+    setDraftFound(null);
+  }
+
+  function discardDraft() {
+    clearCvDraft();
+    setDraftFound(null);
+  }
 
   function selectLocalTemplate(t: CvTemplate) {
     setTemplate(t);
@@ -116,12 +139,41 @@ function CVBuilderPage() {
           <Sidebar data={cvData} onChange={setCvData} />
           <Preview template={template} data={cvData} />
         </div>
+        <SaveIndicator saving={saving} savedAt={savedAt} />
       </div>
     );
   }
 
   return (
     <Layout>
+      {draftFound && (
+        <div className="container mx-auto max-w-3xl px-4 pt-6">
+          <div className="rounded-2xl border border-brand/30 bg-brand/5 p-4 flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <p className="text-sm font-bold text-foreground">Encontrámos um rascunho guardado</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                CV de <span className="font-semibold">{draftFound.personal?.nome ?? "—"}</span> · podes continuar onde paraste.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={discardDraft}
+                className="rounded-xl border border-border bg-background px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-colors"
+              >
+                Descartar
+              </button>
+              <button
+                type="button"
+                onClick={applyDraft}
+                className="rounded-xl bg-brand px-4 py-2 text-xs font-bold text-brand-foreground hover:opacity-90 transition-opacity"
+              >
+                Restaurar rascunho
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Gallery
         onSelectLocal={selectLocalTemplate}
         onSelectAPI={selectAPITemplate}
@@ -130,6 +182,35 @@ function CVBuilderPage() {
         templateSource={templateSource}
       />
     </Layout>
+  );
+}
+
+function SaveIndicator({ saving, savedAt }: { saving: boolean; savedAt: number | null }) {
+  const [label, setLabel] = useState<string>("");
+  useEffect(() => {
+    if (saving) { setLabel("A guardar…"); return; }
+    if (!savedAt) { setLabel(""); return; }
+    const tick = () => {
+      const diff = Date.now() - savedAt;
+      if (diff < 5000) setLabel("Guardado");
+      else if (diff < 60000) setLabel(`Guardado há ${Math.floor(diff / 1000)}s`);
+      else setLabel(`Guardado há ${Math.floor(diff / 60000)} min`);
+    };
+    tick();
+    const id = setInterval(tick, 10000);
+    return () => clearInterval(id);
+  }, [saving, savedAt]);
+
+  if (!label) return null;
+  return (
+    <div className="absolute bottom-3 left-3 z-30 inline-flex items-center gap-1.5 rounded-full border border-border bg-card/90 backdrop-blur px-3 py-1 text-[11px] font-medium text-muted-foreground shadow-sm">
+      {saving ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <Check className="h-3 w-3 text-emerald-600" />
+      )}
+      {label}
+    </div>
   );
 }
 

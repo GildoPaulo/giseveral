@@ -17,12 +17,21 @@ export type CvFontSize = typeof FONT_SIZE_OPTIONS[number];
 
 export interface CvPersonal {
   nome: string;
+  /** First name vs. surname. Kept legacy `nome` as the full display name. */
+  apelido?: string;
   titulo: string;
   email: string;
   telefone: string;
   localizacao: string;
+  endereco?: string;
+  codigoPostal?: string;
+  cidade?: string;
+  pais?: string;
+  nacionalidade?: string;
   linkedin: string;
   website: string;
+  portfolio?: string;
+  cartaConducao?: boolean;
   foto: string;
   /** @deprecated use CvData.objetivo instead — kept for PDF template compat */
   objetivo?: string;
@@ -130,13 +139,21 @@ export const DEFAULT_DESIGN: CvDesign = {
 
 export const DEFAULT_CV_DATA: CvData = {
   personal: {
-    nome: "Maria Joana Santos",
+    nome: "Maria Joana",
+    apelido: "Santos",
     titulo: "Engenheira de Software Senior",
     email: "maria.santos@email.com",
     telefone: "+258 84 123 4567",
     localizacao: "Maputo, Moçambique",
+    endereco: "Av. 25 de Setembro, 123",
+    codigoPostal: "1100",
+    cidade: "Maputo",
+    pais: "Moçambique",
+    nacionalidade: "Moçambicana",
     linkedin: "linkedin.com/in/mariasantos",
     website: "mariasantos.dev",
+    portfolio: "github.com/mariasantos",
+    cartaConducao: true,
     foto: "",
   },
   objetivo:
