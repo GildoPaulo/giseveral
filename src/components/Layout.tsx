@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { SiteHeader } from "./SiteHeader";
 import { SiteFooter } from "./SiteFooter";
-import { Chatbot } from "./Chatbot";
+import { AssistantFab } from "./AssistantFab";
 import { CookiesBanner } from "./CookiesBanner";
 import defaultHeroBg from "@/assets/hero-bg.jpg";
 
@@ -11,7 +11,7 @@ export function Layout({ children }: { children: ReactNode }) {
       <SiteHeader />
       <main className="flex-1 pb-20 lg:pb-0">{children}</main>
       <SiteFooter />
-      <Chatbot />
+      <AssistantFab />
       <CookiesBanner />
     </div>
   );

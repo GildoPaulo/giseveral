@@ -23,6 +23,7 @@ const navItems = [
   { to: "/sobre",   labelKey: "nav.about" },
   { to: "/servicos", labelKey: "nav.services" },
   { to: "/loja",    labelKey: "nav.store" },
+  { to: "/hub",     labelKey: "nav.hub" },
   { to: "/blog",    labelKey: "nav.blog" },
   { to: "/galeria", labelKey: "nav.gallery" },
 ] as const;
@@ -146,9 +147,12 @@ export function SiteHeader() {
       <div className="container mx-auto flex h-14 items-center justify-between gap-3 px-4">
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 shrink-0" onClick={() => setOpen(false)}>
-          <img src={logo} alt="Giseveral" className="h-7 w-7 rounded-md object-cover ring-1 ring-border" />
-          <span className="hidden sm:inline text-sm font-bold tracking-tight text-foreground">Giseveral</span>
+        <Link to="/" className="flex items-center gap-2.5 shrink-0" onClick={() => setOpen(false)}>
+          <img src={logo} alt="Giseveral" className="h-9 w-9 rounded-lg object-cover ring-1 ring-border shadow-sm" />
+          <div className="hidden sm:flex flex-col leading-tight">
+            <span className="text-sm font-extrabold tracking-tight text-foreground">Giseveral</span>
+            <span className="text-[9px] tracking-[0.18em] text-muted-foreground uppercase">e Services</span>
+          </div>
         </Link>
 
         {/* Desktop nav — clean inline links, no pill background */}

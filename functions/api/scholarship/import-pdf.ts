@@ -62,7 +62,7 @@ Responde APENAS com JSON valido, sem markdown, neste formato:
 Usa portugues mocambicano. Se um campo nao existir, deixa string vazia ou array vazio. O campo apply_url deve ser a fonte oficial se estiver no edital.`;
 
   const resp = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
