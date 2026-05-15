@@ -85,17 +85,61 @@ function parseErrorBody(raw: string): unknown {
   }
 }
 
+// Models tried in order. The gemini-1.5 family was retired in Sept 2025,
+// so we use 2.x as primary with newer/older fallbacks.
+const MODEL_FALLBACK_CHAIN = [
+  "gemini-2.0-flash",
+  "gemini-2.5-flash",
+  "gemini-2.0-flash-exp",
+] as const;
+
+async function tryModel(
+  apiKey: string,
+  model: string,
+  task: GeminiTask,
+  systemPrompt: string,
+  userPrompt: string,
+): Promise<{ ok: true; text: string } | { ok: false; status: number; upstream: unknown }> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+  const resp = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      generationConfig: {
+        temperature: task === "chat" ? 0.7 : task === "smart_search" ? 0.1 : 0.4,
+        maxOutputTokens: MAX_TOKENS[task],
+        ...(task === "smart_search" || task === "scholarship_match"
+          ? { responseMimeType: "application/json" as const }
+          : {}),
+      },
+    }),
+  });
+
+  if (!resp.ok) {
+    const raw = await resp.text();
+    return { ok: false, status: resp.status, upstream: parseErrorBody(raw) };
+  }
+
+  const data = (await resp.json()) as {
+    candidates?: {
+      finishReason?: string;
+      content?: { parts?: { text?: string }[] };
+    }[];
+    promptFeedback?: unknown;
+  };
+
+  const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("").trim() ?? "";
+  if (!text) {
+    return { ok: false, status: 502, upstream: { error: { message: "Resposta vazia ou bloqueada por segurança." } } };
+  }
+  return { ok: true, text };
+}
+
 async function callGemini(env: Env, body: GeminiRequest) {
   const apiKey = getApiKey(env);
   const task = body.task && body.task in SYSTEM ? body.task : "chat";
-  const model = env.GEMINI_MODEL || "gemini-1.5-flash";
-
-  console.log("[gemini] request", {
-    task,
-    model,
-    hasKey: Boolean(apiKey),
-    key: maskKey(apiKey),
-  });
 
   if (!apiKey) {
     return json(
@@ -117,93 +161,50 @@ async function callGemini(env: Env, body: GeminiRequest) {
     ? `Contexto: ${body.context.trim()}\n\n${prompt}`
     : prompt;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  let resp: Response;
+  // Build the list of models to try: env override first (if set), then the fallback chain.
+  const candidates = Array.from(new Set([
+    ...(env.GEMINI_MODEL ? [env.GEMINI_MODEL] : []),
+    ...MODEL_FALLBACK_CHAIN,
+  ]));
 
-  try {
-    resp = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-        system_instruction: { parts: [{ text: systemPrompt }] },
-        contents: [{ role: "user", parts: [{ text: userPrompt }] }],
-        generationConfig: {
-          temperature: task === "chat" ? 0.7 : task === "smart_search" ? 0.1 : 0.4,
-          maxOutputTokens: MAX_TOKENS[task],
-          ...(task === "smart_search" || task === "scholarship_match"
-            ? { responseMimeType: "application/json" as const }
-            : {}),
-        },
-      }),
-    });
-  } catch (error) {
-    console.error("[gemini] network error", {
-      message: error instanceof Error ? error.message : String(error),
-      key: maskKey(apiKey),
-    });
-    return json(
-      {
-        error: "Falha de rede ao contactar Gemini",
-        detail: error instanceof Error ? error.message : String(error),
-      },
-      502,
-    );
-  }
+  let lastErrorStatus = 502;
+  let lastUpstream: unknown = null;
+  let lastModel = candidates[0];
 
-  if (!resp.ok) {
-    const raw = await resp.text();
-    const upstream = parseErrorBody(raw);
-    console.error("[gemini] upstream error", {
-      status: resp.status,
-      statusText: resp.statusText,
-      body: typeof upstream === "string" ? upstream : JSON.stringify(upstream).slice(0, 1200),
-      key: maskKey(apiKey),
-    });
-
-    return json(
-      {
-        error: "Erro Gemini",
-        status: resp.status,
-        statusText: resp.statusText,
-        detail: "A Google recusou a chamada. Veja upstream para o motivo exacto.",
-        upstream,
-        keyHint: maskKey(apiKey),
+  for (const model of candidates) {
+    lastModel = model;
+    try {
+      const result = await tryModel(apiKey, model, task, systemPrompt, userPrompt);
+      if (result.ok) {
+        return json({ text: result.text, model, keyHint: maskKey(apiKey) });
+      }
+      lastErrorStatus = result.status;
+      lastUpstream = result.upstream;
+      console.warn("[gemini] model failed", { model, status: result.status });
+      // Stop retrying on auth errors — fallback won't help.
+      if (result.status === 401 || result.status === 403) break;
+    } catch (error) {
+      console.error("[gemini] network error", {
         model,
-      },
-      502,
-    );
+        message: error instanceof Error ? error.message : String(error),
+      });
+      lastErrorStatus = 502;
+      lastUpstream = { error: { message: error instanceof Error ? error.message : "Network error" } };
+    }
   }
 
-  const data = (await resp.json()) as {
-    candidates?: {
-      finishReason?: string;
-      content?: { parts?: { text?: string }[] };
-      safetyRatings?: unknown[];
-    }[];
-    promptFeedback?: unknown;
-  };
-
-  const candidate = data.candidates?.[0];
-  const text = candidate?.content?.parts?.map((part) => part.text ?? "").join("").trim() ?? "";
-
-  if (!text) {
-    console.error("[gemini] empty response", {
-      finishReason: candidate?.finishReason,
-      promptFeedback: data.promptFeedback,
-      key: maskKey(apiKey),
-    });
-    return json(
-      {
-        error: "Gemini nao devolveu texto",
-        detail: "A resposta veio vazia ou foi bloqueada.",
-        finishReason: candidate?.finishReason,
-        promptFeedback: data.promptFeedback,
-      },
-      502,
-    );
-  }
-
-  return json({ text, model, keyHint: maskKey(apiKey) });
+  return json(
+    {
+      error: "Erro Gemini",
+      status: lastErrorStatus,
+      detail: "Todos os modelos retornaram erro. Veja upstream para detalhes.",
+      upstream: lastUpstream,
+      keyHint: maskKey(apiKey),
+      model: lastModel,
+      triedModels: candidates,
+    },
+    502,
+  );
 }
 
 export const onRequestOptions: PagesFunction = async () => new Response(null, { headers: CORS_HEADERS });

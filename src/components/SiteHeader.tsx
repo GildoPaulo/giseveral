@@ -1,16 +1,16 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
 import {
   Menu, X, User, LogIn, ShoppingCart, Bell, Sun, Moon,
   Package, Wrench, Truck, CheckCircle2, Tag, AlertTriangle,
-  BellOff, Trash2, Info, Search, BellRing, Home, Store, Compass,
+  BellOff, Trash2, Info, BellRing, Home, Store, Compass, ChevronDown, Globe,
 } from "lucide-react";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { GlobalSearch } from "@/components/GlobalSearch";
 import logo from "@/assets/logo.jpeg";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage, SUPPORTED_LANGUAGES, type LanguageCode } from "@/contexts/LanguageContext";
 import {
   useNotifications, relativeTime,
   type NotifType, type AppNotification,
@@ -19,25 +19,22 @@ import {
 // ── Navigation ────────────────────────────────────────────────────────────────
 
 const navItems = [
-  { to: "/", label: "Home" },
-  { to: "/sobre", label: "Sobre" },
-  { to: "/servicos", label: "Serviços" },
-  { to: "/loja", label: "Loja" },
-  { to: "/galeria", label: "Galeria" },
-  { to: "/blog", label: "Blog" },
-  { to: "/hub", label: "Hub" },
-  { to: "/precos", label: "Preços" },
-  { to: "/contactos", label: "Contactos" },
+  { to: "/",        labelKey: "nav.home" },
+  { to: "/sobre",   labelKey: "nav.about" },
+  { to: "/servicos", labelKey: "nav.services" },
+  { to: "/loja",    labelKey: "nav.store" },
+  { to: "/blog",    labelKey: "nav.blog" },
+  { to: "/galeria", labelKey: "nav.gallery" },
 ] as const;
 
 const mobileQuickNav = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/loja", label: "Loja", icon: Store },
-  { to: "/hub", label: "Hub", icon: Compass },
-  { to: "/conta", label: "Conta", icon: User },
+  { to: "/",       labelKey: "nav.home",    icon: Home },
+  { to: "/loja",   labelKey: "nav.store",   icon: Store },
+  { to: "/blog",   labelKey: "nav.blog",    icon: Compass },
+  { to: "/conta",  labelKey: "nav.account", icon: User },
 ] as const;
 
-// ── Notification meta (icon + colour per type) ────────────────────────────────
+// ── Notification meta ─────────────────────────────────────────────────────────
 
 const NOTIF_META: Record<NotifType, {
   icon: React.ComponentType<{ className?: string }>;
@@ -55,29 +52,75 @@ const NOTIF_META: Record<NotifType, {
 
 const ALL_TYPES = Object.keys(NOTIF_META) as NotifType[];
 
+// ── Language Switcher ────────────────────────────────────────────────────────
+
+function LanguageSwitcher() {
+  const { lang, setLang, t } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  const current = SUPPORTED_LANGUAGES.find((l) => l.code === lang) ?? SUPPORTED_LANGUAGES[0];
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={t("nav.language")}
+        aria-expanded={open}
+        className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-card/60 px-2.5 py-1.5 text-xs font-bold text-foreground/80 hover:text-foreground hover:bg-accent transition-colors"
+      >
+        <Globe className="h-3.5 w-3.5" />
+        <span className="tabular-nums tracking-wider">{current.short}</span>
+        <ChevronDown className={`h-3 w-3 opacity-60 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 z-50 min-w-[140px] rounded-xl border border-border bg-card shadow-elegant overflow-hidden">
+          {SUPPORTED_LANGUAGES.map((l) => {
+            const active = l.code === lang;
+            return (
+              <button
+                key={l.code}
+                type="button"
+                onClick={() => { setLang(l.code as LanguageCode); setOpen(false); }}
+                className={`w-full flex items-center justify-between gap-3 px-3 py-2 text-xs text-left hover:bg-muted transition-colors ${
+                  active ? "text-brand font-bold" : "text-foreground"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span aria-hidden>{l.flag}</span>
+                  {l.label}
+                </span>
+                <span className="text-[10px] tabular-nums opacity-60">{l.short}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [filter, setFilter] = useState<NotifType | "all">("all");
-  const [searchOpen, setSearchOpen] = useState(false);
-
-  // Cmd+K / Ctrl+K opens the search modal
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
-        e.preventDefault();
-        setSearchOpen(true);
-      }
-    }
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   const { user } = useAuth();
   const { totalItems } = useCart();
   const { theme, toggle } = useTheme();
+  const { t } = useLanguage();
 
   const {
     notifications,
@@ -90,10 +133,7 @@ export function SiteHeader() {
 
   const { supported: pushSupported, subscribed: pushSubscribed, loading: pushLoading, subscribe: pushSubscribe, unsubscribe: pushUnsubscribe, unsupportedReason } = usePushNotifications();
 
-  const visible =
-    filter === "all"
-      ? notifications
-      : notifications.filter((n) => n.type === filter);
+  const visible = filter === "all" ? notifications : notifications.filter((n) => n.type === filter);
 
   function handleBellClose() {
     setBellOpen(false);
@@ -102,56 +142,54 @@ export function SiteHeader() {
 
   return (
     <>
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/75 backdrop-blur-xl">
-      <div className="container mx-auto flex h-[4.25rem] items-center justify-between px-4">
+    <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
+      <div className="container mx-auto flex h-14 items-center justify-between gap-3 px-4">
 
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5" onClick={() => setOpen(false)}>
-          <span className="relative">
-            <img src={logo} alt="Giseveral e Services" className="h-10 w-10 rounded-lg object-cover ring-1 ring-border shadow-card" />
-            <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-background bg-emerald-500" />
-          </span>
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm font-extrabold text-brand tracking-tight">GISEVERAL</span>
-            <span className="text-[10px] tracking-widest text-gold">E SERVICES</span>
-          </div>
+        <Link to="/" className="flex items-center gap-2 shrink-0" onClick={() => setOpen(false)}>
+          <img src={logo} alt="Giseveral" className="h-7 w-7 rounded-md object-cover ring-1 ring-border" />
+          <span className="hidden sm:inline text-sm font-bold tracking-tight text-foreground">Giseveral</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-0.5 rounded-full border border-border/70 bg-card/70 px-1.5 py-1 shadow-card backdrop-blur-xl">
+        {/* Desktop nav — clean inline links, no pill background */}
+        <nav className="hidden lg:flex items-center gap-1">
           {navItems.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               activeOptions={{ exact: item.to === "/" }}
-              activeProps={{ className: "bg-brand text-brand-foreground shadow-card" }}
-              inactiveProps={{ className: "text-foreground/65 hover:text-brand hover:bg-accent" }}
-              className="rounded-full px-3.5 py-2 text-sm font-semibold transition-smooth"
+              activeProps={{ className: "text-foreground bg-accent/70" }}
+              inactiveProps={{ className: "text-muted-foreground hover:text-foreground hover:bg-accent/40" }}
+              className="rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors"
             >
-              {item.label}
+              {t(item.labelKey)}
             </Link>
           ))}
         </nav>
 
-        {/* Desktop actions */}
-        <div className="hidden lg:flex items-center gap-2">
-          {/* Search — icon only; Ctrl+K keyboard shortcut still works */}
+        {/* Desktop actions — compact */}
+        <div className="hidden lg:flex items-center gap-1.5">
+
+          <LanguageSwitcher />
+
+          {/* Theme toggle */}
           <button
-            onClick={() => setSearchOpen(true)}
-            className="rounded-full border border-border bg-card p-2 text-foreground/60 shadow-card hover:text-brand hover:bg-accent transition-smooth"
-            aria-label="Pesquisar (Ctrl+K)"
+            onClick={toggle}
+            className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            aria-label={theme === "dark" ? t("nav.theme.light") : t("nav.theme.dark")}
           >
-            <Search className="h-4 w-4" />
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </button>
 
           {/* Cart */}
           <Link
             to="/loja/carrinho"
-            className="relative inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground shadow-card hover:bg-accent transition-smooth"
+            className="relative grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+            aria-label={t("nav.cart")}
           >
             <ShoppingCart className="h-4 w-4" />
             {totalItems > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-gold-foreground">
+              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-brand-foreground">
                 {totalItems > 9 ? "9+" : totalItems}
               </span>
             )}
@@ -162,13 +200,13 @@ export function SiteHeader() {
             <div className="relative">
               <button
                 onClick={() => setBellOpen((v) => !v)}
-                className="relative rounded-full border border-border bg-card p-2 text-foreground shadow-card hover:bg-accent transition-smooth"
+                className="relative grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
                 aria-label="Notificações"
                 aria-expanded={bellOpen}
               >
                 <Bell className="h-4 w-4" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-white animate-pulse">
+                  <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-white">
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
                 )}
@@ -176,13 +214,8 @@ export function SiteHeader() {
 
               {bellOpen && (
                 <>
-                  {/* Backdrop */}
                   <div className="fixed inset-0 z-40" onClick={handleBellClose} />
-
-                  {/* Panel */}
                   <div className="absolute right-0 top-full mt-2 z-50 w-96 rounded-2xl border border-border bg-card shadow-elegant overflow-hidden flex flex-col max-h-[540px]">
-
-                    {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
                       <div className="flex items-center gap-2">
                         <Bell className="h-4 w-4 text-brand" />
@@ -194,22 +227,17 @@ export function SiteHeader() {
                         )}
                       </div>
                       {unreadCount > 0 && (
-                        <button
-                          onClick={markAllRead}
-                          className="text-xs text-muted-foreground hover:text-brand transition-colors"
-                        >
+                        <button onClick={markAllRead} className="text-xs text-muted-foreground hover:text-brand transition-colors">
                           Marcar todas lidas
                         </button>
                       )}
                     </div>
 
-                    {/* Filter chips */}
                     {notifications.length > 0 && (
                       <div className="flex gap-1.5 px-4 py-2 border-b border-border overflow-x-auto flex-shrink-0 scrollbar-none">
                         <button
                           onClick={() => setFilter("all")}
-                          className={`flex-shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors
-                            ${filter === "all" ? "bg-gradient-brand text-brand-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                          className={`flex-shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${filter === "all" ? "bg-gradient-brand text-brand-foreground" : "bg-muted text-muted-foreground hover:text-foreground"}`}
                         >
                           Todas
                         </button>
@@ -219,8 +247,7 @@ export function SiteHeader() {
                             <button
                               key={t}
                               onClick={() => setFilter(t)}
-                              className={`flex-shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors
-                                ${filter === t ? meta.badge + " ring-1 ring-current/30" : "bg-muted text-muted-foreground hover:text-foreground"}`}
+                              className={`flex-shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors ${filter === t ? meta.badge + " ring-1 ring-current/30" : "bg-muted text-muted-foreground hover:text-foreground"}`}
                             >
                               {meta.label}
                             </button>
@@ -229,7 +256,6 @@ export function SiteHeader() {
                       </div>
                     )}
 
-                    {/* Notification list */}
                     <ul className="overflow-y-auto flex-1">
                       {loading ? (
                         <li className="flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground">
@@ -242,35 +268,19 @@ export function SiteHeader() {
                           <div className="text-center">
                             <p className="text-sm font-medium">Sem notificações</p>
                             {filter !== "all" && (
-                              <button
-                                onClick={() => setFilter("all")}
-                                className="text-xs text-brand hover:underline mt-1"
-                              >
-                                Ver todas
-                              </button>
+                              <button onClick={() => setFilter("all")} className="text-xs text-brand hover:underline mt-1">Ver todas</button>
                             )}
                           </div>
                         </li>
                       ) : (
                         visible.map((n) => (
-                          <NotificationItem
-                            key={n.id}
-                            notification={n}
-                            onClose={handleBellClose}
-                            onClick={clickNotification}
-                            onDelete={deleteNotification}
-                          />
+                          <NotificationItem key={n.id} notification={n} onClose={handleBellClose} onClick={clickNotification} onDelete={deleteNotification} />
                         ))
                       )}
                     </ul>
 
-                    {/* Footer */}
                     <div className="border-t border-border px-4 py-2.5 flex items-center justify-between flex-shrink-0">
-                      <Link
-                        to="/conta"
-                        onClick={handleBellClose}
-                        className="text-xs text-muted-foreground hover:text-brand transition-colors"
-                      >
+                      <Link to="/conta" onClick={handleBellClose} className="text-xs text-muted-foreground hover:text-brand transition-colors">
                         Ver todos os pedidos →
                       </Link>
                       {pushSupported ? (
@@ -288,9 +298,7 @@ export function SiteHeader() {
                           {pushLoading ? "…" : pushSubscribed ? "Alertas ON" : "Alertar-me"}
                         </button>
                       ) : unsupportedReason ? (
-                        <span className="text-[10px] text-muted-foreground/60 italic">
-                          Push não suportado
-                        </span>
+                        <span className="text-[10px] text-muted-foreground/60 italic">Push não suportado</span>
                       ) : null}
                     </div>
                   </div>
@@ -299,81 +307,49 @@ export function SiteHeader() {
             </div>
           )}
 
-          {/* Theme toggle */}
-          <button
-            onClick={toggle}
-            className="rounded-full border border-border bg-card p-2 text-foreground shadow-card hover:bg-accent transition-smooth"
-            aria-label={theme === "dark" ? "Modo claro" : "Modo escuro"}
-          >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
-
-          {/* Account */}
+          {/* Account / login — single primary action */}
           {user ? (
             <Link
               to="/conta"
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground shadow-card hover:bg-accent transition-smooth"
+              className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[13px] font-semibold text-foreground hover:bg-accent transition-colors"
             >
-              <User className="h-4 w-4" /> A Minha Conta
+              <User className="h-3.5 w-3.5" /> {t("nav.account")}
             </Link>
           ) : (
             <Link
               to="/login"
-              className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-sm font-semibold text-foreground shadow-card hover:bg-accent transition-smooth"
+              className="ml-1 inline-flex items-center gap-1.5 rounded-full bg-foreground px-3.5 py-1.5 text-[13px] font-bold text-background hover:opacity-90 transition-opacity"
             >
-              <LogIn className="h-4 w-4" /> Entrar
+              <LogIn className="h-3.5 w-3.5" /> {t("nav.login")}
             </Link>
           )}
-
-          <Link
-            to="/orcamento"
-            className="inline-flex items-center justify-center rounded-full bg-gradient-gold px-4 py-2 text-sm font-bold text-gold-foreground shadow-card transition-smooth hover:shadow-glow"
-          >
-            Pedir Orçamento
-          </Link>
         </div>
 
         {/* Mobile icons */}
-        <div className="flex lg:hidden items-center gap-2">
-          <button
-            onClick={() => setSearchOpen(true)}
-            className="rounded-md p-2 text-foreground hover:bg-accent"
-            aria-label="Pesquisar"
-          >
-            <Search className="h-5 w-5" />
-          </button>
-          <Link to="/loja/carrinho" className="relative rounded-md p-2 text-foreground hover:bg-accent">
-            <ShoppingCart className="h-5 w-5" />
+        <div className="flex lg:hidden items-center gap-1">
+          <LanguageSwitcher />
+          <Link to="/loja/carrinho" className="relative grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+            <ShoppingCart className="h-4 w-4" />
             {totalItems > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-gold text-[10px] font-bold text-gold-foreground">
+              <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand text-[9px] font-bold text-brand-foreground">
                 {totalItems > 9 ? "9+" : totalItems}
               </span>
             )}
           </Link>
           <button
-            className="rounded-md p-2 text-foreground hover:bg-accent"
+            className="grid h-8 w-8 place-items-center rounded-full text-foreground hover:bg-accent transition-colors"
             onClick={() => setOpen((v) => !v)}
             aria-label="Menu"
           >
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>
         </div>
       </div>
 
-      <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
-
       {/* Mobile menu */}
       {open && (
         <nav className="lg:hidden border-t border-border bg-background">
-          <div className="container mx-auto flex flex-col px-4 py-3">
-            {/* Mobile search button */}
-            <button
-              onClick={() => { setOpen(false); setSearchOpen(true); }}
-              className="mb-2 flex items-center gap-2 rounded-md border border-border px-3 py-2.5 text-sm font-medium text-foreground hover:bg-accent transition-smooth"
-            >
-              <Search className="h-4 w-4" />
-              Pesquisar…
-            </button>
+          <div className="container mx-auto flex flex-col px-4 py-3 gap-0.5">
             {navItems.map((item) => (
               <Link
                 key={item.to}
@@ -383,17 +359,17 @@ export function SiteHeader() {
                 activeProps={{ className: "text-brand bg-accent" }}
                 className="rounded-md px-3 py-2.5 text-sm font-medium text-foreground/80"
               >
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             ))}
 
-            <div className="flex gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-3">
               <button
                 onClick={toggle}
-                className="flex-1 rounded-md border border-border py-2.5 text-sm font-medium text-foreground flex items-center justify-center gap-2"
+                className="flex-1 rounded-md border border-border py-2 text-xs font-semibold text-foreground flex items-center justify-center gap-2"
               >
-                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                {theme === "dark" ? "Modo claro" : "Modo escuro"}
+                {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+                {theme === "dark" ? t("nav.theme.light") : t("nav.theme.dark")}
               </button>
             </div>
 
@@ -403,7 +379,7 @@ export function SiteHeader() {
                 onClick={() => setOpen(false)}
                 className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
               >
-                <User className="h-4 w-4" /> A Minha Conta
+                <User className="h-4 w-4" /> {t("nav.account")}
                 {unreadCount > 0 && (
                   <span className="ml-1 rounded-full bg-destructive text-white text-[10px] font-bold px-1.5 py-0.5">
                     {unreadCount}
@@ -414,26 +390,19 @@ export function SiteHeader() {
               <Link
                 to="/login"
                 onClick={() => setOpen(false)}
-                className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md border border-border px-4 py-2.5 text-sm font-semibold text-foreground"
+                className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md bg-foreground px-4 py-2.5 text-sm font-bold text-background"
               >
-                <LogIn className="h-4 w-4" /> Entrar / Criar Conta
+                <LogIn className="h-4 w-4" /> {t("nav.login")}
               </Link>
             )}
-
-            <Link
-              to="/orcamento"
-              onClick={() => setOpen(false)}
-              className="mt-2 inline-flex items-center justify-center rounded-md bg-gradient-gold px-4 py-2.5 text-sm font-semibold text-gold-foreground"
-            >
-              Pedir Orçamento
-            </Link>
           </div>
         </nav>
       )}
     </header>
 
+    {/* Mobile bottom quick-nav */}
     <nav className="fixed inset-x-3 bottom-3 z-40 grid grid-cols-4 gap-1 rounded-2xl border border-border/70 bg-background/88 p-1.5 shadow-elegant backdrop-blur-xl lg:hidden">
-      {mobileQuickNav.map(({ to, label, icon: Icon }) => (
+      {mobileQuickNav.map(({ to, labelKey, icon: Icon }) => (
         <Link
           key={to}
           to={to}
@@ -444,7 +413,7 @@ export function SiteHeader() {
           onClick={() => setOpen(false)}
         >
           <Icon className="mb-0.5 h-4 w-4" />
-          {label}
+          {t(labelKey)}
         </Link>
       ))}
     </nav>
@@ -479,12 +448,10 @@ function NotificationItem({
         else if (!n.is_read) onClick(n);
       }}
     >
-      {/* Icon */}
       <div className={`flex-shrink-0 mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${meta.badge}`}>
         <Icon className="h-4 w-4" />
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2 mb-0.5">
           <span className="text-xs font-semibold text-foreground leading-tight">{n.title}</span>
@@ -499,7 +466,6 @@ function NotificationItem({
         )}
       </div>
 
-      {/* Delete button */}
       <button
         onClick={(e) => { e.stopPropagation(); onDelete(n.id); }}
         className="flex-shrink-0 opacity-0 group-hover:opacity-100 rounded p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
