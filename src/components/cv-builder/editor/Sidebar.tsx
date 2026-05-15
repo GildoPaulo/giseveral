@@ -25,6 +25,7 @@ import type {
   SkillLevel,
 } from "../types";
 import { SKILL_PCT } from "../types";
+import { AtsPanel } from "../AtsPanel";
 
 interface Props {
   data: CvData;
@@ -188,6 +189,14 @@ export function Sidebar({ data, onChange }: Props) {
 
   return (
     <div className="w-[35%] min-w-[300px] max-w-[520px] shrink-0 border-r border-border bg-card overflow-y-auto flex flex-col">
+      {/* ATS Score panel — top of sidebar so it's always visible */}
+      <div className="border-b border-border bg-gradient-to-br from-brand/5 to-card px-4 py-3">
+        <AtsPanel data={data} />
+        <p className="mt-1.5 text-[10px] text-muted-foreground text-center">
+          Análise IA · sugestões e palavras-chave em falta
+        </p>
+      </div>
+
       {/* Personal */}
       <Panel label="Informação Pessoal" open={open.personal} onToggle={() => toggle("personal")}>
         {/* Foto upload */}

@@ -98,19 +98,32 @@ function HubExamesPage() {
 
   useEffect(() => {
     supabase.from("hub_exams").select("*").eq("active", true)
-      .then(({ data }) => {
-        if (data && data.length > 0) {
-          setAllExams(data.map((d) => ({
-            id: d.id, title: d.title, institution: d.institution, course: d.course,
-            year: d.year, subjects: d.subjects, difficulty: d.difficulty as Exam["difficulty"],
-            description: d.description ?? "", featured: d.featured,
-            fileUrl: d.file_url ?? undefined, solutionUrl: d.solution_url ?? undefined,
-            allowRegistrations: d.allow_registrations,
-            registrationUrl: d.registration_url ?? undefined,
-            registrationDeadline: d.registration_deadline ?? undefined,
-            registrationFee: d.registration_fee ?? undefined,
-          })));
+      .then(({ data, error }) => {
+        if (error) {
+          console.warn("[hub.exames] erro a buscar admin uploads:", error.message);
         }
+        const adminExams: Exam[] = (data ?? []).map((d) => ({
+          id: d.id,
+          title: d.title,
+          institution: d.institution,
+          course: d.course,
+          year: d.year,
+          subjects: d.subjects,
+          difficulty: d.difficulty as Exam["difficulty"],
+          description: d.description ?? "",
+          featured: d.featured,
+          fileUrl: d.file_url ?? undefined,
+          solutionUrl: d.solution_url ?? undefined,
+          allowRegistrations: d.allow_registrations,
+          registrationUrl: d.registration_url ?? undefined,
+          registrationDeadline: d.registration_deadline ?? undefined,
+          registrationFee: d.registration_fee ?? undefined,
+        }));
+        // Merge: admin uploads first (so they win the dedupe), then static
+        // fallbacks for IDs that the admin hasn't covered yet.
+        const adminIds = new Set(adminExams.map((e) => e.id));
+        const staticFiltered = EXAMS.filter((e) => !adminIds.has(e.id));
+        setAllExams([...adminExams, ...staticFiltered]);
         setLoading(false);
       });
 

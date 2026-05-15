@@ -17,6 +17,7 @@ interface Payload {
   pages: number;
   file_url: string;
   cover_hue: number;
+  cover_image_url?: string | null;
 }
 
 const CORS = {
@@ -68,7 +69,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400, headers: CORS });
   }
 
-  const { title, author, category, description, tags, pages, file_url, cover_hue } = payload;
+  const { title, author, category, description, tags, pages, file_url, cover_hue, cover_image_url } = payload;
 
   // ── Validation rules ───────────────────────────────────────────────────────
   if (!title?.trim() || title.trim().length < 3) {
@@ -119,6 +120,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       pages: pages > 0 ? pages : 1,
       file_url,
       cover_hue: cover_hue ?? Math.floor(Math.random() * 360),
+      cover_image_url: cover_image_url ?? null,
       user_id,
       published: true,
       premium: false,

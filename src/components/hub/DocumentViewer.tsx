@@ -55,6 +55,9 @@ export function DocumentViewer({ fileUrl, title, initialScale = 1, knownPages }:
   const [scale, setScale] = useState(initialScale);
   const [fullscreen, setFullscreen] = useState(false);
   const [containerWidth, setContainerWidth] = useState(720);
+  // If react-pdf fails to render (worker issue, bad PDF, network), fall back to
+  // the browser's native <embed> viewer — works in every browser.
+  const [fallbackEmbed, setFallbackEmbed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Client-only render.
@@ -120,6 +123,7 @@ export function DocumentViewer({ fileUrl, title, initialScale = 1, knownPages }:
 
   const onLoadError = useCallback((err: Error) => {
     setSignedError(err.message);
+    setFallbackEmbed(true);
   }, []);
 
   const pages = useMemo(() => Array.from({ length: numPages }, (_, i) => i + 1), [numPages]);
@@ -215,6 +219,24 @@ export function DocumentViewer({ fileUrl, title, initialScale = 1, knownPages }:
           </div>
         ) : !signedUrl ? (
           <ViewerSkeleton />
+        ) : fallbackEmbed ? (
+          // Native browser PDF viewer — reliable fallback when react-pdf fails.
+          <object
+            data={signedUrl}
+            type="application/pdf"
+            className="w-full"
+            style={{ height: fullscreen ? "calc(100vh - 60px)" : "70vh", minHeight: 480 }}
+          >
+            <div className="grid place-items-center py-16 text-center">
+              <div className="grid h-12 w-12 place-items-center rounded-full bg-amber-500/15 text-amber-600 mb-3">
+                <AlertCircle className="h-5 w-5" />
+              </div>
+              <p className="text-sm font-semibold text-foreground">O teu navegador não consegue mostrar PDFs embutidos</p>
+              <p className="mt-1 text-xs text-muted-foreground max-w-md">
+                Usa o botão de descarregar acima para abrir o documento.
+              </p>
+            </div>
+          </object>
         ) : (
           <Document
             file={signedUrl}

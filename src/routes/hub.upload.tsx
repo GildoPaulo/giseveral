@@ -140,6 +140,24 @@ function HubUploadPage() {
       return;
     }
 
+    // Generate first-page thumbnail and upload it so cards have a real cover.
+    let coverImageUrl: string | null = null;
+    try {
+      const { generatePdfThumbnail } = await import("@/lib/pdfThumbnail");
+      const thumbBlob = await generatePdfThumbnail(file!, { maxWidth: 480, mime: "image/jpeg", quality: 0.86 });
+      const thumbPath = `${user.id}/thumbs/${Date.now()}.jpg`;
+      const { error: thumbErr } = await supabase.storage
+        .from("hub-documents")
+        .upload(thumbPath, thumbBlob, { upsert: false, contentType: "image/jpeg" });
+      if (!thumbErr) {
+        const { data: pub } = supabase.storage.from("hub-documents").getPublicUrl(thumbPath);
+        coverImageUrl = pub?.publicUrl ?? null;
+      }
+    } catch (thumbErr) {
+      // Non-fatal — we still publish without a cover and fall back to gradient.
+      console.warn("[thumbnail] falhou", thumbErr);
+    }
+
     const tags = form.tags
       .split(",")
       .map((t) => t.trim())
@@ -161,6 +179,7 @@ function HubUploadPage() {
         pages: form.pages > 0 ? form.pages : 1,
         file_url: url,
         cover_hue: Math.floor(Math.random() * 360),
+        cover_image_url: coverImageUrl,
       }),
     });
 
