@@ -39,6 +39,7 @@ import { Route as HubFavoritosRouteImport } from './routes/hub.favoritos'
 import { Route as HubExplorarRouteImport } from './routes/hub.explorar'
 import { Route as HubExamesRouteImport } from './routes/hub.exames'
 import { Route as HubDocumentosRouteImport } from './routes/hub.documentos'
+import { Route as HubCvBuilderRouteImport } from './routes/hub.cv-builder'
 import { Route as HubCvRouteImport } from './routes/hub.cv'
 import { Route as HubCreditosRouteImport } from './routes/hub.creditos'
 import { Route as HubCartasRouteImport } from './routes/hub.cartas'
@@ -78,6 +79,8 @@ import { Route as LojaPedidoIdRouteImport } from './routes/loja.pedido.$id'
 import { Route as HubNoticiasIdRouteImport } from './routes/hub.noticias.$id'
 import { Route as HubExamesIdRouteImport } from './routes/hub.exames.$id'
 import { Route as HubDocumentoIdRouteImport } from './routes/hub.documento.$id'
+import { Route as HubCvBuilderNovoRouteImport } from './routes/hub.cv-builder.novo'
+import { Route as HubCvBuilderIdRouteImport } from './routes/hub.cv-builder.$id'
 import { Route as HubBolsasIdRouteImport } from './routes/hub.bolsas.$id'
 
 const TermsRoute = TermsRouteImport.update({
@@ -228,6 +231,11 @@ const HubExamesRoute = HubExamesRouteImport.update({
 const HubDocumentosRoute = HubDocumentosRouteImport.update({
   id: '/hub/documentos',
   path: '/hub/documentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HubCvBuilderRoute = HubCvBuilderRouteImport.update({
+  id: '/hub/cv-builder',
+  path: '/hub/cv-builder',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HubCvRoute = HubCvRouteImport.update({
@@ -425,6 +433,16 @@ const HubDocumentoIdRoute = HubDocumentoIdRouteImport.update({
   path: '/hub/documento/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HubCvBuilderNovoRoute = HubCvBuilderNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => HubCvBuilderRoute,
+} as any)
+const HubCvBuilderIdRoute = HubCvBuilderIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => HubCvBuilderRoute,
+} as any)
 const HubBolsasIdRoute = HubBolsasIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -479,6 +497,7 @@ export interface FileRoutesByFullPath {
   '/hub/cartas': typeof HubCartasRoute
   '/hub/creditos': typeof HubCreditosRoute
   '/hub/cv': typeof HubCvRoute
+  '/hub/cv-builder': typeof HubCvBuilderRouteWithChildren
   '/hub/documentos': typeof HubDocumentosRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
@@ -495,6 +514,8 @@ export interface FileRoutesByFullPath {
   '/loja/': typeof LojaIndexRoute
   '/servicos/': typeof ServicosIndexRoute
   '/hub/bolsas/$id': typeof HubBolsasIdRoute
+  '/hub/cv-builder/$id': typeof HubCvBuilderIdRoute
+  '/hub/cv-builder/novo': typeof HubCvBuilderNovoRoute
   '/hub/documento/$id': typeof HubDocumentoIdRoute
   '/hub/exames/$id': typeof HubExamesIdRoute
   '/hub/noticias/$id': typeof HubNoticiasIdRoute
@@ -548,6 +569,7 @@ export interface FileRoutesByTo {
   '/hub/cartas': typeof HubCartasRoute
   '/hub/creditos': typeof HubCreditosRoute
   '/hub/cv': typeof HubCvRoute
+  '/hub/cv-builder': typeof HubCvBuilderRouteWithChildren
   '/hub/documentos': typeof HubDocumentosRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
@@ -563,6 +585,8 @@ export interface FileRoutesByTo {
   '/loja': typeof LojaIndexRoute
   '/servicos': typeof ServicosIndexRoute
   '/hub/bolsas/$id': typeof HubBolsasIdRoute
+  '/hub/cv-builder/$id': typeof HubCvBuilderIdRoute
+  '/hub/cv-builder/novo': typeof HubCvBuilderNovoRoute
   '/hub/documento/$id': typeof HubDocumentoIdRoute
   '/hub/exames/$id': typeof HubExamesIdRoute
   '/hub/noticias/$id': typeof HubNoticiasIdRoute
@@ -620,6 +644,7 @@ export interface FileRoutesById {
   '/hub/cartas': typeof HubCartasRoute
   '/hub/creditos': typeof HubCreditosRoute
   '/hub/cv': typeof HubCvRoute
+  '/hub/cv-builder': typeof HubCvBuilderRouteWithChildren
   '/hub/documentos': typeof HubDocumentosRoute
   '/hub/exames': typeof HubExamesRouteWithChildren
   '/hub/explorar': typeof HubExplorarRoute
@@ -636,6 +661,8 @@ export interface FileRoutesById {
   '/loja/': typeof LojaIndexRoute
   '/servicos/': typeof ServicosIndexRoute
   '/hub/bolsas/$id': typeof HubBolsasIdRoute
+  '/hub/cv-builder/$id': typeof HubCvBuilderIdRoute
+  '/hub/cv-builder/novo': typeof HubCvBuilderNovoRoute
   '/hub/documento/$id': typeof HubDocumentoIdRoute
   '/hub/exames/$id': typeof HubExamesIdRoute
   '/hub/noticias/$id': typeof HubNoticiasIdRoute
@@ -694,6 +721,7 @@ export interface FileRouteTypes {
     | '/hub/cartas'
     | '/hub/creditos'
     | '/hub/cv'
+    | '/hub/cv-builder'
     | '/hub/documentos'
     | '/hub/exames'
     | '/hub/explorar'
@@ -710,6 +738,8 @@ export interface FileRouteTypes {
     | '/loja/'
     | '/servicos/'
     | '/hub/bolsas/$id'
+    | '/hub/cv-builder/$id'
+    | '/hub/cv-builder/novo'
     | '/hub/documento/$id'
     | '/hub/exames/$id'
     | '/hub/noticias/$id'
@@ -763,6 +793,7 @@ export interface FileRouteTypes {
     | '/hub/cartas'
     | '/hub/creditos'
     | '/hub/cv'
+    | '/hub/cv-builder'
     | '/hub/documentos'
     | '/hub/exames'
     | '/hub/explorar'
@@ -778,6 +809,8 @@ export interface FileRouteTypes {
     | '/loja'
     | '/servicos'
     | '/hub/bolsas/$id'
+    | '/hub/cv-builder/$id'
+    | '/hub/cv-builder/novo'
     | '/hub/documento/$id'
     | '/hub/exames/$id'
     | '/hub/noticias/$id'
@@ -834,6 +867,7 @@ export interface FileRouteTypes {
     | '/hub/cartas'
     | '/hub/creditos'
     | '/hub/cv'
+    | '/hub/cv-builder'
     | '/hub/documentos'
     | '/hub/exames'
     | '/hub/explorar'
@@ -850,6 +884,8 @@ export interface FileRouteTypes {
     | '/loja/'
     | '/servicos/'
     | '/hub/bolsas/$id'
+    | '/hub/cv-builder/$id'
+    | '/hub/cv-builder/novo'
     | '/hub/documento/$id'
     | '/hub/exames/$id'
     | '/hub/noticias/$id'
@@ -880,6 +916,7 @@ export interface RootRouteChildren {
   HubCartasRoute: typeof HubCartasRoute
   HubCreditosRoute: typeof HubCreditosRoute
   HubCvRoute: typeof HubCvRoute
+  HubCvBuilderRoute: typeof HubCvBuilderRouteWithChildren
   HubDocumentosRoute: typeof HubDocumentosRoute
   HubExamesRoute: typeof HubExamesRouteWithChildren
   HubExplorarRoute: typeof HubExplorarRoute
@@ -1107,6 +1144,13 @@ declare module '@tanstack/react-router' {
       path: '/hub/documentos'
       fullPath: '/hub/documentos'
       preLoaderRoute: typeof HubDocumentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hub/cv-builder': {
+      id: '/hub/cv-builder'
+      path: '/hub/cv-builder'
+      fullPath: '/hub/cv-builder'
+      preLoaderRoute: typeof HubCvBuilderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hub/cv': {
@@ -1382,6 +1426,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HubDocumentoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/hub/cv-builder/novo': {
+      id: '/hub/cv-builder/novo'
+      path: '/novo'
+      fullPath: '/hub/cv-builder/novo'
+      preLoaderRoute: typeof HubCvBuilderNovoRouteImport
+      parentRoute: typeof HubCvBuilderRoute
+    }
+    '/hub/cv-builder/$id': {
+      id: '/hub/cv-builder/$id'
+      path: '/$id'
+      fullPath: '/hub/cv-builder/$id'
+      preLoaderRoute: typeof HubCvBuilderIdRouteImport
+      parentRoute: typeof HubCvBuilderRoute
+    }
     '/hub/bolsas/$id': {
       id: '/hub/bolsas/$id'
       path: '/$id'
@@ -1502,6 +1560,20 @@ const HubBolsasRouteWithChildren = HubBolsasRoute._addFileChildren(
   HubBolsasRouteChildren,
 )
 
+interface HubCvBuilderRouteChildren {
+  HubCvBuilderIdRoute: typeof HubCvBuilderIdRoute
+  HubCvBuilderNovoRoute: typeof HubCvBuilderNovoRoute
+}
+
+const HubCvBuilderRouteChildren: HubCvBuilderRouteChildren = {
+  HubCvBuilderIdRoute: HubCvBuilderIdRoute,
+  HubCvBuilderNovoRoute: HubCvBuilderNovoRoute,
+}
+
+const HubCvBuilderRouteWithChildren = HubCvBuilderRoute._addFileChildren(
+  HubCvBuilderRouteChildren,
+)
+
 interface HubExamesRouteChildren {
   HubExamesIdRoute: typeof HubExamesIdRoute
 }
@@ -1549,6 +1621,7 @@ const rootRouteChildren: RootRouteChildren = {
   HubCartasRoute: HubCartasRoute,
   HubCreditosRoute: HubCreditosRoute,
   HubCvRoute: HubCvRoute,
+  HubCvBuilderRoute: HubCvBuilderRouteWithChildren,
   HubDocumentosRoute: HubDocumentosRoute,
   HubExamesRoute: HubExamesRouteWithChildren,
   HubExplorarRoute: HubExplorarRoute,
