@@ -9,10 +9,8 @@ type Source = File | Blob | ArrayBuffer | string;
 async function loadPdfjs() {
   const pdfjs = await import("pdfjs-dist");
   if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-      "pdfjs-dist/build/pdf.worker.min.mjs",
-      import.meta.url,
-    ).toString();
+    pdfjs.GlobalWorkerOptions.workerSrc =
+      `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
   }
   return pdfjs;
 }

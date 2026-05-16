@@ -12,16 +12,12 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-// PDF.js worker — react-pdf v10 expects a real URL string here.
-// Using `new URL(..., import.meta.url)` lets Vite bundle the worker as a
-// separate asset and produce the correct hashed URL at build time. This
-// avoids the "Failed to resolve module specifier 'pdf.worker.mjs'" runtime
-// error that comes from react-pdf's default fake-worker resolution.
+// PDF.js worker via jsDelivr CDN — pinned to the exact pdfjs version that
+// ships with react-pdf, with correct MIME for .mjs (Vite's local bundle was
+// failing with "Failed to resolve module specifier 'pdf.worker.mjs'").
 if (typeof window !== "undefined" && !pdfjs.GlobalWorkerOptions.workerSrc) {
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    "pdfjs-dist/build/pdf.worker.min.mjs",
-    import.meta.url,
-  ).toString();
+  pdfjs.GlobalWorkerOptions.workerSrc =
+    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 }
 
 const BUCKET = "hub-documents";
