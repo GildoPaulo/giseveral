@@ -236,17 +236,45 @@ export function DocumentViewer({ fileUrl, title, initialScale = 1, knownPages }:
         ) : !signedUrl ? (
           <ViewerSkeleton />
         ) : fallbackEmbed ? (
-          // STRICT: no native embed viewer (it exposes download/print/save
-          // controls that bypass the credit system). Tell the user to use
-          // the official download button instead.
-          <div className="grid place-items-center py-16 text-center px-4">
+          // STRICT: no native embed viewer (bypassed the credit system).
+          // Show actionable error + retry instead.
+          <div className="grid place-items-center py-12 text-center px-4">
             <div className="grid h-12 w-12 place-items-center rounded-full bg-amber-500/15 text-amber-600 mb-3">
               <AlertCircle className="h-5 w-5" />
             </div>
-            <p className="text-sm font-semibold text-foreground">Pré-visualização indisponível neste momento</p>
-            <p className="mt-1 text-xs text-muted-foreground max-w-md">
-              Para aceder ao conteúdo, usa o botão oficial <span className="font-semibold">"Descarregar PDF"</span> ao lado — o download é registado e gasta 1 crédito.
+            <p className="text-sm font-semibold text-foreground">Pré-visualização indisponível</p>
+            {signedError && (
+              <p className="mt-1 max-w-md text-[11px] text-muted-foreground/80 font-mono break-all">
+                {signedError}
+              </p>
+            )}
+            <p className="mt-2 text-xs text-muted-foreground max-w-md">
+              Verifica a tua ligação ou tenta novamente. Se persistir, usa o botão oficial <span className="font-semibold">"Descarregar PDF"</span> ao lado.
             </p>
+            <button
+              type="button"
+              onClick={() => {
+                setFallbackEmbed(false);
+                setSignedError(null);
+                // Trigger reload of the signed URL
+                setSignedUrl(null);
+                // Re-resolve on next tick
+                setTimeout(() => {
+                  const path = urlToStoragePath(fileUrl);
+                  supabase.storage.from(BUCKET).createSignedUrl(path, 3600).then(({ data, error }) => {
+                    if (error || !data?.signedUrl) {
+                      setSignedError(error?.message ?? "URL não acessível");
+                      setFallbackEmbed(true);
+                    } else {
+                      setSignedUrl(data.signedUrl);
+                    }
+                  });
+                }, 50);
+              }}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-brand text-brand-foreground px-4 py-2 text-xs font-bold hover:opacity-90 transition-opacity"
+            >
+              <Loader2 className="h-3.5 w-3.5" /> Tentar novamente
+            </button>
           </div>
         ) : (
           <Document

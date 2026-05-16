@@ -10,23 +10,31 @@ if (!fs.existsSync(distDir)) {
   process.exit(1);
 }
 
-// Apenas _routes.json (wrangler.json não é necessário para Pages)
-// IMPORTANTE: /api/* tem de estar em "exclude" para que as Cloudflare Pages
-// Functions (functions/api/**) sejam usadas em vez do SSR worker da Tanstack
-// — caso contrário o worker intercepta e devolve o HTML do SPA, dando o erro
-// "O servidor devolveu HTML em vez de JSON".
+// _routes.json — controla o que VAI para o worker. Tudo que entra no "exclude"
+// é servido como static asset. NÃO incluir /api/* aqui — Cloudflare Pages
+// Functions têm prioridade sobre o worker SSR para os caminhos /api/* desde
+// que existam em functions/. Se colocarmos /api/* em "exclude", Pages tenta
+// servir como ficheiro estático e POST devolve 405 ("Method Not Allowed").
 const routesJson = {
   version: 1,
   include: ["/*"],
   exclude: [
-    "/api/*",
     "/assets/*",
-    "/*.png", "/*.jpg", "/*.jpeg", "/*.gif", "/*.svg", "/*.ico", "/*.webp", "/*.mjs", "/*.js.map",
+    "/*.png", "/*.jpg", "/*.jpeg", "/*.gif", "/*.svg", "/*.ico", "/*.webp",
     "/favicon.ico", "/favicon.svg", "/robots.txt", "/sitemap.xml", "/manifest.webmanifest", "/sw.js",
   ],
 };
 fs.writeFileSync(path.join(distDir, "_routes.json"), JSON.stringify(routesJson, null, 2));
-console.log("✅ _routes.json created (with /api/* excluded)");
+console.log("✅ _routes.json created");
+
+// Copy functions/ (root) to dist/client/functions so wrangler pages deploy
+// picks them up when pages_build_output_dir is dist/client.
+const srcFns = path.resolve(__dirname, "../functions");
+const dstFns = path.join(distDir, "functions");
+if (fs.existsSync(srcFns)) {
+  fs.cpSync(srcFns, dstFns, { recursive: true });
+  console.log("✅ functions/ copied to dist/client/functions");
+}
 
 // NÃO apagar dist/client/wrangler.json — o Cloudflare Pages precisa dele para saber
 // onde está o worker SSR (aponta para dist/server/server.js).

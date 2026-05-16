@@ -67,6 +67,7 @@ import { Route as BalcaoCampanhasRouteImport } from './routes/balcao.campanhas'
 import { Route as BalcaoBolsasRouteImport } from './routes/balcao.bolsas'
 import { Route as BalcaoBlogRouteImport } from './routes/balcao.blog'
 import { Route as BalcaoAtividadeRouteImport } from './routes/balcao.atividade'
+import { Route as BalcaoAiPlaygroundRouteImport } from './routes/balcao.ai-playground'
 import { Route as HubNoticiasIndexRouteImport } from './routes/hub.noticias.index'
 import { Route as HubBolsasIndexRouteImport } from './routes/hub.bolsas.index'
 import { Route as LojaProdutoIdRouteImport } from './routes/loja.produto.$id'
@@ -366,6 +367,11 @@ const BalcaoAtividadeRoute = BalcaoAtividadeRouteImport.update({
   path: '/atividade',
   getParentRoute: () => BalcaoRoute,
 } as any)
+const BalcaoAiPlaygroundRoute = BalcaoAiPlaygroundRouteImport.update({
+  id: '/ai-playground',
+  path: '/ai-playground',
+  getParentRoute: () => BalcaoRoute,
+} as any)
 const HubNoticiasIndexRoute = HubNoticiasIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -423,6 +429,7 @@ export interface FileRoutesByFullPath {
   '/servicos': typeof ServicosRouteWithChildren
   '/sobre': typeof SobreRoute
   '/terms': typeof TermsRoute
+  '/balcao/ai-playground': typeof BalcaoAiPlaygroundRoute
   '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/balcao/blog': typeof BalcaoBlogRoute
   '/balcao/bolsas': typeof BalcaoBolsasRoute
@@ -489,6 +496,7 @@ export interface FileRoutesByTo {
   '/registo': typeof RegistoRoute
   '/sobre': typeof SobreRoute
   '/terms': typeof TermsRoute
+  '/balcao/ai-playground': typeof BalcaoAiPlaygroundRoute
   '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/balcao/blog': typeof BalcaoBlogRoute
   '/balcao/bolsas': typeof BalcaoBolsasRoute
@@ -556,6 +564,7 @@ export interface FileRoutesById {
   '/servicos': typeof ServicosRouteWithChildren
   '/sobre': typeof SobreRoute
   '/terms': typeof TermsRoute
+  '/balcao/ai-playground': typeof BalcaoAiPlaygroundRoute
   '/balcao/atividade': typeof BalcaoAtividadeRoute
   '/balcao/blog': typeof BalcaoBlogRoute
   '/balcao/bolsas': typeof BalcaoBolsasRoute
@@ -626,6 +635,7 @@ export interface FileRouteTypes {
     | '/servicos'
     | '/sobre'
     | '/terms'
+    | '/balcao/ai-playground'
     | '/balcao/atividade'
     | '/balcao/blog'
     | '/balcao/bolsas'
@@ -692,6 +702,7 @@ export interface FileRouteTypes {
     | '/registo'
     | '/sobre'
     | '/terms'
+    | '/balcao/ai-playground'
     | '/balcao/atividade'
     | '/balcao/blog'
     | '/balcao/bolsas'
@@ -758,6 +769,7 @@ export interface FileRouteTypes {
     | '/servicos'
     | '/sobre'
     | '/terms'
+    | '/balcao/ai-playground'
     | '/balcao/atividade'
     | '/balcao/blog'
     | '/balcao/bolsas'
@@ -1257,6 +1269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoAtividadeRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/ai-playground': {
+      id: '/balcao/ai-playground'
+      path: '/ai-playground'
+      fullPath: '/balcao/ai-playground'
+      preLoaderRoute: typeof BalcaoAiPlaygroundRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
     '/hub/noticias/': {
       id: '/hub/noticias/'
       path: '/'
@@ -1317,6 +1336,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface BalcaoRouteChildren {
+  BalcaoAiPlaygroundRoute: typeof BalcaoAiPlaygroundRoute
   BalcaoAtividadeRoute: typeof BalcaoAtividadeRoute
   BalcaoBlogRoute: typeof BalcaoBlogRoute
   BalcaoBolsasRoute: typeof BalcaoBolsasRoute
@@ -1343,6 +1363,7 @@ interface BalcaoRouteChildren {
 }
 
 const BalcaoRouteChildren: BalcaoRouteChildren = {
+  BalcaoAiPlaygroundRoute: BalcaoAiPlaygroundRoute,
   BalcaoAtividadeRoute: BalcaoAtividadeRoute,
   BalcaoBlogRoute: BalcaoBlogRoute,
   BalcaoBolsasRoute: BalcaoBolsasRoute,
