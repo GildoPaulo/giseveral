@@ -13,6 +13,7 @@ import {
   AlertCircle, CheckCircle2, MessageCircle, FileDown, BrainCircuit, Loader2,
 } from "lucide-react";
 import { callGemini } from "@/services/gemini";
+import { LetterStudio } from "@/components/cartas/LetterStudio";
 
 export const Route = createFileRoute("/hub/cartas")({
   head: () => ({
@@ -85,6 +86,7 @@ function HubCartasPage() {
   const [improveVariant, setImproveVariant] = useState<string | null>(null);
   const [aiGenerating, setAiGenerating] = useState(false);
   const [tom, setTom] = useState<LetterTone>("formal");
+  const [studioOpen, setStudioOpen] = useState(false);
   const [supportingDocs, setSupportingDocs] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
@@ -644,24 +646,34 @@ Atentamente,
         {/* ── STEP 3: Form ─────────────────────────────────────────────────── */}
         {step === "form" && (
           <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-            <div className="flex items-center gap-3 mb-6">
-              {method === "upload" ? (
-                <>
-                  <Upload className="h-6 w-6 text-brand" />
-                  <div>
-                    <h2 className="font-bold text-lg text-foreground">{customTemplate?.name}</h2>
-                    <p className="text-sm text-muted-foreground">Template personalizado · {activeFields.length} campos</p>
-                  </div>
-                </>
-              ) : selectedType ? (
-                <>
-                  <span className="text-2xl">{selectedType.icon}</span>
-                  <div>
-                    <h2 className="font-bold text-lg text-foreground">{selectedType.title}</h2>
-                    <p className="text-sm text-muted-foreground">{selectedType.description}</p>
-                  </div>
-                </>
-              ) : null}
+            <div className="flex items-center justify-between gap-3 mb-6 flex-wrap">
+              <div className="flex items-center gap-3">
+                {method === "upload" ? (
+                  <>
+                    <Upload className="h-6 w-6 text-brand" />
+                    <div>
+                      <h2 className="font-bold text-lg text-foreground">{customTemplate?.name}</h2>
+                      <p className="text-sm text-muted-foreground">Template personalizado · {activeFields.length} campos</p>
+                    </div>
+                  </>
+                ) : selectedType ? (
+                  <>
+                    <span className="text-2xl">{selectedType.icon}</span>
+                    <div>
+                      <h2 className="font-bold text-lg text-foreground">{selectedType.title}</h2>
+                      <p className="text-sm text-muted-foreground">{selectedType.description}</p>
+                    </div>
+                  </>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                onClick={() => setStudioOpen(true)}
+                className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-foreground to-brand px-4 py-2.5 text-sm font-bold text-background shadow-lg hover:opacity-90 transition-opacity"
+                title="Abre o assistente IA em modo conversacional com preview A4 ao lado"
+              >
+                <Sparkles className="h-4 w-4" /> Abrir AI Studio
+              </button>
             </div>
 
             <div className="grid sm:grid-cols-2 gap-5">
@@ -988,6 +1000,28 @@ Atentamente,
           </div>
         )}
       </div>
+
+      {/* AI Letter Studio — conversational mode */}
+      {studioOpen && (
+        <LetterStudio
+          templateName={
+            method === "upload" && customTemplate
+              ? customTemplate.name.replace(/\.txt$/i, "")
+              : selectedType?.title ?? "Carta"
+          }
+          fields={activeFields}
+          template={activeTemplate}
+          tone={tom}
+          onClose={() => setStudioOpen(false)}
+          onComplete={(text, values) => {
+            // Push the studio result into the form state + go to preview.
+            setFormValues((prev) => ({ ...prev, ...values, __improved__: text }));
+            setStudioOpen(false);
+            setStep("preview");
+            toast.success("Carta importada do AI Studio");
+          }}
+        />
+      )}
     </Layout>
   );
 }
