@@ -1,4 +1,8 @@
-import { ArrowLeft, Download, Loader2, Palette, Type, CaseSensitive } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  ArrowLeft, Download, Loader2, Palette, Type, CaseSensitive,
+  ChevronDown, FileText, FileType, FileCode, FileDown,
+} from "lucide-react";
 import type { CvDesign, CvTemplate } from "../types";
 import { TEMPLATE_META, FONT_SIZE_OPTIONS } from "../types";
 
@@ -9,13 +13,30 @@ interface Props {
   onBack: () => void;
   onDesignChange: (d: Partial<CvDesign>) => void;
   onExport: () => void;
+  onExportDoc?: () => void;
+  onExportRtf?: () => void;
+  onExportHtml?: () => void;
+  onExportTxt?: () => void;
   customTemplateName?: string;
 }
 
 const FONTS = ["Inter", "Georgia", "Times New Roman", "Arial", "Helvetica", "Verdana", "Trebuchet MS", "Courier New"];
 
-export function TopBar({ template, design, exporting, onBack, onDesignChange, onExport, customTemplateName }: Props) {
+export function TopBar({
+  template, design, exporting, onBack, onDesignChange, onExport,
+  onExportDoc, onExportRtf, onExportHtml, onExportTxt, customTemplateName,
+}: Props) {
   const meta = TEMPLATE_META.find(t => t.id === template);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    }
+    if (menuOpen) document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [menuOpen]);
 
   return (
     <div className="flex items-center gap-3 px-4 h-14 bg-card border-b border-border shrink-0 z-10">
@@ -103,15 +124,90 @@ export function TopBar({ template, design, exporting, onBack, onDesignChange, on
 
       <div className="w-px h-5 bg-border mx-1" />
 
-      <button
-        type="button"
-        onClick={onExport}
-        disabled={exporting}
-        className="flex items-center gap-2 px-3 py-1.5 bg-brand text-white rounded-lg text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-60"
-      >
-        {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
-        PDF
-      </button>
+      <div className="flex items-center">
+        <button
+          type="button"
+          onClick={onExport}
+          disabled={exporting}
+          className="flex items-center gap-2 px-3 py-1.5 bg-brand text-white rounded-l-lg text-sm font-semibold hover:bg-brand/90 transition-colors disabled:opacity-60"
+        >
+          {exporting ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+          PDF
+        </button>
+        <div ref={menuRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            disabled={exporting}
+            className="grid h-[30px] w-8 place-items-center rounded-r-lg bg-brand text-white border-l border-white/20 hover:bg-brand/90 transition-colors disabled:opacity-60"
+            aria-label="Outros formatos"
+          >
+            <ChevronDown size={14} />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 top-full mt-1 z-30 min-w-[200px] rounded-xl border border-border bg-card shadow-elegant overflow-hidden">
+              <FormatRow
+                icon={FileDown}
+                label="PDF"
+                hint="Imagem fiel do preview"
+                onClick={() => { setMenuOpen(false); onExport(); }}
+              />
+              {onExportDoc && (
+                <FormatRow
+                  icon={FileType}
+                  label=".doc — Word"
+                  hint="Recomendado p/ edição"
+                  onClick={() => { setMenuOpen(false); onExportDoc(); }}
+                />
+              )}
+              {onExportRtf && (
+                <FormatRow
+                  icon={FileText}
+                  label=".rtf — Word / LibreOffice"
+                  onClick={() => { setMenuOpen(false); onExportRtf(); }}
+                />
+              )}
+              {onExportHtml && (
+                <FormatRow
+                  icon={FileCode}
+                  label=".html — web"
+                  onClick={() => { setMenuOpen(false); onExportHtml(); }}
+                />
+              )}
+              {onExportTxt && (
+                <FormatRow
+                  icon={FileText}
+                  label=".txt — texto simples"
+                  onClick={() => { setMenuOpen(false); onExportTxt(); }}
+                />
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
+  );
+}
+
+function FormatRow({
+  icon: Icon, label, hint, onClick,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  hint?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-xs hover:bg-muted transition-colors"
+    >
+      <span className="inline-flex items-center gap-2 text-foreground font-semibold">
+        <Icon size={14} className="text-muted-foreground" />
+        {label}
+      </span>
+      {hint && <span className="text-[10px] font-bold text-brand">{hint}</span>}
+    </button>
   );
 }

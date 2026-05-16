@@ -8,6 +8,10 @@ import {
   DEFAULT_CV_DATA,
   exportCvToPdf,
   downloadBlob,
+  downloadCvDoc,
+  downloadCvRtf,
+  downloadCvHtml,
+  downloadCvTxt,
   Sidebar,
   TopBar,
   Preview,
@@ -133,6 +137,10 @@ function CVBuilderPage() {
           onBack={() => setView("gallery")}
           onDesignChange={handleDesignChange}
           onExport={handleExport}
+          onExportDoc={() => { downloadCvDoc(cvData); toast.success(".doc descarregado", { description: "Abre directamente no Microsoft Word." }); }}
+          onExportRtf={() => { downloadCvRtf(cvData); toast.success(".rtf descarregado", { description: "Abre com Word, LibreOffice ou Google Docs." }); }}
+          onExportHtml={() => { downloadCvHtml(cvData); toast.success(".html descarregado"); }}
+          onExportTxt={() => { downloadCvTxt(cvData); toast.success(".txt descarregado"); }}
           customTemplateName={templateSource === "api" ? currentTemplateName : undefined}
         />
         <div className="flex flex-1 overflow-hidden">

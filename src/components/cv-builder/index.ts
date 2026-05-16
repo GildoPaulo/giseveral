@@ -7,6 +7,10 @@ export { DittoPreview } from "./templates/Ditto";
 export { PikachuPreview } from "./templates/Pikachu";
 export { ModernPreview } from "./templates/Modern";
 export { exportCvToPdf, downloadBlob } from "./pdfExport";
+export {
+  downloadCvDoc, downloadCvRtf, downloadCvHtml, downloadCvTxt,
+  exportCvToTxt, exportCvToRtf, exportCvToHtmlBody,
+} from "./cvExports";
 export { Sidebar } from "./editor/Sidebar";
 export { TopBar } from "./editor/TopBar";
 export { Preview } from "./editor/Preview";

@@ -44,6 +44,7 @@ import { Route as HubCreditosRouteImport } from './routes/hub.creditos'
 import { Route as HubCartasRouteImport } from './routes/hub.cartas'
 import { Route as HubBolsasRouteImport } from './routes/hub.bolsas'
 import { Route as GaleriaSlugRouteImport } from './routes/galeria.$slug'
+import { Route as ContaRevisoesRouteImport } from './routes/conta.revisoes'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as BalcaoStockRouteImport } from './routes/balcao.stock'
 import { Route as BalcaoServicosRouteImport } from './routes/balcao.servicos'
@@ -254,6 +255,11 @@ const GaleriaSlugRoute = GaleriaSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => GaleriaRoute,
 } as any)
+const ContaRevisoesRoute = ContaRevisoesRouteImport.update({
+  id: '/revisoes',
+  path: '/revisoes',
+  getParentRoute: () => ContaRoute,
+} as any)
 const BlogSlugRoute = BlogSlugRouteImport.update({
   id: '/blog/$slug',
   path: '/blog/$slug',
@@ -428,7 +434,7 @@ const HubBolsasIdRoute = HubBolsasIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/balcao': typeof BalcaoRouteWithChildren
-  '/conta': typeof ContaRoute
+  '/conta': typeof ContaRouteWithChildren
   '/contactos': typeof ContactosRoute
   '/galeria': typeof GaleriaRouteWithChildren
   '/informatica': typeof InformaticaRoute
@@ -467,6 +473,7 @@ export interface FileRoutesByFullPath {
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/conta/revisoes': typeof ContaRevisoesRoute
   '/galeria/$slug': typeof GaleriaSlugRoute
   '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
@@ -498,7 +505,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/conta': typeof ContaRoute
+  '/conta': typeof ContaRouteWithChildren
   '/contactos': typeof ContactosRoute
   '/galeria': typeof GaleriaRouteWithChildren
   '/informatica': typeof InformaticaRoute
@@ -536,6 +543,7 @@ export interface FileRoutesByTo {
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/conta/revisoes': typeof ContaRevisoesRoute
   '/galeria/$slug': typeof GaleriaSlugRoute
   '/hub/cartas': typeof HubCartasRoute
   '/hub/creditos': typeof HubCreditosRoute
@@ -567,7 +575,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/balcao': typeof BalcaoRouteWithChildren
-  '/conta': typeof ContaRoute
+  '/conta': typeof ContaRouteWithChildren
   '/contactos': typeof ContactosRoute
   '/galeria': typeof GaleriaRouteWithChildren
   '/informatica': typeof InformaticaRoute
@@ -606,6 +614,7 @@ export interface FileRoutesById {
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/conta/revisoes': typeof ContaRevisoesRoute
   '/galeria/$slug': typeof GaleriaSlugRoute
   '/hub/bolsas': typeof HubBolsasRouteWithChildren
   '/hub/cartas': typeof HubCartasRoute
@@ -679,6 +688,7 @@ export interface FileRouteTypes {
     | '/balcao/servicos'
     | '/balcao/stock'
     | '/blog/$slug'
+    | '/conta/revisoes'
     | '/galeria/$slug'
     | '/hub/bolsas'
     | '/hub/cartas'
@@ -748,6 +758,7 @@ export interface FileRouteTypes {
     | '/balcao/servicos'
     | '/balcao/stock'
     | '/blog/$slug'
+    | '/conta/revisoes'
     | '/galeria/$slug'
     | '/hub/cartas'
     | '/hub/creditos'
@@ -817,6 +828,7 @@ export interface FileRouteTypes {
     | '/balcao/servicos'
     | '/balcao/stock'
     | '/blog/$slug'
+    | '/conta/revisoes'
     | '/galeria/$slug'
     | '/hub/bolsas'
     | '/hub/cartas'
@@ -850,7 +862,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BalcaoRoute: typeof BalcaoRouteWithChildren
-  ContaRoute: typeof ContaRoute
+  ContaRoute: typeof ContaRouteWithChildren
   ContactosRoute: typeof ContactosRoute
   GaleriaRoute: typeof GaleriaRouteWithChildren
   InformaticaRoute: typeof InformaticaRoute
@@ -1131,6 +1143,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/galeria/$slug'
       preLoaderRoute: typeof GaleriaSlugRouteImport
       parentRoute: typeof GaleriaRoute
+    }
+    '/conta/revisoes': {
+      id: '/conta/revisoes'
+      path: '/revisoes'
+      fullPath: '/conta/revisoes'
+      preLoaderRoute: typeof ContaRevisoesRouteImport
+      parentRoute: typeof ContaRoute
     }
     '/blog/$slug': {
       id: '/blog/$slug'
@@ -1434,6 +1453,16 @@ const BalcaoRouteChildren: BalcaoRouteChildren = {
 const BalcaoRouteWithChildren =
   BalcaoRoute._addFileChildren(BalcaoRouteChildren)
 
+interface ContaRouteChildren {
+  ContaRevisoesRoute: typeof ContaRevisoesRoute
+}
+
+const ContaRouteChildren: ContaRouteChildren = {
+  ContaRevisoesRoute: ContaRevisoesRoute,
+}
+
+const ContaRouteWithChildren = ContaRoute._addFileChildren(ContaRouteChildren)
+
 interface GaleriaRouteChildren {
   GaleriaSlugRoute: typeof GaleriaSlugRoute
 }
@@ -1502,7 +1531,7 @@ const HubNoticiasRouteWithChildren = HubNoticiasRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BalcaoRoute: BalcaoRouteWithChildren,
-  ContaRoute: ContaRoute,
+  ContaRoute: ContaRouteWithChildren,
   ContactosRoute: ContactosRoute,
   GaleriaRoute: GaleriaRouteWithChildren,
   InformaticaRoute: InformaticaRoute,
