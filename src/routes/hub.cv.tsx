@@ -51,6 +51,9 @@ function CVBuilderPage() {
   const [template, setTemplate] = useState<CvTemplate>("azurill");
   const [apiTemplateId, setApiTemplateId] = useState<string | null>(null);
   const [templateSource, setTemplateSource] = useState<TemplateSource>("local");
+  const [customHtml, setCustomHtml] = useState<string | null>(null);
+  const [customCss, setCustomCss] = useState<string | null>(null);
+  const [customName, setCustomName] = useState<string | null>(null);
   const [cvData, setCvData] = useState<CvData>(DEFAULT_CV_DATA);
   const [exporting, setExporting] = useState(false);
   const [draftFound, setDraftFound] = useState<CvData | null>(null);
@@ -80,10 +83,23 @@ function CVBuilderPage() {
     setTemplate(t);
     setTemplateSource("local");
     setApiTemplateId(null);
+    setCustomHtml(null);
+    setCustomCss(null);
+    setCustomName(null);
     const meta = TEMPLATE_META.find(m => m.id === t);
     if (meta) {
       setCvData(prev => ({ ...prev, design: { ...prev.design, primaryColor: meta.accent } }));
     }
+    setView("editor");
+  }
+
+  function selectCustomTemplate(name: string, html: string, css: string | null) {
+    setTemplate("custom");
+    setTemplateSource("local");
+    setApiTemplateId(null);
+    setCustomName(name);
+    setCustomHtml(html);
+    setCustomCss(css);
     setView("editor");
   }
 
@@ -123,15 +139,17 @@ function CVBuilderPage() {
   }
 
   const currentTemplateName =
-    templateSource === "api"
-      ? apiTemplateId ?? "API Template"
-      : (TEMPLATE_META.find(m => m.id === template)?.label ?? template);
+    template === "custom"
+      ? customName ?? "Template personalizado"
+      : templateSource === "api"
+        ? apiTemplateId ?? "API Template"
+        : (TEMPLATE_META.find(m => m.id === template)?.label ?? template);
 
   if (view === "editor") {
     return (
       <div className="flex flex-col h-screen overflow-hidden bg-background">
         <TopBar
-          template={templateSource === "local" ? template : "azurill"}
+          template={template === "custom" ? "azurill" : (templateSource === "local" ? template : "azurill")}
           design={cvData.design}
           exporting={exporting}
           onBack={() => setView("gallery")}
@@ -141,11 +159,16 @@ function CVBuilderPage() {
           onExportRtf={() => { downloadCvRtf(cvData); toast.success(".rtf descarregado", { description: "Abre com Word, LibreOffice ou Google Docs." }); }}
           onExportHtml={() => { downloadCvHtml(cvData); toast.success(".html descarregado"); }}
           onExportTxt={() => { downloadCvTxt(cvData); toast.success(".txt descarregado"); }}
-          customTemplateName={templateSource === "api" ? currentTemplateName : undefined}
+          customTemplateName={template === "custom" ? customName ?? "Template personalizado" : (templateSource === "api" ? currentTemplateName : undefined)}
         />
         <div className="flex flex-1 overflow-hidden">
           <Sidebar data={cvData} onChange={setCvData} />
-          <Preview template={template} data={cvData} />
+          <Preview
+            template={template}
+            data={cvData}
+            customHtml={customHtml ?? undefined}
+            customCss={customCss ?? undefined}
+          />
         </div>
         <SaveIndicator saving={saving} savedAt={savedAt} />
       </div>
@@ -185,6 +208,7 @@ function CVBuilderPage() {
       <Gallery
         onSelectLocal={selectLocalTemplate}
         onSelectAPI={selectAPITemplate}
+        onSelectCustom={selectCustomTemplate}
         selectedLocal={template}
         selectedApiId={apiTemplateId}
         templateSource={templateSource}
@@ -233,17 +257,20 @@ type DbTemplate = {
   is_active: boolean;
   sort_order: number;
   reactive_id: string | null;
+  html_content?: string | null;
+  css_content?: string | null;
 };
 
 interface GalleryProps {
   onSelectLocal: (t: CvTemplate) => void;
   onSelectAPI: (t: APITemplate) => void;
+  onSelectCustom: (name: string, html: string, css: string | null) => void;
   selectedLocal: CvTemplate;
   selectedApiId: string | null;
   templateSource: TemplateSource;
 }
 
-function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, templateSource }: GalleryProps) {
+function Gallery({ onSelectLocal, onSelectAPI, onSelectCustom, selectedLocal, selectedApiId, templateSource }: GalleryProps) {
   const [apiTemplates, setApiTemplates] = useState<APITemplate[]>([]);
   const [loadingAPI, setLoadingAPI] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -261,7 +288,7 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
   useEffect(() => {
     supabase
       .from("cv_templates" as any)
-      .select("id, name, slug, description, category, preview_url, is_premium, is_active, sort_order, reactive_id")
+      .select("id, name, slug, description, category, preview_url, is_premium, is_active, sort_order, reactive_id, html_content, css_content")
       .eq("is_active", true)
       .order("sort_order")
       .then(({ data }) => {
@@ -273,6 +300,17 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
 
   function selectDbTemplate(t: DbTemplate) {
     const localIds = TEMPLATE_META.map(m => m.id);
+
+    // PRIORITY 1 — custom HTML the admin authored takes precedence over
+    // every mapping table. This was the bug: any new admin template would
+    // fall through to the azurill fallback because we never inspected
+    // html_content.
+    if (t.html_content && t.html_content.trim()) {
+      onSelectCustom(t.name, t.html_content, t.css_content ?? null);
+      return;
+    }
+
+    // PRIORITY 2 — explicit reactive_id mapping (legacy "API" templates).
     if (t.reactive_id) {
       const mapped = API_TEMPLATE_TO_LOCAL[t.reactive_id];
       if (mapped) {
@@ -283,11 +321,16 @@ function Gallery({ onSelectLocal, onSelectAPI, selectedLocal, selectedApiId, tem
       return;
     }
 
+    // PRIORITY 3 — slug equals one of the built-in template IDs.
     if (localIds.includes(t.slug as CvTemplate)) {
       onSelectLocal(t.slug as CvTemplate);
-    } else {
-      onSelectLocal("azurill");
+      return;
     }
+
+    // No way to render — keep user on the gallery with a clear error.
+    toast.error(`Template "${t.name}" não tem HTML definido`, {
+      description: "Edita o template no balcão e adiciona html_content + css_content.",
+    });
   }
 
   return (

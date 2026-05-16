@@ -126,16 +126,18 @@ export function LetterStudio({ templateName, fields, template, tone, onClose, on
     setGenerating(true);
     try {
       const filled = fillTemplate(template, allValues);
-      const prompt = `Reescreve a seguinte carta mantendo a estrutura, formato e placeholders já preenchidos.
+      const prompt = `Reescreve esta carta de forma profissional, **expandindo o conteúdo** para preencher uma folha A4 completa.
 TOM: ${tone}. ${TONE_HINTS[tone]}
-Regras:
-- NÃO acrescentes saudações nem despedidas que não estejam no template.
-- Mantém parágrafos, quebras de linha e ordem.
-- Polir gramática, fluência e profissionalismo.
-- Português de Moçambique.
-- Comprimento: 250-400 palavras.
 
-Carta:
+Regras:
+- Mantém a estrutura: saudação, corpo em 4–5 parágrafos sólidos, despedida formal, assinatura.
+- Expande o corpo com detalhes concretos, exemplos, motivação, capacidades transferíveis e visão de contributo.
+- Cada parágrafo do corpo deve ter 4–7 frases (não frases telegráficas).
+- Não inventes dados pessoais que não estejam preenchidos — usa exactamente os valores do utilizador.
+- Polir gramática, fluência, profissionalismo. Português de Moçambique.
+- **Comprimento alvo: 450–650 palavras** (suficiente para preencher A4 com Times New Roman 12pt margens 2.5cm).
+
+Dados originais já preenchidos no template (mantém placeholders no resultado, NÃO os reescrevas):
 ${filled}`;
       const text = await callGemini("letter_generate", prompt);
       setFinalText(text);
@@ -541,7 +543,7 @@ function DownloadMenu({
         <Download className="h-3 w-3" /> Descarregar
       </button>
       {open && !disabled && (
-        <div className="absolute right-0 top-full mt-1 z-10 min-w-[180px] rounded-xl border border-border bg-card shadow-elegant overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 z-[60] min-w-[180px] rounded-xl border border-border bg-card shadow-elegant overflow-hidden">
           <MenuItem icon={FileType} label=".doc — Microsoft Word"     hint="Recomendado" onClick={() => { onWord(); setOpen(false); }} />
           <MenuItem icon={FileText} label=".rtf — Word / LibreOffice" onClick={() => { onRtf(); setOpen(false); }} />
           <MenuItem icon={FileCode} label=".html — web"               onClick={() => { onHtml(); setOpen(false); }} />

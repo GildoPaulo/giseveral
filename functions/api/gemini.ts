@@ -62,7 +62,7 @@ Sempre que possivel: usa pontos fortes especificos, sugestoes accionaveis, e pal
 const MAX_TOKENS: Record<GeminiTask, number> = {
   chat: 250,
   cv_suggest: 600,
-  letter_generate: 1200,
+  letter_generate: 2000,
   smart_search: 100,
   scholarship_match: 900,
   ats_score: 800,

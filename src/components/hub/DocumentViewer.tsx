@@ -12,18 +12,17 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-// PDF.js worker — pinned version + FORCE overwrite (no `if` guard).
-// Past attempts:
-//   • Vite `?url` import: failed with "Failed to resolve module specifier 'pdf.worker.mjs'"
-//   • new URL(): same problem after bundle
-//   • CDN with pdfjs.version: produced undefined in URL when react-pdf
-//     didn't expose .version yet at module-init time.
-// Hard-coded version mirrors what's installed in package.json — keep in sync.
-const PDFJS_VERSION = "5.7.284";
-if (typeof window !== "undefined") {
+// PDF.js worker — MUST match the exact pdfjs version that react-pdf bundles.
+// Hard-coding the worker version against package.json caused a mismatch with
+// react-pdf's internal bundle ("the API version X does not match the worker
+// version Y"). Reading pdfjs.version at runtime guarantees they line up.
+function configurePdfWorker() {
+  if (typeof window === "undefined") return;
+  const v = pdfjs.version || "5.4.296"; // react-pdf v10 bundles 5.4.296 today
   pdfjs.GlobalWorkerOptions.workerSrc =
-    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${v}/build/pdf.worker.min.mjs`;
 }
+configurePdfWorker();
 
 const BUCKET = "hub-documents";
 

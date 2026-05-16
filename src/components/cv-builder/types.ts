@@ -1,5 +1,5 @@
 export type SkillLevel = "Básico" | "Intermédio" | "Avançado" | "Expert";
-export type CvTemplate = "azurill" | "bronzor" | "onyx" | "ditto" | "pikachu" | "modern";
+export type CvTemplate = "azurill" | "bronzor" | "onyx" | "ditto" | "pikachu" | "modern" | "custom";
 export type CvSectionKey = "experiencia" | "educacao" | "skills" | "idiomas" | "projetos" | "certificacoes";
 
 export interface CvDesign {

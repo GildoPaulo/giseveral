@@ -7,14 +7,17 @@ import { OnyxPreview } from "../templates/Onyx";
 import { DittoPreview } from "../templates/Ditto";
 import { PikachuPreview } from "../templates/Pikachu";
 import { ModernPreview } from "../templates/Modern";
+import { CustomPreview } from "../templates/CustomPreview";
 import { A4_HEIGHT } from "../templates/templateStyles";
 
 interface Props {
   template: CvTemplate;
   data: CvData;
+  customHtml?: string;
+  customCss?: string;
 }
 
-const MAP: Record<CvTemplate, React.ComponentType<{ data: CvData }>> = {
+const MAP: Record<Exclude<CvTemplate, "custom">, React.ComponentType<{ data: CvData }>> = {
   azurill: AzurillPreview,
   bronzor: BronzorPreview,
   onyx: OnyxPreview,
@@ -28,7 +31,7 @@ const A4_WIDTH = 794;
 
 type ViewMode = "a4" | "fit";
 
-export function Preview({ template, data }: Props) {
+export function Preview({ template, data, customHtml, customCss }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
@@ -53,7 +56,8 @@ export function Preview({ template, data }: Props) {
     return () => obs.disconnect();
   }, [viewMode]);
 
-  const Component = MAP[template] ?? MAP.azurill;
+  const isCustom = template === "custom";
+  const Component = isCustom ? null : (MAP[template as Exclude<CvTemplate, "custom">] ?? MAP.azurill);
   const showScrollX = viewMode === "a4";
 
   return (
@@ -89,7 +93,11 @@ export function Preview({ template, data }: Props) {
           flexShrink: 0,
         }}
       >
-        <Component data={data} />
+        {isCustom
+          ? <CustomPreview data={data} html={customHtml ?? ""} css={customCss} />
+          : Component
+            ? <Component data={data} />
+            : null}
       </div>
     </div>
   );

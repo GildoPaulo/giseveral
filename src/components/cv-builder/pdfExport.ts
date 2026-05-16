@@ -33,16 +33,18 @@ export async function exportCvToPdf(data: CvData, template: CvTemplate): Promise
   ]);
   const jsPDF = jspdfMod.jsPDF ?? (jspdfMod as unknown as { default: typeof import("jspdf").jsPDF }).default;
 
-  const PREVIEW_MAP = {
+  const PREVIEW_MAP: Record<Exclude<CvTemplate, "custom">, React.ComponentType<{ data: CvData }>> = {
     azurill: templates.AzurillPreview,
     bronzor: templates.BronzorPreview,
     onyx: templates.OnyxPreview,
     ditto: templates.DittoPreview,
     pikachu: templates.PikachuPreview,
     modern: templates.ModernPreview,
-  } satisfies Record<CvTemplate, React.ComponentType<{ data: CvData }>>;
+  };
 
-  const Component = PREVIEW_MAP[template] ?? PREVIEW_MAP.modern;
+  const Component = template === "custom"
+    ? PREVIEW_MAP.modern
+    : (PREVIEW_MAP[template as Exclude<CvTemplate, "custom">] ?? PREVIEW_MAP.modern);
 
   // Off-screen render target — sits outside the viewport so layout/paint runs
   // but the user never sees it. Width matches the A4 px size the templates use.
