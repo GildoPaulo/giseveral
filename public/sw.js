@@ -1,47 +1,38 @@
-const CACHE = "giseveral-v2";
+// Giseveral service worker v3 — KILL SWITCH for the old caching layer.
+// v2 was intercepting fetch() and corrupting responses (cached HTML returned
+// for JS modules, "Failed to convert value to 'Response'" when cache miss).
+// This version:
+//   • Removes the fetch handler entirely — every request goes straight to
+//     the network with no SW interference. Solves the 502 / MIME issues.
+//   • Wipes any leftover Cache Storage from previous versions on activate.
+//   • Unregisters itself if it doesn't have anything else to do, so old
+//     installs slowly drain out.
+//   • Keeps push notifications working.
 
-self.addEventListener("install", (e) => {
-  e.waitUntil(
-    caches.open(CACHE)
-      .then((c) => c.addAll(["/", "/hub", "/loja", "/servicos", "/precos"]))
-      .then(() => self.skipWaiting())
-  );
+const CACHE_PREFIX = "giseveral-";
+
+self.addEventListener("install", (event) => {
+  // Skip waiting so the new SW takes over immediately on next page load.
+  self.skipWaiting();
 });
 
-self.addEventListener("activate", (e) => {
-  e.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+self.addEventListener("activate", (event) => {
+  event.waitUntil((async () => {
+    // Nuke every cache this SW (or its predecessors) ever created.
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((k) => k.startsWith(CACHE_PREFIX)).map((k) => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
-self.addEventListener("fetch", (e) => {
-  const url = e.request.url;
-  if (e.request.method !== "GET") return;
-  if (url.includes("supabase.co") || url.includes("/api/")) return;
-  e.respondWith(
-    fetch(e.request)
-      .then((res) => {
-        if (res.ok) {
-          const clone = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, clone));
-        }
-        return res;
-      })
-      .catch(() => caches.match(e.request))
-  );
-});
-
-// ── Push Notifications ────────────────────────────────────────────────────────
-
-self.addEventListener("push", (e) => {
+// Push notifications — kept as the only useful SW feature.
+self.addEventListener("push", (event) => {
   let data = { title: "Giseveral", body: "Tens uma nova notificação.", url: "/" };
   try {
-    if (e.data) data = { ...data, ...e.data.json() };
+    if (event.data) data = { ...data, ...event.data.json() };
   } catch (_) {}
 
-  e.waitUntil(
+  event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
       icon: "/icon.jpeg",
@@ -49,27 +40,26 @@ self.addEventListener("push", (e) => {
       data: { url: data.url },
       vibrate: [200, 100, 200],
       requireInteraction: false,
-      tag: "giseveral-push",         // collapse duplicate notifications
+      tag: "giseveral-push",
       renotify: true,
-    })
+    }),
   );
 });
 
-self.addEventListener("notificationclick", (e) => {
-  e.notification.close();
-  const targetUrl = e.notification.data?.url ?? "/";
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url ?? "/";
   const origin = self.location.origin;
 
-  e.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
-      // Try to focus an existing tab on the same origin
-      for (const client of list) {
-        if (new URL(client.url).origin === origin && "focus" in client) {
-          return client.navigate(targetUrl).then(() => client.focus());
-        }
+  event.waitUntil((async () => {
+    const list = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const client of list) {
+      if (new URL(client.url).origin === origin && "focus" in client) {
+        return client.navigate(targetUrl).then(() => client.focus());
       }
-      // No existing tab — open a new one
-      return clients.openWindow(targetUrl);
-    })
-  );
+    }
+    return self.clients.openWindow(targetUrl);
+  })());
 });
+
+// Intentionally NO fetch listener. Requests go to network untouched.

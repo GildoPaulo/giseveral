@@ -64,7 +64,11 @@ export function RichTextEditor({
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      // StarterKit v3 bundles link + underline by default — disable so we
+      // can add our own configured versions without "duplicate extension"
+      // warnings ("Duplicate extension names found: ['link', 'underline']").
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (StarterKit as any).configure({ link: false, underline: false }),
       Underline,
       TextStyle,
       FontFamily,

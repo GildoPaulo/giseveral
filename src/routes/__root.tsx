@@ -103,9 +103,22 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   useEffect(() => {
-    if (typeof window !== "undefined" && "serviceWorker" in navigator && import.meta.env.PROD) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-    }
+    if (typeof window === "undefined" || !("serviceWorker" in navigator) || !import.meta.env.PROD) return;
+    (async () => {
+      try {
+        const reg = await navigator.serviceWorker.register("/sw.js");
+        // Force-update on every load to evict the broken v2 SW that was
+        // corrupting fetches with "Failed to convert value to 'Response'".
+        if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+        reg.update().catch(() => undefined);
+        let reloaded = false;
+        navigator.serviceWorker.addEventListener("controllerchange", () => {
+          if (reloaded) return;
+          reloaded = true;
+          window.location.reload();
+        });
+      } catch { /* SW failure must not crash the app */ }
+    })();
   }, []);
 
   return (
