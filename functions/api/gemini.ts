@@ -9,7 +9,7 @@ interface Env {
   GEMINI_MODEL?: string;
 }
 
-type GeminiTask = "chat" | "cv_suggest" | "letter_generate" | "smart_search" | "scholarship_match";
+type GeminiTask = "chat" | "cv_suggest" | "letter_generate" | "smart_search" | "scholarship_match" | "ats_score";
 
 interface GeminiRequest {
   task?: GeminiTask;
@@ -53,6 +53,10 @@ Responde apenas com JSON valido, sem markdown, no formato exacto: {"q":"termo","
 
   scholarship_match: `Es um especialista em bolsas de estudo. Analisa o perfil do candidato face aos requisitos da bolsa.
 Responde APENAS com JSON valido (sem markdown, sem texto extra) no formato exacto pedido no prompt do utilizador.`,
+
+  ats_score: `Es um especialista em sistemas ATS (Applicant Tracking Systems) usados por recrutadores.
+Avalias CVs e devolves APENAS JSON valido (sem markdown, sem texto extra) no formato exacto pedido no prompt do utilizador.
+Sempre que possivel: usa pontos fortes especificos, sugestoes accionaveis, e palavras-chave concretas da area do CV.`,
 };
 
 const MAX_TOKENS: Record<GeminiTask, number> = {
@@ -61,6 +65,7 @@ const MAX_TOKENS: Record<GeminiTask, number> = {
   letter_generate: 1200,
   smart_search: 100,
   scholarship_match: 900,
+  ats_score: 800,
 };
 
 function json(data: unknown, status = 200): Response {
@@ -110,7 +115,7 @@ async function tryModel(
       generationConfig: {
         temperature: task === "chat" ? 0.7 : task === "smart_search" ? 0.1 : 0.4,
         maxOutputTokens: MAX_TOKENS[task],
-        ...(task === "smart_search" || task === "scholarship_match"
+        ...(task === "smart_search" || task === "scholarship_match" || task === "ats_score"
           ? { responseMimeType: "application/json" as const }
           : {}),
       },

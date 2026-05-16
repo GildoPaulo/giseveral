@@ -110,6 +110,22 @@ export function DocumentViewer({ fileUrl, title, initialScale = 1, knownPages }:
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
+  // Block Ctrl/Cmd+S, Ctrl/Cmd+P inside the viewer to discourage screen-print
+  // and "save page". Users must use the official credit-gated download button.
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const block = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && (k === "s" || k === "p")) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    el.addEventListener("keydown", block, true);
+    return () => el.removeEventListener("keydown", block, true);
+  }, [mounted]);
+
   const onLoadSuccess = useCallback(({ numPages: total }: { numPages: number }) => {
     setNumPages(total);
   }, []);
@@ -220,23 +236,18 @@ export function DocumentViewer({ fileUrl, title, initialScale = 1, knownPages }:
         ) : !signedUrl ? (
           <ViewerSkeleton />
         ) : fallbackEmbed ? (
-          // Native browser PDF viewer — reliable fallback when react-pdf fails.
-          <object
-            data={signedUrl}
-            type="application/pdf"
-            className="w-full"
-            style={{ height: fullscreen ? "calc(100vh - 60px)" : "70vh", minHeight: 480 }}
-          >
-            <div className="grid place-items-center py-16 text-center">
-              <div className="grid h-12 w-12 place-items-center rounded-full bg-amber-500/15 text-amber-600 mb-3">
-                <AlertCircle className="h-5 w-5" />
-              </div>
-              <p className="text-sm font-semibold text-foreground">O teu navegador não consegue mostrar PDFs embutidos</p>
-              <p className="mt-1 text-xs text-muted-foreground max-w-md">
-                Usa o botão de descarregar acima para abrir o documento.
-              </p>
+          // STRICT: no native embed viewer (it exposes download/print/save
+          // controls that bypass the credit system). Tell the user to use
+          // the official download button instead.
+          <div className="grid place-items-center py-16 text-center px-4">
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-amber-500/15 text-amber-600 mb-3">
+              <AlertCircle className="h-5 w-5" />
             </div>
-          </object>
+            <p className="text-sm font-semibold text-foreground">Pré-visualização indisponível neste momento</p>
+            <p className="mt-1 text-xs text-muted-foreground max-w-md">
+              Para aceder ao conteúdo, usa o botão oficial <span className="font-semibold">"Descarregar PDF"</span> ao lado — o download é registado e gasta 1 crédito.
+            </p>
+          </div>
         ) : (
           <Document
             file={signedUrl}

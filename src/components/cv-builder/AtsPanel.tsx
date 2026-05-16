@@ -57,23 +57,73 @@ function cvToText(data: CvData): string {
   return lines.join("\n");
 }
 
+function toStringArray(value: unknown, max: number): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((v) => (typeof v === "string" ? v : v == null ? "" : String(v)))
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, max);
+  }
+  if (typeof value === "string") {
+    // Split on newlines or bullet markers; fall back to commas.
+    const lines = value
+      .split(/\r?\n|•|^[-*\d.)]\s+/m)
+      .map((s) => s.replace(/^[-•*\d.)\s]+/, "").trim())
+      .filter((s) => s.length > 2);
+    if (lines.length > 1) return lines.slice(0, max);
+    return value.split(",").map((s) => s.trim()).filter(Boolean).slice(0, max);
+  }
+  return [];
+}
+
 function parseAtsResponse(raw: string): AtsResult | null {
-  // Try strict JSON parse first.
+  // 1) Try strict JSON parse.
   try {
-    const cleaned = raw.replace(/```json\s*/i, "").replace(/```/g, "").trim();
+    const cleaned = raw.replace(/```json\s*/gi, "").replace(/```/g, "").trim();
     const start = cleaned.indexOf("{");
     const end = cleaned.lastIndexOf("}");
-    if (start < 0 || end < start) return null;
-    const obj = JSON.parse(cleaned.slice(start, end + 1));
+    if (start >= 0 && end > start) {
+      const obj = JSON.parse(cleaned.slice(start, end + 1)) as Record<string, unknown>;
+      return {
+        score: Math.max(0, Math.min(100, Number(obj.score ?? obj.ats ?? obj.total ?? 0))),
+        strengths: toStringArray(obj.strengths ?? obj.pontosFortes ?? obj.pros, 6),
+        improvements: toStringArray(obj.improvements ?? obj.melhorias ?? obj.suggestions, 6),
+        missingKeywords: toStringArray(obj.missingKeywords ?? obj.keywords ?? obj.palavrasChave, 12),
+      };
+    }
+  } catch { /* fall through */ }
+
+  // 2) Heuristic: extract the first number 0-100 as score, and try to find
+  //    bullet lists with words like "fortes", "melhorias", "palavras".
+  const score = (() => {
+    const m = raw.match(/(\d{1,3})\s*(?:\/\s*100|%|pontos|points)?/);
+    if (!m) return 0;
+    const n = Number(m[1]);
+    return Math.max(0, Math.min(100, isNaN(n) ? 0 : n));
+  })();
+
+  const section = (regex: RegExp): string[] => {
+    const m = raw.match(regex);
+    if (!m) return [];
+    const block = m[0];
+    return block
+      .split(/\r?\n/)
+      .slice(1)
+      .map((l) => l.replace(/^[-•*\d.)\s]+/, "").trim())
+      .filter((l) => l.length > 3)
+      .slice(0, 6);
+  };
+
+  if (score > 0) {
     return {
-      score: Math.max(0, Math.min(100, Number(obj.score ?? 0))),
-      strengths: Array.isArray(obj.strengths) ? obj.strengths.slice(0, 6) : [],
-      improvements: Array.isArray(obj.improvements) ? obj.improvements.slice(0, 6) : [],
-      missingKeywords: Array.isArray(obj.missingKeywords) ? obj.missingKeywords.slice(0, 12) : [],
+      score,
+      strengths: section(/(?:pontos\s*fortes|strengths)[\s\S]{0,400}/i),
+      improvements: section(/(?:melhorias|improvements|sugest)[\s\S]{0,400}/i),
+      missingKeywords: section(/(?:palavras[-\s]chave|keywords|missing)[\s\S]{0,400}/i),
     };
-  } catch {
-    return null;
   }
+  return null;
 }
 
 export function AtsPanel({ data }: { data: CvData }) {
@@ -106,7 +156,7 @@ Critérios:
 CV:
 ${cvText}`;
 
-      const text = await callGemini("cv_suggest", prompt);
+      const text = await callGemini("ats_score", prompt);
       const parsed = parseAtsResponse(text);
       if (!parsed) {
         setError("A IA devolveu texto inválido. Tenta novamente.");

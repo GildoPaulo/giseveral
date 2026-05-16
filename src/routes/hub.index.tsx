@@ -263,6 +263,65 @@ function HubIndexPage() {
         </div>
       </section>
 
+      {/* ── FERRAMENTAS RÁPIDAS — CV, Cartas, Bolsas ───────────────────────── */}
+      <section className="container mx-auto px-4 pt-6 pb-2 max-w-5xl">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-40px" }}
+          variants={stagger}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        >
+          {[
+            {
+              to: "/hub/cv" as const,
+              icon: ScrollText,
+              title: "CV Builder",
+              desc: "Templates premium, IA, ATS Score e export PDF.",
+              accent: "from-rose-500/10 to-rose-500/0 text-rose-600 border-rose-500/20",
+              badge: "✨ Com IA",
+            },
+            {
+              to: "/hub/cartas" as const,
+              icon: PenLine,
+              title: "Cartas com IA",
+              desc: "Gera cartas formais com 7 tons profissionais.",
+              accent: "from-purple-500/10 to-purple-500/0 text-purple-600 border-purple-500/20",
+              badge: "🤖 Gera com IA",
+            },
+            {
+              to: "/hub/bolsas" as const,
+              icon: GraduationCap,
+              title: "Bolsas",
+              desc: "Dezenas de bolsas internacionais com matching IA.",
+              accent: "from-blue-500/10 to-blue-500/0 text-blue-600 border-blue-500/20",
+              badge: "🎓 Activas",
+            },
+          ].map((tool) => (
+            <motion.div key={tool.to} variants={scaleCard}>
+              <Link
+                to={tool.to}
+                className={`group flex flex-col h-full rounded-2xl border bg-gradient-to-br ${tool.accent} bg-card p-5 hover:shadow-elegant hover:-translate-y-1 transition-smooth`}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`grid h-11 w-11 place-items-center rounded-xl bg-card shadow-sm border border-border`}>
+                    <tool.icon className="h-5 w-5" />
+                  </div>
+                  <span className="rounded-full bg-card border border-border px-2.5 py-0.5 text-[10px] font-bold">
+                    {tool.badge}
+                  </span>
+                </div>
+                <h3 className="text-base font-extrabold text-foreground">{tool.title}</h3>
+                <p className="mt-1 text-xs text-muted-foreground leading-relaxed flex-1">{tool.desc}</p>
+                <span className="mt-3 inline-flex items-center gap-1 text-xs font-bold opacity-80 group-hover:opacity-100 transition-opacity">
+                  Abrir <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </Link>
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
       {/* ── STATS ────────────────────────────────────────────────────────────── */}
       <section className="container mx-auto px-4 py-12 max-w-5xl">
         <motion.div

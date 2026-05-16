@@ -1,4 +1,4 @@
-type GeminiTask = "chat" | "cv_suggest" | "letter_generate" | "smart_search" | "scholarship_match";
+type GeminiTask = "chat" | "cv_suggest" | "letter_generate" | "smart_search" | "scholarship_match" | "ats_score";
 
 type GeminiResponse = {
   text?: string;
