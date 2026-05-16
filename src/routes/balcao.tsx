@@ -44,6 +44,7 @@ const navItems = [
   { to: "/balcao/pagamentos", label: "Pagamentos", icon: ShieldCheck },
   { to: "/balcao/ai-playground", label: "AI Playground", icon: Sparkles },
   { to: "/balcao/revisoes", label: "Revisões humanas", icon: UserCheck },
+  { to: "/balcao/revisoes-precos", label: "Preços de revisão", icon: Coins },
   { to: "/balcao/precos", label: "Preços", icon: DollarSign },
 ] as const;
 

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Bot, Send, Loader2, X, Check, ArrowRight, Sparkles, Printer, Download, Copy, CheckCircle2, RotateCcw,
+  Bot, Send, Loader2, X, Check, Sparkles, Printer, Download, Copy, RotateCcw,
+  FileText, FileType, FileCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import { callGemini } from "@/services/gemini";
@@ -172,13 +173,67 @@ ${filled}`;
     setTimeout(() => { w.focus(); w.print(); }, 400);
   }
 
-  function downloadTxt() {
-    const blob = new Blob([liveTemplate], { type: "text/plain;charset=utf-8" });
+  function fileBase() {
+    return templateName.toLowerCase().replace(/\s+/g, "-");
+  }
+
+  function downloadBlob(blob: Blob, ext: string) {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `${templateName.toLowerCase().replace(/\s+/g, "-")}.txt`;
+    a.download = `${fileBase()}.${ext}`;
     a.click();
     URL.revokeObjectURL(a.href);
+  }
+
+  function downloadTxt() {
+    downloadBlob(new Blob([liveTemplate], { type: "text/plain;charset=utf-8" }), "txt");
+    toast.success("Descarregado .txt");
+  }
+
+  function downloadRtf() {
+    // RTF format — abre em Word, LibreOffice, Google Docs.
+    const lines = liveTemplate.split("\n");
+    const rtfLines = lines.map((line) => {
+      const escaped = line
+        .replace(/\\/g, "\\\\")
+        .replace(/\{/g, "\\{")
+        .replace(/\}/g, "\\}")
+        .replace(/[^\x00-\x7F]/g, (ch) => `\\u${ch.charCodeAt(0)}?`);
+      return `${escaped}\\par`;
+    }).join("\n");
+    const rtf = `{\\rtf1\\ansi\\ansicpg1252\\deff0
+{\\fonttbl{\\f0\\froman\\fcharset0 Times New Roman;}}
+{\\*\\generator Giseveral AI Letter Studio;}
+\\f0\\fs24\\sl480\\slmult1
+${rtfLines}
+}`;
+    downloadBlob(new Blob([rtf], { type: "application/rtf" }), "rtf");
+    toast.success("Descarregado .rtf", { description: "Abre com Word, LibreOffice ou Google Docs." });
+  }
+
+  function downloadDoc() {
+    // Word-compatible HTML wrapped as .doc — opens directly in MS Word.
+    const escaped = liveTemplate
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+    const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='UTF-8'><title>${templateName}</title>
+<style>body{font-family:"Times New Roman",serif;font-size:12pt;line-height:1.8}p{margin:0 0 0.5em}@page WordSection1{size:21cm 29.7cm;margin:2.5cm 2.5cm 3cm}div.WordSection1{page:WordSection1}</style>
+</head><body><div class='WordSection1'><p>${escaped}</p></div></body></html>`;
+    downloadBlob(new Blob([html], { type: "application/msword" }), "doc");
+    toast.success("Descarregado .doc", { description: "Abre directamente no Microsoft Word." });
+  }
+
+  function downloadHtml() {
+    const escaped = liveTemplate
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+    const html = `<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8"><title>${templateName}</title>
+<style>
+  body{font-family:"Times New Roman",serif;font-size:12pt;line-height:1.8;color:#000;background:#fff;margin:0;padding:0}
+  .page{max-width:21cm;margin:0 auto;padding:2.5cm 2.5cm 3cm}
+  p{margin:0 0 0.5em}
+  @media print{.page{padding:2cm 2.5cm}}
+</style></head><body><div class="page"><p>${escaped}</p></div></body></html>`;
+    downloadBlob(new Blob([html], { type: "text/html;charset=utf-8" }), "html");
+    toast.success("Descarregado .html");
   }
 
   function finalize() {
@@ -348,6 +403,13 @@ ${filled}`;
                   }}
                 />
               )}
+              <DownloadMenu
+                disabled={!liveTemplate}
+                onWord={downloadDoc}
+                onRtf={downloadRtf}
+                onTxt={downloadTxt}
+                onHtml={downloadHtml}
+              />
               <button
                 type="button"
                 onClick={copyToClipboard}
@@ -357,14 +419,6 @@ ${filled}`;
               >
                 {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                 Copiar
-              </button>
-              <button
-                type="button"
-                onClick={downloadTxt}
-                disabled={!liveTemplate}
-                className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold hover:bg-muted disabled:opacity-50 transition-colors"
-              >
-                <Download className="h-3 w-3" /> .txt
               </button>
               <button
                 type="button"
@@ -421,4 +475,71 @@ function renderMarkdown(s: string): string {
     .replace(/>/g, "&gt;")
     .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
     .replace(/\n/g, "<br/>");
+}
+
+// ── Download menu dropdown ───────────────────────────────────────
+
+function DownloadMenu({
+  disabled, onWord, onRtf, onTxt, onHtml,
+}: {
+  disabled?: boolean;
+  onWord: () => void;
+  onRtf: () => void;
+  onTxt: () => void;
+  onHtml: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        disabled={disabled}
+        className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold hover:bg-muted disabled:opacity-50 transition-colors"
+      >
+        <Download className="h-3 w-3" /> Descarregar
+      </button>
+      {open && !disabled && (
+        <div className="absolute right-0 top-full mt-1 z-10 min-w-[180px] rounded-xl border border-border bg-card shadow-elegant overflow-hidden">
+          <MenuItem icon={FileType} label=".doc — Microsoft Word"     hint="Recomendado" onClick={() => { onWord(); setOpen(false); }} />
+          <MenuItem icon={FileText} label=".rtf — Word / LibreOffice" onClick={() => { onRtf(); setOpen(false); }} />
+          <MenuItem icon={FileCode} label=".html — web"               onClick={() => { onHtml(); setOpen(false); }} />
+          <MenuItem icon={FileText} label=".txt — texto simples"      onClick={() => { onTxt(); setOpen(false); }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MenuItem({
+  icon: Icon, label, hint, onClick,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  hint?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full flex items-center justify-between gap-3 px-3 py-2 text-left text-xs hover:bg-muted transition-colors"
+    >
+      <span className="inline-flex items-center gap-2 text-foreground font-semibold">
+        <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+        {label}
+      </span>
+      {hint && <span className="text-[10px] font-bold text-brand">{hint}</span>}
+    </button>
+  );
 }

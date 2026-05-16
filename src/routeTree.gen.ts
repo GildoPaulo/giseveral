@@ -47,6 +47,7 @@ import { Route as GaleriaSlugRouteImport } from './routes/galeria.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as BalcaoStockRouteImport } from './routes/balcao.stock'
 import { Route as BalcaoServicosRouteImport } from './routes/balcao.servicos'
+import { Route as BalcaoRevisoesPrecosRouteImport } from './routes/balcao.revisoes-precos'
 import { Route as BalcaoRevisoesRouteImport } from './routes/balcao.revisoes'
 import { Route as BalcaoProdutosRouteImport } from './routes/balcao.produtos'
 import { Route as BalcaoPrecosRouteImport } from './routes/balcao.precos'
@@ -268,6 +269,11 @@ const BalcaoServicosRoute = BalcaoServicosRouteImport.update({
   path: '/servicos',
   getParentRoute: () => BalcaoRoute,
 } as any)
+const BalcaoRevisoesPrecosRoute = BalcaoRevisoesPrecosRouteImport.update({
+  id: '/revisoes-precos',
+  path: '/revisoes-precos',
+  getParentRoute: () => BalcaoRoute,
+} as any)
 const BalcaoRevisoesRoute = BalcaoRevisoesRouteImport.update({
   id: '/revisoes',
   path: '/revisoes',
@@ -457,6 +463,7 @@ export interface FileRoutesByFullPath {
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/revisoes': typeof BalcaoRevisoesRoute
+  '/balcao/revisoes-precos': typeof BalcaoRevisoesPrecosRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -525,6 +532,7 @@ export interface FileRoutesByTo {
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/revisoes': typeof BalcaoRevisoesRoute
+  '/balcao/revisoes-precos': typeof BalcaoRevisoesPrecosRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -594,6 +602,7 @@ export interface FileRoutesById {
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
   '/balcao/revisoes': typeof BalcaoRevisoesRoute
+  '/balcao/revisoes-precos': typeof BalcaoRevisoesPrecosRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -666,6 +675,7 @@ export interface FileRouteTypes {
     | '/balcao/precos'
     | '/balcao/produtos'
     | '/balcao/revisoes'
+    | '/balcao/revisoes-precos'
     | '/balcao/servicos'
     | '/balcao/stock'
     | '/blog/$slug'
@@ -734,6 +744,7 @@ export interface FileRouteTypes {
     | '/balcao/precos'
     | '/balcao/produtos'
     | '/balcao/revisoes'
+    | '/balcao/revisoes-precos'
     | '/balcao/servicos'
     | '/balcao/stock'
     | '/blog/$slug'
@@ -802,6 +813,7 @@ export interface FileRouteTypes {
     | '/balcao/precos'
     | '/balcao/produtos'
     | '/balcao/revisoes'
+    | '/balcao/revisoes-precos'
     | '/balcao/servicos'
     | '/balcao/stock'
     | '/blog/$slug'
@@ -1141,6 +1153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoServicosRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/revisoes-precos': {
+      id: '/balcao/revisoes-precos'
+      path: '/revisoes-precos'
+      fullPath: '/balcao/revisoes-precos'
+      preLoaderRoute: typeof BalcaoRevisoesPrecosRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
     '/balcao/revisoes': {
       id: '/balcao/revisoes'
       path: '/revisoes'
@@ -1377,6 +1396,7 @@ interface BalcaoRouteChildren {
   BalcaoPrecosRoute: typeof BalcaoPrecosRoute
   BalcaoProdutosRoute: typeof BalcaoProdutosRoute
   BalcaoRevisoesRoute: typeof BalcaoRevisoesRoute
+  BalcaoRevisoesPrecosRoute: typeof BalcaoRevisoesPrecosRoute
   BalcaoServicosRoute: typeof BalcaoServicosRoute
   BalcaoStockRoute: typeof BalcaoStockRoute
   BalcaoIndexRoute: typeof BalcaoIndexRoute
@@ -1405,6 +1425,7 @@ const BalcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoPrecosRoute: BalcaoPrecosRoute,
   BalcaoProdutosRoute: BalcaoProdutosRoute,
   BalcaoRevisoesRoute: BalcaoRevisoesRoute,
+  BalcaoRevisoesPrecosRoute: BalcaoRevisoesPrecosRoute,
   BalcaoServicosRoute: BalcaoServicosRoute,
   BalcaoStockRoute: BalcaoStockRoute,
   BalcaoIndexRoute: BalcaoIndexRoute,

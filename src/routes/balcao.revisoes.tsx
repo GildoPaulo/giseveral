@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  UserCheck, Clock, CheckCircle2, X, Phone, Mail, Loader2, Save,
-  MessageCircle, AlertCircle, ShieldCheck, ChevronRight, Copy, Check,
+  UserCheck, Clock, CheckCircle2, X, Phone, Mail, Loader2,
+  MessageCircle, AlertCircle, ShieldCheck, ChevronRight, Copy, Check, Printer, FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -278,6 +278,41 @@ function DetailDrawer({
     setTimeout(() => setCopied(false), 1500);
   }
 
+  function printContent(text: string, title: string) {
+    const escaped = text
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+    const html = `<!DOCTYPE html><html lang="pt"><head><meta charset="UTF-8"><title>${title}</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Times New Roman",serif;font-size:12pt;line-height:1.8;color:#000;background:#fff}.page{max-width:21cm;margin:0 auto;padding:2.5cm 2.5cm 3cm}p{margin:0 0 0.5em}@page{margin:2cm}@media print{body{-webkit-print-color-adjust:exact}}</style>
+</head><body><div class="page"><p>${escaped}</p></div></body></html>`;
+    const w = window.open("", "_blank");
+    if (!w) { toast.error("Permite popups para imprimir"); return; }
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => { w.focus(); w.print(); }, 400);
+  }
+
+  function downloadRtf(text: string, title: string) {
+    const lines = text.split("\n").map((line) => {
+      const escaped = line
+        .replace(/\\/g, "\\\\")
+        .replace(/\{/g, "\\{")
+        .replace(/\}/g, "\\}")
+        .replace(/[^\x00-\x7F]/g, (ch) => `\\u${ch.charCodeAt(0)}?`);
+      return `${escaped}\\par`;
+    }).join("\n");
+    const rtf = `{\\rtf1\\ansi\\ansicpg1252\\deff0
+{\\fonttbl{\\f0\\froman\\fcharset0 Times New Roman;}}
+{\\*\\generator Giseveral Revisões;}
+\\f0\\fs24\\sl480\\slmult1
+${lines}
+}`;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([rtf], { type: "application/rtf" }));
+    a.download = `${title.toLowerCase().replace(/\s+/g, "-")}.rtf`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
   return (
     <>
       <motion.div
@@ -368,7 +403,29 @@ function DetailDrawer({
 
           {/* Revised editor */}
           <section>
-            <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">Versão revista (tua)</p>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Versão revista (tua)</p>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => downloadRtf(revised, rev.source_title ?? "carta-revista")}
+                  disabled={!revised.trim()}
+                  className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-semibold hover:bg-muted disabled:opacity-50 transition-colors"
+                  title="Descarregar Word/RTF"
+                >
+                  <FileText className="h-3 w-3" /> .rtf
+                </button>
+                <button
+                  type="button"
+                  onClick={() => printContent(revised, rev.source_title ?? "carta")}
+                  disabled={!revised.trim()}
+                  className="inline-flex items-center gap-1 rounded-md bg-foreground text-background px-2 py-1 text-[10px] font-bold hover:opacity-90 disabled:opacity-50 transition-opacity"
+                  title="Imprimir / PDF"
+                >
+                  <Printer className="h-3 w-3" /> Imprimir
+                </button>
+              </div>
+            </div>
             <textarea
               value={revised}
               onChange={(e) => setRevised(e.target.value)}
