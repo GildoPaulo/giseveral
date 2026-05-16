@@ -14,12 +14,42 @@ export const Route = createFileRoute("/hub/documentos")({
     cat: typeof search.cat === "string" ? search.cat : undefined,
     tab: typeof search.tab === "string" ? search.tab : undefined,
   }),
-  head: () => ({
-    meta: [
-      { title: "Documentos — Giseveral Hub" },
-      { name: "description", content: "Documentos partilhados pela comunidade Giseveral — exames, sebentas, trabalhos e mais." },
-    ],
-  }),
+  head: () => {
+    const desc =
+      "Biblioteca aberta de documentos académicos partilhados por estudantes moçambicanos — exames de admissão, sebentas universitárias, trabalhos, livros e materiais de estudo. Pré-visualização gratuita, downloads em PDF.";
+    const url = "https://giseveral.com/hub/documentos";
+    return {
+      meta: [
+        { title: "Documentos académicos · Exames, sebentas e trabalhos — Giseveral Hub" },
+        { name: "description", content: desc },
+        { name: "keywords", content: "documentos académicos Moçambique, exames de admissão UEM UP UCM ISCTEM, sebentas universitárias, trabalhos académicos, biblioteca digital Beira, hub estudante moçambicano, PDF educativo grátis" },
+        { name: "robots", content: "index, follow, max-image-preview:large" },
+
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "Giseveral Hub" },
+        { property: "og:title", content: "Documentos académicos partilhados — Giseveral Hub" },
+        { property: "og:description", content: desc },
+        { property: "og:url", content: url },
+
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: "Documentos académicos — Giseveral Hub" },
+        { name: "twitter:description", content: desc },
+
+        {
+          name: "application/ld+json",
+          content: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Documentos académicos partilhados",
+            description: desc,
+            url,
+            isPartOf: { "@type": "WebSite", name: "Giseveral Hub", url: "https://giseveral.com/hub" },
+          }),
+        },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: HubDocumentosPage,
 });
 

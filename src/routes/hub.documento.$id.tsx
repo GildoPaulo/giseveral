@@ -19,15 +19,63 @@ export const Route = createFileRoute("/hub/documento/$id")({
     const doc = await fetchHubDocumentById(params.id);
     return { doc: doc ?? null };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     const doc = loaderData?.doc;
     if (!doc) return { meta: [{ title: "Documento — Giseveral Hub" }] };
+    const url = `https://giseveral.com/hub/documento/${params.id}`;
+    const desc = (doc.description ?? "").slice(0, 200);
+    const keywords = [
+      doc.title, doc.author, doc.category, "documento académico",
+      "Giseveral", "Moçambique", "Beira", "estudante", "hub",
+      ...(doc.tags ?? []),
+    ].filter(Boolean).join(", ");
     return {
       meta: [
         { title: `${doc.title} — Giseveral Hub` },
-        { name: "description", content: doc.description },
+        { name: "description", content: desc },
+        { name: "keywords", content: keywords },
+        { name: "author", content: doc.author },
+        { name: "robots", content: "index, follow, max-image-preview:large" },
+
+        // Open Graph
+        { property: "og:type", content: "article" },
         { property: "og:title", content: doc.title },
-        { property: "og:description", content: doc.description },
+        { property: "og:description", content: desc },
+        { property: "og:url", content: url },
+        { property: "og:site_name", content: "Giseveral Hub" },
+        ...(doc.coverImageUrl ? [{ property: "og:image", content: doc.coverImageUrl }] : []),
+        { property: "article:author", content: doc.author },
+        { property: "article:section", content: doc.category },
+
+        // Twitter
+        { name: "twitter:card", content: doc.coverImageUrl ? "summary_large_image" : "summary" },
+        { name: "twitter:title", content: doc.title },
+        { name: "twitter:description", content: desc },
+        ...(doc.coverImageUrl ? [{ name: "twitter:image", content: doc.coverImageUrl }] : []),
+
+        // JSON-LD article schema for Google
+        {
+          name: "application/ld+json",
+          content: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: doc.title,
+            description: desc,
+            author: { "@type": "Person", name: doc.author },
+            datePublished: doc.uploadedAt,
+            keywords: doc.tags?.join(", ") ?? "",
+            image: doc.coverImageUrl ?? undefined,
+            url,
+            publisher: {
+              "@type": "Organization",
+              name: "Giseveral e Services",
+              logo: { "@type": "ImageObject", url: "https://giseveral.com/logo.jpeg" },
+            },
+          }),
+        },
+      ],
+      links: [
+        { rel: "canonical", href: url },
       ],
     };
   },
@@ -200,11 +248,16 @@ function HubDocumentoPage() {
       return;
     }
 
-    const isFree = premium;
+    // Free download conditions:
+    //   • user is a Premium subscriber → unlimited, no credit spent
+    //   • document itself is marked free (doc.premium === false) → no credit spent
+    // Only credit-protected case: a Premium document downloaded by a non-Premium
+    // user — handled above as a hard block. So credits never apply to free docs.
+    const isFree = premium || !doc.premium;
     const currentCredits = credits ?? 0;
     if (!isFree && currentCredits <= 0) {
       toast.error("Sem créditos.", {
-        description: "Compra créditos para descarregar.",
+        description: "Compra créditos para descarregar este documento Premium.",
         action: { label: "Comprar", onClick: () => navigate({ to: "/hub/creditos" }) },
       });
       return;
@@ -234,7 +287,9 @@ function HubDocumentoPage() {
     a.click();
 
     toast.success("Download iniciado", {
-      description: isFree ? "Acesso Premium · sem custo" : `1 crédito descontado. Restam ${(credits ?? 1) - 1}.`,
+      description: isFree
+        ? (premium ? "Acesso Premium · sem custo" : "Documento gratuito · sem custo")
+        : `1 crédito descontado. Restam ${(credits ?? 1) - 1}.`,
     });
     setDownloading(false);
   }
@@ -339,7 +394,11 @@ function HubDocumentoPage() {
               className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#1E3A8A] hover:bg-[#1e408f] disabled:opacity-50 disabled:cursor-not-allowed px-5 py-3.5 text-sm font-bold text-white shadow-card transition-smooth"
             >
               {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              {premium ? "Descarregar PDF · Premium" : `Descarregar PDF · 1 crédito`}
+              {premium
+                ? "Descarregar PDF · Premium"
+                : doc.premium
+                  ? "Descarregar PDF · 1 crédito"
+                  : "Descarregar PDF · Grátis"}
             </button>
 
             {/* Print */}

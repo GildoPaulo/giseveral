@@ -9,12 +9,40 @@ import { BookOpen, Search, GraduationCap, FileText, Calendar, Zap, Download } fr
 import type { DocItem } from "@/data/hub-documents";
 
 export const Route = createFileRoute("/hub/exames")({
-  head: () => ({
-    meta: [
-      { title: "Exames de Admissão — Giseveral Hub" },
-      { name: "description", content: "Exames de admissão das principais universidades de Moçambique. UEM, UP, UCM, ISCTEM — guias, provas anteriores e preparação." },
-    ],
-  }),
+  head: () => {
+    const desc = "Exames de admissão das principais universidades de Moçambique (UEM, UP, UCM, ISCTEM) — guias, provas anteriores resolvidas, cronogramas e preparação para o exame nacional. Download grátis.";
+    const url = "https://giseveral.com/hub/exames";
+    return {
+      meta: [
+        { title: "Exames de admissão UEM, UP, UCM, ISCTEM — Provas anteriores e guias" },
+        { name: "description", content: desc },
+        { name: "keywords", content: "exame admissão UEM Maputo, exame admissão UP, exame admissão UCM Beira, exame admissão ISCTEM, exames anteriores Moçambique, provas universidade Moçambique, guia exame nacional 12ª classe, vestibular Moçambique, preparação universidade" },
+        { name: "robots", content: "index, follow, max-image-preview:large" },
+
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "Giseveral Hub" },
+        { property: "og:title", content: "Exames de admissão universitários — Giseveral Hub" },
+        { property: "og:description", content: desc },
+        { property: "og:url", content: url },
+
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: "Exames de admissão UEM, UP, UCM, ISCTEM" },
+        { name: "twitter:description", content: desc },
+
+        {
+          name: "application/ld+json",
+          content: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: "Exames de admissão Moçambique",
+            description: desc,
+            url,
+          }),
+        },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: HubExamesPage,
 });
 
@@ -97,7 +125,11 @@ function HubExamesPage() {
   const [examDocs, setExamDocs] = useState<DocItem[]>([]);
 
   useEffect(() => {
-    supabase.from("hub_exams").select("*").eq("active", true)
+    // Note: we deliberately DON'T filter by active here — RLS already enforces
+    // active IS NULL OR active = true server-side (see migration
+    // 20260517000003_fix_hub_exams_active.sql). The previous explicit
+    // .eq("active", true) was hiding 32 rows where active was NULL.
+    supabase.from("hub_exams").select("*")
       .then(({ data, error }) => {
         if (error) {
           console.warn("[hub.exames] erro a buscar admin uploads:", error.message);

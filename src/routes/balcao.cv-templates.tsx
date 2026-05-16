@@ -140,6 +140,7 @@ function BalcaoCvTemplates() {
   const [filterStatus, setFilterStatus] = useState<"todos" | "activos" | "destaque" | "premium">("todos");
 
   const zipRef = useRef<HTMLInputElement>(null);
+  const htmlTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { load(); }, []);
 
@@ -584,13 +585,35 @@ function BalcaoCvTemplates() {
                   HTML {form.html_content ? `(${form.html_content.length} chars)` : "(vazio)"}
                 </button>
                 {showHtml && (
-                  <textarea
-                    rows={8}
-                    value={form.html_content}
-                    onChange={(e) => patch("html_content", e.target.value)}
-                    placeholder="<!-- HTML do template aqui -->"
-                    className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-mono resize-y focus:outline-none focus:ring-2 focus:ring-brand/30"
-                  />
+                  <>
+                    <PlaceholderHelper
+                      onInsert={(token) => {
+                        const el = htmlTextareaRef.current;
+                        if (!el) {
+                          patch("html_content", form.html_content + token);
+                          return;
+                        }
+                        const start = el.selectionStart;
+                        const end = el.selectionEnd;
+                        const next = form.html_content.slice(0, start) + token + form.html_content.slice(end);
+                        patch("html_content", next);
+                        // Restore caret after the inserted token.
+                        requestAnimationFrame(() => {
+                          el.focus();
+                          el.setSelectionRange(start + token.length, start + token.length);
+                        });
+                      }}
+                      onInsertStarter={() => patch("html_content", STARTER_TEMPLATE_HTML)}
+                    />
+                    <textarea
+                      ref={htmlTextareaRef}
+                      rows={12}
+                      value={form.html_content}
+                      onChange={(e) => patch("html_content", e.target.value)}
+                      placeholder="<!-- HTML do template aqui — clica nos placeholders acima para inserir -->"
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-xs font-mono resize-y focus:outline-none focus:ring-2 focus:ring-brand/30"
+                    />
+                  </>
                 )}
               </div>
 
@@ -844,6 +867,104 @@ function StatsView({ templates }: { templates: CvTemplate[] }) {
           Os downloads são incrementados automaticamente quando um utilizador gera um PDF no CV Builder.
           Os templates em <strong>Destaque</strong> aparecem na secção "Recomendados" da página <code>/hub/cv</code>.
         </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Placeholder helper for the HTML editor ───────────────────────────────────
+
+const PLACEHOLDERS: { token: string; label: string; group: "Pessoal" | "Secções" | "Especiais" }[] = [
+  // Pessoais — substituem por texto simples
+  { token: "{{nome}}",          label: "Nome",         group: "Pessoal" },
+  { token: "{{apelido}}",       label: "Apelido",      group: "Pessoal" },
+  { token: "{{nome_completo}}", label: "Nome completo",group: "Pessoal" },
+  { token: "{{titulo}}",        label: "Título prof.", group: "Pessoal" },
+  { token: "{{email}}",         label: "Email",        group: "Pessoal" },
+  { token: "{{telefone}}",      label: "Telefone",     group: "Pessoal" },
+  { token: "{{localizacao}}",   label: "Localização",  group: "Pessoal" },
+  { token: "{{cidade}}",        label: "Cidade",       group: "Pessoal" },
+  { token: "{{pais}}",          label: "País",         group: "Pessoal" },
+  { token: "{{nacionalidade}}", label: "Nacionalidade",group: "Pessoal" },
+  { token: "{{linkedin}}",      label: "LinkedIn",     group: "Pessoal" },
+  { token: "{{website}}",       label: "Website",      group: "Pessoal" },
+  { token: "{{portfolio}}",     label: "Portfolio",    group: "Pessoal" },
+  { token: "{{foto}}",          label: "Foto (URL)",   group: "Pessoal" },
+  { token: "{{objetivo}}",      label: "Resumo / objectivo", group: "Pessoal" },
+
+  // Secções automáticas — geram HTML estruturado da CvData
+  { token: "{{experiencia_html}}",    label: "Experiência",    group: "Secções" },
+  { token: "{{educacao_html}}",       label: "Educação",       group: "Secções" },
+  { token: "{{skills_html}}",         label: "Competências",   group: "Secções" },
+  { token: "{{idiomas_html}}",        label: "Idiomas",        group: "Secções" },
+  { token: "{{projetos_html}}",       label: "Projectos",      group: "Secções" },
+  { token: "{{certificacoes_html}}",  label: "Certificações",  group: "Secções" },
+
+  // Dump completo
+  { token: "{{cv_completo}}",   label: "CV completo (header + secções)", group: "Especiais" },
+];
+
+const STARTER_TEMPLATE_HTML = `<div class="cv-page" style="font-family:Calibri,Arial,sans-serif;color:#222">
+  <header style="text-align:center;border-bottom:2px solid #1d4ed8;padding-bottom:14pt;margin-bottom:14pt">
+    <h1 style="margin:0;font-size:24pt;letter-spacing:1px;text-transform:uppercase">{{nome}} {{apelido}}</h1>
+    <p style="margin:4pt 0 0;color:#1d4ed8;font-size:13pt;font-weight:600">{{titulo}}</p>
+    <p style="margin:6pt 0 0;font-size:10pt;color:#666">{{email}} · {{telefone}} · {{cidade}} · {{linkedin}}</p>
+  </header>
+
+  {{experiencia_html}}
+  {{educacao_html}}
+  {{skills_html}}
+  {{idiomas_html}}
+  {{projetos_html}}
+  {{certificacoes_html}}
+</div>`;
+
+function PlaceholderHelper({
+  onInsert, onInsertStarter,
+}: {
+  onInsert: (token: string) => void;
+  onInsertStarter: () => void;
+}) {
+  const groups: ("Pessoal" | "Secções" | "Especiais")[] = ["Pessoal", "Secções", "Especiais"];
+  return (
+    <div className="mb-3 rounded-xl border border-brand/30 bg-brand/5 p-3 space-y-2.5">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-brand inline-flex items-center gap-1.5">
+          <Info className="h-3.5 w-3.5" /> Placeholders disponíveis
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm("Substituir o HTML actual por um template inicial pronto a editar?")) onInsertStarter();
+          }}
+          className="rounded-md bg-foreground text-background px-2.5 py-1 text-[10px] font-bold hover:opacity-90 transition-opacity"
+        >
+          Inserir template inicial
+        </button>
+      </div>
+      <p className="text-[11px] text-muted-foreground leading-relaxed">
+        Clica num placeholder para inserir no HTML. Os dados que o utilizador preencher no editor de CV
+        substituem automaticamente cada <code>{`{{token}}`}</code>.
+      </p>
+      <div className="space-y-2">
+        {groups.map((g) => (
+          <div key={g}>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-1">{g}</p>
+            <div className="flex flex-wrap gap-1">
+              {PLACEHOLDERS.filter((p) => p.group === g).map((p) => (
+                <button
+                  key={p.token}
+                  type="button"
+                  onClick={() => onInsert(p.token)}
+                  className="inline-flex items-center gap-1 rounded-md border border-border bg-background hover:bg-muted px-2 py-1 text-[10px] font-mono transition-colors"
+                  title={p.label}
+                >
+                  <span className="text-brand">{p.token}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
