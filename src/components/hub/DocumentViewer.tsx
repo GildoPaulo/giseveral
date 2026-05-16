@@ -11,13 +11,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-// Worker is bundled by Vite from the local install so it doesn't depend on
-// unpkg/CDN availability (which was triggering "Falha ao carregar o documento").
-// eslint-disable-next-line import/no-unresolved
-import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
+// PDF.js worker — react-pdf v10 expects a real URL string here.
+// Using `new URL(..., import.meta.url)` lets Vite bundle the worker as a
+// separate asset and produce the correct hashed URL at build time. This
+// avoids the "Failed to resolve module specifier 'pdf.worker.mjs'" runtime
+// error that comes from react-pdf's default fake-worker resolution.
 if (typeof window !== "undefined" && !pdfjs.GlobalWorkerOptions.workerSrc) {
-  pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    "pdfjs-dist/build/pdf.worker.min.mjs",
+    import.meta.url,
+  ).toString();
 }
 
 const BUCKET = "hub-documents";

@@ -171,6 +171,66 @@ function BalcaoBolsas() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [importingPdf, setImportingPdf] = useState(false);
+  const [generatingAi, setGeneratingAi] = useState(false);
+
+  async function generateScholarshipFromTopic() {
+    const topic = window.prompt(
+      "Descreve a bolsa para a IA pré-preencher (ex: 'Bolsa Chevening UK 2027 para Mestrado, todas as áreas')",
+    );
+    if (!topic?.trim()) return;
+    setGeneratingAi(true);
+    try {
+      const prompt = `Cria os dados de uma bolsa de estudo a partir desta descrição: "${topic}".
+Devolve APENAS JSON valido com este formato exacto (sem markdown):
+{
+  "title": "",
+  "country": "",
+  "flag": "🌍",
+  "level": "Licenciatura|Mestrado|Doutoramento|Pós-doc",
+  "area": "",
+  "coverage": "Total|Parcial|Mensalidade",
+  "language": "",
+  "deadline": "AAAA-MM-DD ou texto curto",
+  "institution": "",
+  "description": "",
+  "apply_url": "",
+  "benefits": ["..."],
+  "requirements": ["..."],
+  "process_steps": ["..."],
+  "documents": ["..."],
+  "tips": ["..."]
+}`;
+      const { callGemini } = await import("@/services/gemini");
+      const text = await callGemini("scholarship_match", prompt);
+      const { parseJsonFromAi } = await import("@/lib/ai-json");
+      const data = parseJsonFromAi<Partial<ScholarshipRow>>(text);
+
+      upd((p) => ({
+        ...p,
+        title: data.title || p.title,
+        country: data.country || p.country,
+        flag: data.flag || p.flag,
+        level: data.level || p.level,
+        area: data.area || p.area,
+        coverage: data.coverage || p.coverage,
+        language: data.language || p.language,
+        deadline: data.deadline || p.deadline,
+        institution: data.institution || p.institution,
+        description: data.description || p.description,
+        apply_url: data.apply_url || p.apply_url,
+        benefits: Array.isArray(data.benefits) && data.benefits.length ? data.benefits : p.benefits,
+        requirements: Array.isArray(data.requirements) && data.requirements.length ? data.requirements : p.requirements,
+        process_steps: Array.isArray(data.process_steps) && data.process_steps.length ? data.process_steps : p.process_steps,
+        documents: Array.isArray(data.documents) && data.documents.length ? data.documents : p.documents,
+        tips: Array.isArray(data.tips) && data.tips.length ? data.tips : p.tips,
+      }));
+      toast.success("Bolsa pré-preenchida pela IA — revê e ajusta antes de guardar.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao gerar com IA");
+    } finally {
+      setGeneratingAi(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -342,24 +402,36 @@ function BalcaoBolsas() {
 
         {/* Main fields */}
         <div className="rounded-2xl border border-border bg-card p-5 shadow-card space-y-4">
-          <div className="rounded-xl border border-brand/20 bg-brand/5 p-4">
-            <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-brand/40 bg-background px-4 py-3 text-sm font-bold text-brand hover:bg-brand/5 transition-colors">
-              {importingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
-              {importingPdf ? "A importar edital..." : "Importar PDF com IA"}
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                className="sr-only"
-                disabled={importingPdf}
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  e.currentTarget.value = "";
-                  if (file) importScholarshipPdf(file);
-                }}
-              />
-            </label>
-            <p className="mt-2 text-xs text-muted-foreground text-center">
-              Envia o edital oficial em PDF para pré-preencher título, prazo, requisitos, benefícios e link oficial.
+          <div className="rounded-xl border border-brand/20 bg-brand/5 p-4 space-y-3">
+            <div className="grid sm:grid-cols-2 gap-2">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-brand/40 bg-background px-4 py-3 text-sm font-bold text-brand hover:bg-brand/5 transition-colors">
+                {importingPdf ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
+                {importingPdf ? "A importar..." : "Importar PDF"}
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  className="sr-only"
+                  disabled={importingPdf}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.currentTarget.value = "";
+                    if (file) importScholarshipPdf(file);
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={generateScholarshipFromTopic}
+                disabled={generatingAi}
+                className="flex items-center justify-center gap-2 rounded-lg border border-dashed border-gold/50 bg-gold/10 px-4 py-3 text-sm font-bold text-gold hover:bg-gold/20 transition-colors disabled:opacity-50"
+              >
+                {generatingAi ? <Loader2 className="h-4 w-4 animate-spin" /> : <span>✨</span>}
+                {generatingAi ? "A gerar..." : "Gerar com IA"}
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground text-center">
+              <span className="font-semibold">Importar PDF</span>: extrai dados do edital oficial. {" "}
+              <span className="font-semibold">Gerar com IA</span>: cria a bolsa a partir de uma descrição em texto.
             </p>
           </div>
 

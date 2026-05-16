@@ -3,15 +3,16 @@
  * Uses pdfjs-dist directly — no react-pdf in this path so it stays cheap and
  * works server-side-rendered routes that import it.
  */
-// eslint-disable-next-line import/no-unresolved
-import pdfWorker from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 type Source = File | Blob | ArrayBuffer | string;
 
 async function loadPdfjs() {
   const pdfjs = await import("pdfjs-dist");
   if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      "pdfjs-dist/build/pdf.worker.min.mjs",
+      import.meta.url,
+    ).toString();
   }
   return pdfjs;
 }

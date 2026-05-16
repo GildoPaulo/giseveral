@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import {
   Newspaper, Plus, Pencil, Trash2, Star, Eye,
-  Loader2, Save, X, Check,
+  Loader2, Save, X, Check, Sparkles,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { triggerAutoNotify } from "@/services/autoNotify";
 import { HUB_NEWS } from "@/data/hub-bolsas";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { RichTextEditor } from "@/components/admin/RichTextEditor";
+import { readJsonOrThrow } from "@/lib/ai-json";
 
 export const Route = createFileRoute("/balcao/noticias")({
   component: BalcaoNoticias,
@@ -86,6 +87,46 @@ function BalcaoNoticias() {
   const [editing, setEditing] = useState<NewsRow | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+
+  async function generateWithAi() {
+    if (!editing) return;
+    const topic = window.prompt("Tema da notícia para a IA escrever:");
+    if (!topic?.trim()) return;
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/news/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic, category: editing.category }),
+      });
+      const data = await readJsonOrThrow<{
+        error?: string;
+        title?: string;
+        excerpt?: string;
+        content?: string;
+        tags?: string[];
+        hashtags?: string[];
+      }>(res);
+      if (!res.ok) throw new Error(data.error || "Erro ao gerar");
+
+      upd((p) => ({
+        ...p,
+        title: data.title || p.title,
+        excerpt: data.excerpt ?? p.excerpt,
+        content_rich: data.content || p.content_rich,
+        tags: [
+          ...(Array.isArray(data.tags) ? data.tags : []),
+          ...(Array.isArray(data.hashtags) ? data.hashtags.map((h) => h.replace(/^#/, "")) : []),
+        ].filter(Boolean).slice(0, 8),
+      }));
+      toast.success("Notícia gerada — revê antes de guardar.");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao gerar com IA");
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -196,6 +237,15 @@ function BalcaoNoticias() {
           <h2 className="text-xl font-bold text-brand flex-1">
             {items.find((n) => n.id === f.id) ? "Editar notícia" : "Nova notícia"}
           </h2>
+          <button
+            onClick={generateWithAi}
+            disabled={generating}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gold/40 bg-gold/10 px-3 py-2 text-xs font-semibold text-gold hover:bg-gold/20 transition-colors disabled:opacity-50"
+            title="Gerar título, resumo, conteúdo e tags com IA a partir do tema"
+          >
+            {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+            {generating ? "A gerar…" : "Gerar com IA"}
+          </button>
           <button
             onClick={() => handleSave(f)}
             disabled={saving}
