@@ -12,12 +12,17 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
-// PDF.js worker via jsDelivr CDN — pinned to the exact pdfjs version that
-// ships with react-pdf, with correct MIME for .mjs (Vite's local bundle was
-// failing with "Failed to resolve module specifier 'pdf.worker.mjs'").
-if (typeof window !== "undefined" && !pdfjs.GlobalWorkerOptions.workerSrc) {
+// PDF.js worker — pinned version + FORCE overwrite (no `if` guard).
+// Past attempts:
+//   • Vite `?url` import: failed with "Failed to resolve module specifier 'pdf.worker.mjs'"
+//   • new URL(): same problem after bundle
+//   • CDN with pdfjs.version: produced undefined in URL when react-pdf
+//     didn't expose .version yet at module-init time.
+// Hard-coded version mirrors what's installed in package.json — keep in sync.
+const PDFJS_VERSION = "5.7.284";
+if (typeof window !== "undefined") {
   pdfjs.GlobalWorkerOptions.workerSrc =
-    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
 }
 
 const BUCKET = "hub-documents";

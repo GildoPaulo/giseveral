@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot, Send, Loader2, X, Check, Sparkles, Printer, Download, Copy, RotateCcw,
-  FileText, FileType, FileCode,
+  FileText, FileType, FileCode, ClipboardCopy,
 } from "lucide-react";
 import { toast } from "sonner";
 import { callGemini } from "@/services/gemini";
@@ -45,6 +45,7 @@ export function LetterStudio({ templateName, fields, template, tone, onClose, on
   const [generating, setGenerating] = useState(false);
   const [finalText, setFinalText] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -78,6 +79,15 @@ export function LetterStudio({ templateName, fields, template, tone, onClose, on
   useEffect(() => {
     inputRef.current?.focus();
   }, [currentIndex]);
+
+  // Auto-open the feedback popup once the AI finishes polishing.
+  useEffect(() => {
+    if (finalText && !feedbackOpen) {
+      const id = setTimeout(() => setFeedbackOpen(true), 600);
+      return () => clearTimeout(id);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finalText]);
 
   function pushAI(text: string) {
     setMessages((m) => [...m, { id: crypto.randomUUID(), role: "ai", text }]);
@@ -387,21 +397,16 @@ ${rtfLines}
           <div className="flex items-center justify-between gap-2 border-b border-border bg-background/80 backdrop-blur px-4 py-2.5">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pré-visualização A4</p>
             <div className="flex items-center gap-1">
-              {/* Feedback widget — only meaningful after AI has polished */}
-              {finalText && (
-                <FeedbackWidget
-                  source="letter"
-                  sourceTitle={`Carta — ${templateName} (${tone})`}
-                  output={liveTemplate}
-                  prompt={`Template: ${templateName}\nTom: ${tone}\nDados: ${JSON.stringify(values)}`}
-                  metadata={{ templateName, tone, values }}
-                  compact
-                  onAction={async (action) => {
-                    if (action.kind === "ai_improve" || action.kind === "ai_regenerate") {
-                      await regenerate();
-                    }
-                  }}
-                />
+              {/* Manual reopen — once user dismissed the popup */}
+              {finalText && !feedbackOpen && (
+                <button
+                  type="button"
+                  onClick={() => setFeedbackOpen(true)}
+                  className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-[11px] font-semibold hover:bg-muted transition-colors"
+                  title="Avaliar / pedir revisão humana"
+                >
+                  <Sparkles className="h-3 w-3 text-gold" /> Avaliar
+                </button>
               )}
               <DownloadMenu
                 disabled={!liveTemplate}
@@ -455,6 +460,32 @@ ${rtfLines}
           </div>
         </div>
       </div>
+
+      {/* Auto-popup after IA finishes — feedback + download / print quick actions */}
+      {finalText && (
+        <FeedbackWidget
+          source="letter"
+          sourceTitle={`Carta — ${templateName} (${tone})`}
+          output={liveTemplate}
+          prompt={`Template: ${templateName}\nTom: ${tone}\nDados: ${JSON.stringify(values)}`}
+          metadata={{ templateName, tone, values }}
+          hideInline
+          open={feedbackOpen}
+          onOpenChange={setFeedbackOpen}
+          quickActions={[
+            { label: "Copiar texto",   icon: ClipboardCopy, onClick: () => { copyToClipboard(); } },
+            { label: "Word (.doc)",    icon: FileType,      onClick: () => { downloadDoc(); } },
+            { label: ".rtf · LibreOffice", icon: FileText,  onClick: () => { downloadRtf(); } },
+            { label: "Imprimir / PDF", icon: Printer,       onClick: () => { printPreview(); } },
+          ]}
+          onAction={async (action) => {
+            if (action.kind === "ai_improve" || action.kind === "ai_regenerate") {
+              setFeedbackOpen(false);
+              await regenerate();
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

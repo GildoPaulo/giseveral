@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ThumbsUp, ThumbsDown, Sparkles, Wand2, UserCheck, MessageCircle,
@@ -29,6 +30,17 @@ interface Props {
   /** When true, shows a Print/Imprimir button alongside the feedback. */
   enablePrint?: boolean;
   onAction?: (action: FeedbackAction) => void | Promise<void>;
+  /**
+   * Controlled-open mode: parent renders the modal as a popup automatically
+   * (e.g. when generation finishes). When omitted, widget behaves as the
+   * usual inline thumbs that open the modal on click.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Hide the inline thumbs row (useful in controlled popup mode). */
+  hideInline?: boolean;
+  /** Convenience action buttons shown on the first step of the popup. */
+  quickActions?: { label: string; onClick: () => void; icon?: React.ComponentType<{ className?: string }> }[];
 }
 
 type PricingRow = {
@@ -46,10 +58,16 @@ type Step = "options" | "tier" | "details" | "payment" | "success";
 export function FeedbackWidget({
   source, sourceRef, sourceTitle, output, prompt, metadata,
   compact = false, enablePrint = false, onAction,
+  open: openProp, onOpenChange, hideInline = false, quickActions,
 }: Props) {
   const { user } = useAuth();
   const [voted, setVoted] = useState<"up" | "down" | null>(null);
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    if (openProp === undefined) setInternalOpen(v);
+  };
   const [step, setStep] = useState<Step>("options");
   const [pricing, setPricing] = useState<PricingRow[]>([]);
   const [selectedTier, setSelectedTier] = useState<PricingRow | null>(null);
@@ -261,9 +279,363 @@ export function FeedbackWidget({
 
   const methodInfo = paymentMethod ? PAYMENT_NUMBERS[paymentMethod] : null;
 
+  const modalNode = (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9998] bg-black/60 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 16 }}
+            transition={{ type: "spring", damping: 26, stiffness: 280 }}
+            className="fixed left-1/2 top-1/2 z-[9999] w-[94%] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-card shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3 shrink-0">
+              <div>
+                <p className="text-sm font-bold text-foreground">
+                  {step === "options"  && "O que queres fazer agora?"}
+                  {step === "tier"     && "Escolhe o plano de revisão"}
+                  {step === "details"  && "Detalhes do pedido"}
+                  {step === "payment"  && "Pagamento da revisão"}
+                  {step === "success"  && "Pedido enviado!"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {step === "options"  && "Avalia, descarrega, imprime ou pede revisão humana."}
+                  {step === "tier"     && "Define o nível e o preço."}
+                  {step === "details"  && "Conta-nos o que correu mal."}
+                  {step === "payment"  && `Referência: ${reference}`}
+                  {step === "success"  && "Vamos contactar-te em breve."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                aria-label="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto">
+              {/* STEP 1: options */}
+              {step === "options" && (
+                <div className="p-4 space-y-3">
+                  {/* Quick rating */}
+                  <div className="flex items-center justify-center gap-3 py-2">
+                    <p className="text-xs font-bold text-muted-foreground">Gostaste?</p>
+                    <button
+                      type="button"
+                      onClick={() => { handleUp(); /* keep popup open so user can still download */ }}
+                      disabled={voted === "up"}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                        voted === "up" ? "bg-emerald-500 text-white" : "bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20"
+                      }`}
+                    >
+                      {voted === "up" ? <Check className="h-3 w-3" /> : <ThumbsUp className="h-3 w-3" />}
+                      Sim
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setVoted("down"); logFeedback("down"); }}
+                      disabled={voted === "down"}
+                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+                        voted === "down" ? "bg-rose-500 text-white" : "bg-rose-500/10 text-rose-700 hover:bg-rose-500/20"
+                      }`}
+                    >
+                      <ThumbsDown className="h-3 w-3" />
+                      Não
+                    </button>
+                  </div>
+
+                  {/* Quick actions (download/print/copy) provided by parent */}
+                  {quickActions && quickActions.length > 0 && (
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border">
+                      {quickActions.map((q, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => { q.onClick(); }}
+                          className="flex items-center gap-2 rounded-xl border border-border bg-background hover:bg-muted/60 transition-colors px-3 py-2.5 text-left"
+                        >
+                          {q.icon && <q.icon className="h-4 w-4 text-foreground" />}
+                          <span className="text-xs font-semibold text-foreground">{q.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Improvement options — only when 👎 */}
+                  {voted === "down" && (
+                    <div className="space-y-2 pt-2 border-t border-border">
+                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Queres melhorar?</p>
+                      {onAction && (
+                        <>
+                          <Option icon={Wand2} title="Corrigir com IA" desc="A IA reescreve mantendo o contexto." onClick={() => doAiAction("ai_improve")} busy={busy === "ai_improve"} />
+                          <Option icon={Sparkles} title="Regenerar do zero" desc="Nova tentativa com a IA." onClick={() => doAiAction("ai_regenerate")} busy={busy === "ai_regenerate"} />
+                        </>
+                      )}
+                      <Option icon={UserCheck} title="Pedir revisão humana" desc="Um especialista Giseveral melhora o teu documento." onClick={() => setStep("tier")} highlight />
+                      <a
+                        href="https://wa.me/258874383621?text=Olá,%20preciso%20de%20ajuda"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-start gap-3 w-full rounded-xl border border-border bg-background hover:bg-muted/60 transition-colors px-3 py-2.5 text-left"
+                      >
+                        <div className="grid h-9 w-9 place-items-center rounded-full bg-[#25D366]/10 text-[#25D366]">
+                          <MessageCircle className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-foreground">Falar no WhatsApp</p>
+                          <p className="text-xs text-muted-foreground">Conversa directa com a equipa.</p>
+                        </div>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* STEP 2: pick tier */}
+              {step === "tier" && (
+                <div className="p-5 space-y-3">
+                  {pricing.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center">
+                      <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
+                      <p className="mt-2 text-xs text-muted-foreground">A carregar planos…</p>
+                    </div>
+                  ) : (
+                    pricing.map((p) => {
+                      const active = selectedTier?.id === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => setSelectedTier(p)}
+                          className={`w-full text-left rounded-2xl border p-4 transition-colors ${
+                            active ? "border-foreground bg-foreground/5" : "border-border bg-card hover:border-brand/40"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-foreground">{p.label}</p>
+                              {p.description && (
+                                <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{p.description}</p>
+                              )}
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-lg font-extrabold tabular-nums text-foreground">
+                                {p.price_mzn === 0 ? "Grátis" : formatMZN(p.price_mzn)}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground">~ {p.turnaround_hours}h</p>
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+
+              {/* STEP 3: details */}
+              {step === "details" && selectedTier && (
+                <div className="p-5 space-y-4">
+                  <div className="rounded-xl bg-foreground/5 border border-border p-3">
+                    <p className="text-xs text-muted-foreground">Plano escolhido</p>
+                    <p className="text-sm font-bold text-foreground">{selectedTier.label} · {formatMZN(selectedTier.price_mzn)}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1.5">
+                      O que correu mal? (opcional)
+                    </label>
+                    <textarea
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      rows={3}
+                      placeholder="Ex: o tom está demasiado informal…"
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 resize-y"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1.5">
+                      Telefone / WhatsApp
+                    </label>
+                    <input
+                      type="tel"
+                      value={contactPhone}
+                      onChange={(e) => setContactPhone(e.target.value)}
+                      placeholder="+258 …"
+                      className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 4: payment */}
+              {step === "payment" && selectedTier && (
+                <div className="p-5 space-y-4">
+                  {!paymentMethod ? (
+                    <>
+                      <p className="text-sm font-semibold text-foreground">Escolhe o método de pagamento</p>
+                      <p className="text-xs text-muted-foreground -mt-2">
+                        Valor: <span className="font-bold text-foreground">{formatMZN(selectedTier.price_mzn)}</span>
+                      </p>
+                      <div className="space-y-2">
+                        {PAYMENT_METHOD_LIST.map((m) => (
+                          <button
+                            key={m.id}
+                            type="button"
+                            onClick={() => setPaymentMethod(m.id)}
+                            className="w-full flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3 hover:border-brand/40 hover:shadow-card transition-smooth text-left"
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand/10 text-brand">
+                                <Smartphone className="h-4 w-4" />
+                              </div>
+                              <div>
+                                <p className="font-bold text-sm text-foreground">{m.label}</p>
+                                <p className="text-[11px] text-muted-foreground">{m.number}</p>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  ) : methodInfo ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setPaymentMethod(null)}
+                        className="text-xs font-semibold text-muted-foreground hover:text-foreground"
+                      >
+                        ← Mudar método
+                      </button>
+                      <div className="rounded-2xl border-2 border-brand/30 bg-gradient-to-br from-brand/5 to-card p-4">
+                        <PayRow label="Valor a transferir" value={formatMZN(selectedTier.price_mzn)} bold onCopy={() => copy(String(selectedTier.price_mzn), "Valor")} />
+                        <PayRow label="Número" value={methodInfo.number} bold onCopy={() => copy(methodInfo.number, "Número")} />
+                        <PayRow label="Nome destinatário" value={methodInfo.name} />
+                        <PayRow label="Referência" value={reference} mono onCopy={() => copy(reference, "Referência")} />
+                      </div>
+
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="rounded-2xl border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 hover:border-brand/40 transition-smooth p-5 text-center cursor-pointer"
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,application/pdf"
+                          className="hidden"
+                          onChange={(e) => { const f = e.target.files?.[0]; if (f) handleProofFile(f); }}
+                        />
+                        {proofFile ? (
+                          <div>
+                            {proofPreview ? (
+                              <img src={proofPreview} alt="" className="mx-auto h-28 rounded-lg object-cover border border-border" />
+                            ) : (
+                              <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-brand/10 text-brand">
+                                <Check className="h-4 w-4" />
+                              </div>
+                            )}
+                            <p className="mt-2 text-sm font-semibold text-foreground truncate">{proofFile.name}</p>
+                            <button
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); setProofFile(null); }}
+                              className="mt-1 text-[10px] text-muted-foreground hover:text-destructive"
+                            >
+                              Trocar
+                            </button>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-brand/10 text-brand">
+                              <UploadCloud className="h-4 w-4" />
+                            </div>
+                            <p className="mt-2 text-sm font-semibold text-foreground">Já transferi — enviar comprovativo</p>
+                            <p className="text-[10px] text-muted-foreground">JPG, PNG ou PDF até 5 MB</p>
+                          </>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={submitProof}
+                        disabled={!proofFile || busy === "submit_proof"}
+                        className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-foreground text-background px-5 py-3 text-sm font-bold disabled:opacity-50 hover:opacity-90 transition-opacity"
+                      >
+                        {busy === "submit_proof" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                        Submeter comprovativo
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              )}
+
+              {/* STEP 5: success */}
+              {step === "success" && (
+                <div className="p-8 text-center">
+                  <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-emerald-500/15 text-emerald-700">
+                    <Check className="h-7 w-7" />
+                  </div>
+                  <p className="text-base font-bold text-foreground">Pedido enviado</p>
+                  <p className="mt-1 text-xs text-muted-foreground max-w-sm mx-auto">
+                    Especialista contacta-te em até <span className="font-bold">{selectedTier?.turnaround_hours ?? 24}h</span>.
+                    Ref: <span className="font-mono font-bold">{reference}</span>.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="mt-5 rounded-xl bg-foreground text-background px-5 py-2 text-xs font-bold hover:opacity-90 transition-opacity"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {(step === "tier" || step === "details") && (
+              <div className="border-t border-border bg-background p-3 flex items-center justify-between gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setStep(step === "details" ? "tier" : "options")}
+                  className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-semibold hover:bg-muted transition-colors"
+                >
+                  Voltar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (step === "tier") {
+                      if (!selectedTier) { toast.error("Escolhe um plano"); return; }
+                      setStep("details");
+                    } else if (step === "details") {
+                      submitDetails();
+                    }
+                  }}
+                  disabled={busy === "create_request"}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-foreground text-background px-5 py-2 text-xs font-bold disabled:opacity-50 hover:opacity-90 transition-opacity"
+                >
+                  {busy === "create_request" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                  {step === "tier" ? "Continuar" : "Enviar pedido"}
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+
   return (
     <div className="inline-flex flex-col gap-2">
       {/* Thumbs + print row */}
+      {!hideInline && (
       <div className={`inline-flex items-center gap-1.5 ${compact ? "" : "rounded-xl border border-border bg-card px-2 py-1.5"}`}>
         {!compact && (
           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mr-1">Feedback</span>
@@ -302,329 +674,12 @@ export function FeedbackWidget({
           </button>
         )}
       </div>
+      )}
 
-      {/* Modal */}
-      <AnimatePresence>
-        {open && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[80] bg-black/50"
-              onClick={() => setOpen(false)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 16 }}
-              transition={{ type: "spring", damping: 26, stiffness: 280 }}
-              className="fixed left-1/2 top-1/2 z-[81] w-[94%] max-w-xl -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-card shadow-2xl border border-border overflow-hidden max-h-[90vh] flex flex-col"
-              role="dialog"
-              aria-modal="true"
-            >
-              <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3 shrink-0">
-                <div>
-                  <p className="text-sm font-bold text-foreground">
-                    {step === "options"  && "Não ficou como esperavas?"}
-                    {step === "tier"     && "Escolhe o plano de revisão"}
-                    {step === "details"  && "Detalhes do pedido"}
-                    {step === "payment"  && "Pagamento da revisão"}
-                    {step === "success"  && "Pedido enviado!"}
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {step === "options"  && "Escolhe como queres melhorar."}
-                    {step === "tier"     && "Define o nível e o preço."}
-                    {step === "details"  && "Conta-nos o que correu mal."}
-                    {step === "payment"  && `Referência: ${reference}`}
-                    {step === "success"  && "Vamos contactar-te em breve."}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-                  aria-label="Fechar"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
+      {/* Modal rendered via React portal so it escapes any local stacking
+          contexts (e.g. inside LetterStudio's fullscreen overlay) */}
+      {typeof document !== "undefined" && createPortal(modalNode, document.body)}
 
-              <div className="flex-1 overflow-y-auto">
-                {/* STEP 1: options */}
-                {step === "options" && (
-                  <div className="p-3 space-y-2">
-                    {onAction && (
-                      <>
-                        <Option
-                          icon={Wand2}
-                          title="Corrigir com IA"
-                          desc="A IA reescreve mantendo o contexto."
-                          onClick={() => doAiAction("ai_improve")}
-                          busy={busy === "ai_improve"}
-                        />
-                        <Option
-                          icon={Sparkles}
-                          title="Regenerar do zero"
-                          desc="Nova tentativa com a IA."
-                          onClick={() => doAiAction("ai_regenerate")}
-                          busy={busy === "ai_regenerate"}
-                        />
-                      </>
-                    )}
-                    <Option
-                      icon={UserCheck}
-                      title="Pedir revisão humana"
-                      desc="Um especialista Giseveral melhora o teu documento."
-                      onClick={() => setStep("tier")}
-                      highlight
-                    />
-                    <a
-                      href="https://wa.me/258874383621?text=Olá,%20preciso%20de%20ajuda"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-start gap-3 w-full rounded-xl border border-border bg-background hover:bg-muted/60 transition-colors px-3 py-2.5 text-left"
-                    >
-                      <div className="grid h-9 w-9 place-items-center rounded-full bg-[#25D366]/10 text-[#25D366]">
-                        <MessageCircle className="h-4 w-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-foreground">Falar no WhatsApp</p>
-                        <p className="text-xs text-muted-foreground">Conversa directa com a equipa.</p>
-                      </div>
-                    </a>
-                  </div>
-                )}
-
-                {/* STEP 2: pick tier */}
-                {step === "tier" && (
-                  <div className="p-5 space-y-3">
-                    {pricing.length === 0 ? (
-                      <div className="rounded-xl border border-dashed border-border bg-muted/30 p-6 text-center">
-                        <Loader2 className="mx-auto h-5 w-5 animate-spin text-muted-foreground" />
-                        <p className="mt-2 text-xs text-muted-foreground">A carregar planos…</p>
-                      </div>
-                    ) : (
-                      pricing.map((p) => {
-                        const active = selectedTier?.id === p.id;
-                        return (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => setSelectedTier(p)}
-                            className={`w-full text-left rounded-2xl border p-4 transition-colors ${
-                              active
-                                ? "border-foreground bg-foreground/5"
-                                : "border-border bg-card hover:border-brand/40"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="text-sm font-bold text-foreground">{p.label}</p>
-                                {p.description && (
-                                  <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{p.description}</p>
-                                )}
-                              </div>
-                              <div className="text-right shrink-0">
-                                <p className="text-lg font-extrabold tabular-nums text-foreground">
-                                  {p.price_mzn === 0 ? "Grátis" : formatMZN(p.price_mzn)}
-                                </p>
-                                <p className="text-[10px] text-muted-foreground">~ {p.turnaround_hours}h</p>
-                              </div>
-                            </div>
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                )}
-
-                {/* STEP 3: details */}
-                {step === "details" && selectedTier && (
-                  <div className="p-5 space-y-4">
-                    <div className="rounded-xl bg-foreground/5 border border-border p-3">
-                      <p className="text-xs text-muted-foreground">Plano escolhido</p>
-                      <p className="text-sm font-bold text-foreground">{selectedTier.label} · {formatMZN(selectedTier.price_mzn)}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1.5">
-                        O que correu mal? (opcional)
-                      </label>
-                      <textarea
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
-                        rows={3}
-                        placeholder="Ex: o tom está demasiado informal, falta mencionar X…"
-                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 resize-y"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-1.5">
-                        Telefone / WhatsApp
-                      </label>
-                      <input
-                        type="tel"
-                        value={contactPhone}
-                        onChange={(e) => setContactPhone(e.target.value)}
-                        placeholder="+258 …"
-                        className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* STEP 4: payment */}
-                {step === "payment" && selectedTier && (
-                  <div className="p-5 space-y-4">
-                    {!paymentMethod ? (
-                      <>
-                        <p className="text-sm font-semibold text-foreground">Escolhe o método de pagamento</p>
-                        <p className="text-xs text-muted-foreground -mt-2">
-                          Valor a pagar: <span className="font-bold text-foreground">{formatMZN(selectedTier.price_mzn)}</span>
-                        </p>
-                        <div className="space-y-2">
-                          {PAYMENT_METHOD_LIST.map((m) => (
-                            <button
-                              key={m.id}
-                              type="button"
-                              onClick={() => setPaymentMethod(m.id)}
-                              className="w-full flex items-center justify-between gap-3 rounded-2xl border border-border bg-card p-3 hover:border-brand/40 hover:shadow-card transition-smooth text-left"
-                            >
-                              <div className="flex items-center gap-2">
-                                <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand/10 text-brand">
-                                  <Smartphone className="h-4 w-4" />
-                                </div>
-                                <div>
-                                  <p className="font-bold text-sm text-foreground">{m.label}</p>
-                                  <p className="text-[11px] text-muted-foreground">{m.number}</p>
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    ) : methodInfo ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => setPaymentMethod(null)}
-                          className="text-xs font-semibold text-muted-foreground hover:text-foreground"
-                        >
-                          ← Mudar método
-                        </button>
-                        <div className="rounded-2xl border-2 border-brand/30 bg-gradient-to-br from-brand/5 to-card p-4">
-                          <PayRow label="Valor a transferir" value={formatMZN(selectedTier.price_mzn)} bold onCopy={() => copy(String(selectedTier.price_mzn), "Valor")} />
-                          <PayRow label="Número" value={methodInfo.number} bold onCopy={() => copy(methodInfo.number, "Número")} />
-                          <PayRow label="Nome destinatário" value={methodInfo.name} />
-                          <PayRow label="Referência" value={reference} mono onCopy={() => copy(reference, "Referência")} />
-                        </div>
-
-                        <div
-                          onClick={() => fileInputRef.current?.click()}
-                          className="rounded-2xl border-2 border-dashed border-border bg-muted/30 hover:bg-muted/50 hover:border-brand/40 transition-smooth p-5 text-center cursor-pointer"
-                        >
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/jpeg,image/png,application/pdf"
-                            className="hidden"
-                            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleProofFile(f); }}
-                          />
-                          {proofFile ? (
-                            <div>
-                              {proofPreview ? (
-                                <img src={proofPreview} alt="" className="mx-auto h-28 rounded-lg object-cover border border-border" />
-                              ) : (
-                                <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-brand/10 text-brand">
-                                  <Check className="h-4 w-4" />
-                                </div>
-                              )}
-                              <p className="mt-2 text-sm font-semibold text-foreground truncate">{proofFile.name}</p>
-                              <button
-                                type="button"
-                                onClick={(e) => { e.stopPropagation(); setProofFile(null); }}
-                                className="mt-1 text-[10px] text-muted-foreground hover:text-destructive"
-                              >
-                                Trocar
-                              </button>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-brand/10 text-brand">
-                                <UploadCloud className="h-4 w-4" />
-                              </div>
-                              <p className="mt-2 text-sm font-semibold text-foreground">Já transferi — enviar comprovativo</p>
-                              <p className="text-[10px] text-muted-foreground">JPG, PNG ou PDF até 5 MB</p>
-                            </>
-                          )}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={submitProof}
-                          disabled={!proofFile || busy === "submit_proof"}
-                          className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-foreground text-background px-5 py-3 text-sm font-bold disabled:opacity-50 hover:opacity-90 transition-opacity"
-                        >
-                          {busy === "submit_proof" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                          Submeter comprovativo
-                        </button>
-                      </>
-                    ) : null}
-                  </div>
-                )}
-
-                {/* STEP 5: success */}
-                {step === "success" && (
-                  <div className="p-8 text-center">
-                    <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-emerald-500/15 text-emerald-700">
-                      <Check className="h-7 w-7" />
-                    </div>
-                    <p className="text-base font-bold text-foreground">Pedido enviado</p>
-                    <p className="mt-1 text-xs text-muted-foreground max-w-sm mx-auto">
-                      Um especialista Giseveral vai contactar-te em até <span className="font-bold">{selectedTier?.turnaround_hours ?? 24}h</span>.
-                      Referência: <span className="font-mono font-bold">{reference}</span>.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setOpen(false)}
-                      className="mt-5 rounded-xl bg-foreground text-background px-5 py-2 text-xs font-bold hover:opacity-90 transition-opacity"
-                    >
-                      Fechar
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Footer nav */}
-              {(step === "tier" || step === "details") && (
-                <div className="border-t border-border bg-background p-3 flex items-center justify-between gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => setStep(step === "details" ? "tier" : "options")}
-                    className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-semibold hover:bg-muted transition-colors"
-                  >
-                    Voltar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (step === "tier") {
-                        if (!selectedTier) { toast.error("Escolhe um plano"); return; }
-                        setStep("details");
-                      } else if (step === "details") {
-                        submitDetails();
-                      }
-                    }}
-                    disabled={busy === "create_request"}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-foreground text-background px-5 py-2 text-xs font-bold disabled:opacity-50 hover:opacity-90 transition-opacity"
-                  >
-                    {busy === "create_request" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-                    {step === "tier" ? "Continuar" : "Enviar pedido"}
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

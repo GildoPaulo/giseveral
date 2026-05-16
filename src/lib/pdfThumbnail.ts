@@ -6,12 +6,13 @@
 
 type Source = File | Blob | ArrayBuffer | string;
 
+// Keep in sync with package.json pdfjs-dist version + DocumentViewer.tsx
+const PDFJS_VERSION = "5.7.284";
+
 async function loadPdfjs() {
   const pdfjs = await import("pdfjs-dist");
-  if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-    pdfjs.GlobalWorkerOptions.workerSrc =
-      `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
-  }
+  pdfjs.GlobalWorkerOptions.workerSrc =
+    `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
   return pdfjs;
 }
 
