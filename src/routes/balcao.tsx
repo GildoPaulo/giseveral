@@ -6,7 +6,7 @@ import {
   LogOut, Menu, X, ChevronRight, BoxesIcon, BookOpen,
   Wrench, Images, Megaphone, GraduationCap, Award,
   FileText, Newspaper, Mail, DollarSign, Bell, TrendingUp, SendHorizonal,
-  LayoutTemplate, Coins, Layers, ImageIcon, ShieldCheck, Sparkles,
+  LayoutTemplate, Coins, Layers, ImageIcon, ShieldCheck, Sparkles, UserCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,6 +43,7 @@ const navItems = [
   { to: "/balcao/creditos", label: "Créditos & Premium", icon: Coins },
   { to: "/balcao/pagamentos", label: "Pagamentos", icon: ShieldCheck },
   { to: "/balcao/ai-playground", label: "AI Playground", icon: Sparkles },
+  { to: "/balcao/revisoes", label: "Revisões humanas", icon: UserCheck },
   { to: "/balcao/precos", label: "Preços", icon: DollarSign },
 ] as const;
 

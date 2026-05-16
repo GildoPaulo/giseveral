@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Loader2, Sparkles, X, AlertCircle, Gauge } from "lucide-react";
 import { callGemini } from "@/services/gemini";
 import type { CvData } from "./types";
+import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
 
 type AtsResult = {
   score: number;
@@ -305,6 +306,24 @@ ${cvText}`;
                     >
                       <Sparkles className="h-3.5 w-3.5 text-gold" /> Analisar de novo
                     </button>
+
+                    {/* Feedback — link to human review if AI score is poor */}
+                    <div className="pt-2 border-t border-border flex items-center justify-between">
+                      <p className="text-[11px] text-muted-foreground">Análise útil?</p>
+                      <FeedbackWidget
+                        source="ats"
+                        sourceTitle={`ATS Score · ${result.score}/100`}
+                        output={JSON.stringify(result, null, 2)}
+                        prompt={cvToText(data).slice(0, 1500)}
+                        metadata={{ score: result.score, cv_name: data.personal.nome }}
+                        compact
+                        onAction={async (action) => {
+                          if (action.kind === "ai_improve" || action.kind === "ai_regenerate") {
+                            await run();
+                          }
+                        }}
+                      />
+                    </div>
                   </>
                 )}
               </div>

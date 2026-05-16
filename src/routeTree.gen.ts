@@ -47,6 +47,7 @@ import { Route as GaleriaSlugRouteImport } from './routes/galeria.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as BalcaoStockRouteImport } from './routes/balcao.stock'
 import { Route as BalcaoServicosRouteImport } from './routes/balcao.servicos'
+import { Route as BalcaoRevisoesRouteImport } from './routes/balcao.revisoes'
 import { Route as BalcaoProdutosRouteImport } from './routes/balcao.produtos'
 import { Route as BalcaoPrecosRouteImport } from './routes/balcao.precos'
 import { Route as BalcaoPedidosRouteImport } from './routes/balcao.pedidos'
@@ -267,6 +268,11 @@ const BalcaoServicosRoute = BalcaoServicosRouteImport.update({
   path: '/servicos',
   getParentRoute: () => BalcaoRoute,
 } as any)
+const BalcaoRevisoesRoute = BalcaoRevisoesRouteImport.update({
+  id: '/revisoes',
+  path: '/revisoes',
+  getParentRoute: () => BalcaoRoute,
+} as any)
 const BalcaoProdutosRoute = BalcaoProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
@@ -450,6 +456,7 @@ export interface FileRoutesByFullPath {
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
+  '/balcao/revisoes': typeof BalcaoRevisoesRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -517,6 +524,7 @@ export interface FileRoutesByTo {
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
+  '/balcao/revisoes': typeof BalcaoRevisoesRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -585,6 +593,7 @@ export interface FileRoutesById {
   '/balcao/pedidos': typeof BalcaoPedidosRoute
   '/balcao/precos': typeof BalcaoPrecosRoute
   '/balcao/produtos': typeof BalcaoProdutosRoute
+  '/balcao/revisoes': typeof BalcaoRevisoesRoute
   '/balcao/servicos': typeof BalcaoServicosRoute
   '/balcao/stock': typeof BalcaoStockRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -656,6 +665,7 @@ export interface FileRouteTypes {
     | '/balcao/pedidos'
     | '/balcao/precos'
     | '/balcao/produtos'
+    | '/balcao/revisoes'
     | '/balcao/servicos'
     | '/balcao/stock'
     | '/blog/$slug'
@@ -723,6 +733,7 @@ export interface FileRouteTypes {
     | '/balcao/pedidos'
     | '/balcao/precos'
     | '/balcao/produtos'
+    | '/balcao/revisoes'
     | '/balcao/servicos'
     | '/balcao/stock'
     | '/blog/$slug'
@@ -790,6 +801,7 @@ export interface FileRouteTypes {
     | '/balcao/pedidos'
     | '/balcao/precos'
     | '/balcao/produtos'
+    | '/balcao/revisoes'
     | '/balcao/servicos'
     | '/balcao/stock'
     | '/blog/$slug'
@@ -1129,6 +1141,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BalcaoServicosRouteImport
       parentRoute: typeof BalcaoRoute
     }
+    '/balcao/revisoes': {
+      id: '/balcao/revisoes'
+      path: '/revisoes'
+      fullPath: '/balcao/revisoes'
+      preLoaderRoute: typeof BalcaoRevisoesRouteImport
+      parentRoute: typeof BalcaoRoute
+    }
     '/balcao/produtos': {
       id: '/balcao/produtos'
       path: '/produtos'
@@ -1357,6 +1376,7 @@ interface BalcaoRouteChildren {
   BalcaoPedidosRoute: typeof BalcaoPedidosRoute
   BalcaoPrecosRoute: typeof BalcaoPrecosRoute
   BalcaoProdutosRoute: typeof BalcaoProdutosRoute
+  BalcaoRevisoesRoute: typeof BalcaoRevisoesRoute
   BalcaoServicosRoute: typeof BalcaoServicosRoute
   BalcaoStockRoute: typeof BalcaoStockRoute
   BalcaoIndexRoute: typeof BalcaoIndexRoute
@@ -1384,6 +1404,7 @@ const BalcaoRouteChildren: BalcaoRouteChildren = {
   BalcaoPedidosRoute: BalcaoPedidosRoute,
   BalcaoPrecosRoute: BalcaoPrecosRoute,
   BalcaoProdutosRoute: BalcaoProdutosRoute,
+  BalcaoRevisoesRoute: BalcaoRevisoesRoute,
   BalcaoServicosRoute: BalcaoServicosRoute,
   BalcaoStockRoute: BalcaoStockRoute,
   BalcaoIndexRoute: BalcaoIndexRoute,

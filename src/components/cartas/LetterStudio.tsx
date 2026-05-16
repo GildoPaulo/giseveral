@@ -6,6 +6,7 @@ import {
 import { toast } from "sonner";
 import { callGemini } from "@/services/gemini";
 import { fillTemplate, type LetterField } from "@/data/hub-cartas";
+import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
 
 type Message = {
   id: string;
@@ -331,6 +332,22 @@ ${filled}`;
           <div className="flex items-center justify-between gap-2 border-b border-border bg-background/80 backdrop-blur px-4 py-2.5">
             <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Pré-visualização A4</p>
             <div className="flex items-center gap-1">
+              {/* Feedback widget — only meaningful after AI has polished */}
+              {finalText && (
+                <FeedbackWidget
+                  source="letter"
+                  sourceTitle={`Carta — ${templateName} (${tone})`}
+                  output={liveTemplate}
+                  prompt={`Template: ${templateName}\nTom: ${tone}\nDados: ${JSON.stringify(values)}`}
+                  metadata={{ templateName, tone, values }}
+                  compact
+                  onAction={async (action) => {
+                    if (action.kind === "ai_improve" || action.kind === "ai_regenerate") {
+                      await regenerate();
+                    }
+                  }}
+                />
+              )}
               <button
                 type="button"
                 onClick={copyToClipboard}
