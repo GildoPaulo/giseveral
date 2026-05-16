@@ -13,6 +13,15 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { callGemini } from "@/services/gemini";
+import {
+  DndContext, closestCenter, KeyboardSensor, PointerSensor,
+  useSensor, useSensors, type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove, SortableContext, sortableKeyboardCoordinates,
+  useSortable, verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type {
   CvData,
   CvEducacao,
@@ -71,13 +80,23 @@ export function Sidebar({ data, onChange }: Props) {
     setAI("objetivo", false);
   }, [data]);
 
-  const suggestExpDescricao = useCallback(async (i: number, cargo: string, empresa: string, existing: string) => {
+  const suggestExpDescricao = useCallback(async (i: number, cargo: string, empresa: string, existing: string[]) => {
     const key = `exp-${i}`;
     setAI(key, true);
     try {
-      const prompt = `Escreve 3-4 bullet points de realizações e responsabilidades profissionais para o cargo de "${cargo || "Profissional"}" na empresa "${empresa || "empresa"}"${existing ? `. Contexto adicional: ${existing}` : ""}. Formato: uma frase por linha, começando por verbo de acção.`;
+      const contextHint = existing.filter(Boolean).length > 0
+        ? `\nContexto actual: ${existing.filter(Boolean).join(" | ")}`
+        : "";
+      const prompt = `Escreve 4 bullet points concisos e impactantes para o cargo de "${cargo || "Profissional"}" na empresa "${empresa || "empresa"}".${contextHint}
+Cada bullet começa por verbo de acção em português (Liderei, Implementei, Desenvolvi, Optimizei, Reduzi, etc.) e inclui métrica/impacto quando possível.
+Devolve APENAS uma lista de bullets, uma por linha, SEM numeração nem prefixos. Não escrevas introdução nem despedida.`;
       const text = await callGemini("cv_suggest", prompt);
-      setExp(i, "descricao", text.trim());
+      const bullets = text
+        .split(/\r?\n/)
+        .map((l) => l.replace(/^[-•*\d.)\s]+/, "").trim())
+        .filter((l) => l.length > 6)
+        .slice(0, 6);
+      if (bullets.length > 0) setExp(i, "bullets", bullets);
     } catch { /* silently fail */ }
     setAI(key, false);
   }, [data]);
@@ -112,9 +131,9 @@ export function Sidebar({ data, onChange }: Props) {
 
   const setObjetivo = (v: string) => onChange({ ...data, objetivo: v });
 
-  const setExp = (i: number, k: keyof CvExperiencia, v: string | boolean) => {
+  const setExp = (i: number, k: keyof CvExperiencia, v: string | boolean | string[]) => {
     const arr = [...data.experiencia];
-    arr[i] = { ...arr[i], [k]: v };
+    arr[i] = { ...arr[i], [k]: v } as CvExperiencia;
     onChange({ ...data, experiencia: arr });
   };
   const addExp = () =>
@@ -122,11 +141,36 @@ export function Sidebar({ data, onChange }: Props) {
       ...data,
       experiencia: [
         ...data.experiencia,
-        { id: uid(), empresa: "", cargo: "", inicio: "", fim: "", atual: false, descricao: "", localizacao: "" },
+        { id: uid(), empresa: "", cargo: "", inicio: "", fim: "", atual: false, descricao: "", bullets: [""], localizacao: "" },
       ],
     });
   const delExp = (i: number) =>
     onChange({ ...data, experiencia: data.experiencia.filter((_, j) => j !== i) });
+
+  const setBullet = (i: number, b: number, v: string) => {
+    const exp = data.experiencia[i];
+    const bullets = [...(exp.bullets ?? [])];
+    bullets[b] = v;
+    setExp(i, "bullets", bullets);
+  };
+  const addBullet = (i: number) => {
+    const exp = data.experiencia[i];
+    const bullets = [...(exp.bullets ?? []), ""];
+    setExp(i, "bullets", bullets);
+  };
+  const delBullet = (i: number, b: number) => {
+    const exp = data.experiencia[i];
+    const bullets = (exp.bullets ?? []).filter((_, j) => j !== b);
+    setExp(i, "bullets", bullets);
+  };
+  const moveBullet = (i: number, b: number, direction: "up" | "down") => {
+    const exp = data.experiencia[i];
+    const bullets = [...(exp.bullets ?? [])];
+    const swap = direction === "up" ? b - 1 : b + 1;
+    if (swap < 0 || swap >= bullets.length) return;
+    [bullets[b], bullets[swap]] = [bullets[swap], bullets[b]];
+    setExp(i, "bullets", bullets);
+  };
 
   const setEdu = (i: number, k: keyof CvEducacao, v: string) => {
     const arr = [...data.educacao];
@@ -186,6 +230,27 @@ export function Sidebar({ data, onChange }: Props) {
 
   const toggleSection = (key: CvSectionKey) =>
     onChange({ ...data, sections: { ...data.sections, [key]: { ...data.sections[key], visible: !data.sections[key].visible } } });
+
+  // ── dnd-kit shared setup ───────────────────────────────────────────────
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  function reorderByDrag<T extends { id: string }>(
+    key: "experiencia" | "educacao" | "skills" | "idiomas" | "projetos" | "certificacoes",
+  ) {
+    return (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      const arr = data[key] as T[];
+      const oldIndex = arr.findIndex((it) => it.id === active.id);
+      const newIndex = arr.findIndex((it) => it.id === over.id);
+      if (oldIndex < 0 || newIndex < 0) return;
+      const next = arrayMove(arr, oldIndex, newIndex);
+      onChange({ ...data, [key]: next });
+    };
+  }
 
   return (
     <div className="w-[35%] min-w-[300px] max-w-[520px] shrink-0 border-r border-border bg-card overflow-y-auto flex flex-col">
@@ -295,9 +360,12 @@ export function Sidebar({ data, onChange }: Props) {
         onToggleVisible={() => toggleSection("experiencia")}
         onAdd={addExp}
       >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorderByDrag("experiencia")}>
+        <SortableContext items={data.experiencia.map((e) => e.id)} strategy={verticalListSortingStrategy}>
         {data.experiencia.map((exp, i) => (
           <ItemCard
             key={exp.id}
+            id={exp.id}
             title={exp.cargo || exp.empresa || "Nova experiência"}
             onDelete={() => delExp(i)}
             onMoveUp={() => onChange({ ...data, experiencia: up(data.experiencia, i) })}
@@ -316,18 +384,39 @@ export function Sidebar({ data, onChange }: Props) {
               <input type="checkbox" checked={exp.atual} onChange={e => setExp(i, "atual", e.target.checked)} className="rounded" />
               Emprego atual
             </label>
-            <TextareaField label="Descrição" value={exp.descricao} onChange={v => setExp(i, "descricao", v)} rows={3} />
-            <button
-              type="button"
-              onClick={() => suggestExpDescricao(i, exp.cargo, exp.empresa, exp.descricao)}
-              disabled={aiLoading.has(`exp-${i}`)}
-              className="flex items-center gap-1.5 rounded-md border border-gold/40 bg-gold/10 px-2.5 py-1.5 text-[10px] font-semibold text-gold hover:bg-gold/20 transition-colors disabled:opacity-50 w-full justify-center"
-            >
-              {aiLoading.has(`exp-${i}`) ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
-              {aiLoading.has(`exp-${i}`) ? "A gerar…" : "✨ Sugerir descrição com IA"}
-            </button>
+
+            {/* Bullet points list */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Realizações</label>
+                <button
+                  type="button"
+                  onClick={() => suggestExpDescricao(i, exp.cargo, exp.empresa, exp.bullets ?? [])}
+                  disabled={aiLoading.has(`exp-${i}`)}
+                  className="inline-flex items-center gap-1 rounded-md border border-gold/40 bg-gold/10 px-2 py-0.5 text-[10px] font-semibold text-gold hover:bg-gold/20 transition-colors disabled:opacity-50"
+                  title="Gerar 4 bullets com IA"
+                >
+                  {aiLoading.has(`exp-${i}`) ? <Loader2 size={10} className="animate-spin" /> : <Sparkles size={10} />}
+                  IA
+                </button>
+              </div>
+              <BulletList
+                bullets={exp.bullets ?? []}
+                onChange={(b, v) => setBullet(i, b, v)}
+                onAdd={() => addBullet(i)}
+                onDelete={(b) => delBullet(i, b)}
+                onMove={(b, d) => moveBullet(i, b, d)}
+              />
+            </div>
+
+            {/* Optional free-text fallback */}
+            {(!exp.bullets || exp.bullets.length === 0) && (
+              <TextareaField label="Descrição livre (opcional)" value={exp.descricao} onChange={v => setExp(i, "descricao", v)} rows={3} />
+            )}
           </ItemCard>
         ))}
+        </SortableContext>
+        </DndContext>
       </Panel>
 
       {/* Educação */}
@@ -340,9 +429,12 @@ export function Sidebar({ data, onChange }: Props) {
         onToggleVisible={() => toggleSection("educacao")}
         onAdd={addEdu}
       >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorderByDrag("educacao")}>
+        <SortableContext items={data.educacao.map((e) => e.id)} strategy={verticalListSortingStrategy}>
         {data.educacao.map((edu, i) => (
           <ItemCard
             key={edu.id}
+            id={edu.id}
             title={edu.grau || edu.instituicao || "Nova educação"}
             onDelete={() => delEdu(i)}
             onMoveUp={() => onChange({ ...data, educacao: up(data.educacao, i) })}
@@ -360,6 +452,8 @@ export function Sidebar({ data, onChange }: Props) {
             <Field label="Classificação" value={edu.nota} onChange={v => setEdu(i, "nota", v)} />
           </ItemCard>
         ))}
+        </SortableContext>
+        </DndContext>
       </Panel>
 
       {/* Skills */}
@@ -372,9 +466,12 @@ export function Sidebar({ data, onChange }: Props) {
         onToggleVisible={() => toggleSection("skills")}
         onAdd={addSk}
       >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorderByDrag("skills")}>
+        <SortableContext items={data.skills.map((e) => e.id)} strategy={verticalListSortingStrategy}>
         {data.skills.map((sk, i) => (
           <ItemCard
             key={sk.id}
+            id={sk.id}
             title={sk.nome || "Nova competência"}
             onDelete={() => delSk(i)}
             onMoveUp={() => onChange({ ...data, skills: up(data.skills, i) })}
@@ -418,6 +515,8 @@ export function Sidebar({ data, onChange }: Props) {
             </div>
           </ItemCard>
         ))}
+        </SortableContext>
+        </DndContext>
       </Panel>
 
       {/* Idiomas */}
@@ -430,20 +529,25 @@ export function Sidebar({ data, onChange }: Props) {
         onToggleVisible={() => toggleSection("idiomas")}
         onAdd={addId}
       >
-        {data.idiomas.map((id, i) => (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorderByDrag("idiomas")}>
+        <SortableContext items={data.idiomas.map((e) => e.id)} strategy={verticalListSortingStrategy}>
+        {data.idiomas.map((idi, i) => (
           <ItemCard
-            key={id.id}
-            title={id.idioma || "Novo idioma"}
+            key={idi.id}
+            id={idi.id}
+            title={idi.idioma || "Novo idioma"}
             onDelete={() => delId(i)}
             onMoveUp={() => onChange({ ...data, idiomas: up(data.idiomas, i) })}
             onMoveDown={() => onChange({ ...data, idiomas: down(data.idiomas, i) })}
             canUp={i > 0}
             canDown={i < data.idiomas.length - 1}
           >
-            <Field label="Idioma" value={id.idioma} onChange={v => setId(i, "idioma", v)} />
-            <Field label="Nível" value={id.nivel} onChange={v => setId(i, "nivel", v)} placeholder="B2, C1, Nativo..." />
+            <Field label="Idioma" value={idi.idioma} onChange={v => setId(i, "idioma", v)} />
+            <Field label="Nível" value={idi.nivel} onChange={v => setId(i, "nivel", v)} placeholder="B2, C1, Nativo..." />
           </ItemCard>
         ))}
+        </SortableContext>
+        </DndContext>
       </Panel>
 
       {/* Projetos */}
@@ -456,9 +560,12 @@ export function Sidebar({ data, onChange }: Props) {
         onToggleVisible={() => toggleSection("projetos")}
         onAdd={addProj}
       >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorderByDrag("projetos")}>
+        <SortableContext items={data.projetos.map((e) => e.id)} strategy={verticalListSortingStrategy}>
         {data.projetos.map((proj, i) => (
           <ItemCard
             key={proj.id}
+            id={proj.id}
             title={proj.nome || "Novo projeto"}
             onDelete={() => delProj(i)}
             onMoveUp={() => onChange({ ...data, projetos: up(data.projetos, i) })}
@@ -472,6 +579,8 @@ export function Sidebar({ data, onChange }: Props) {
             <TextareaField label="Descrição" value={proj.descricao} onChange={v => setProj(i, "descricao", v)} rows={3} />
           </ItemCard>
         ))}
+        </SortableContext>
+        </DndContext>
       </Panel>
 
       {/* Certificações */}
@@ -484,9 +593,12 @@ export function Sidebar({ data, onChange }: Props) {
         onToggleVisible={() => toggleSection("certificacoes")}
         onAdd={addCert}
       >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={reorderByDrag("certificacoes")}>
+        <SortableContext items={data.certificacoes.map((e) => e.id)} strategy={verticalListSortingStrategy}>
         {data.certificacoes.map((cert, i) => (
           <ItemCard
             key={cert.id}
+            id={cert.id}
             title={cert.nome || "Nova certificação"}
             onDelete={() => delCert(i)}
             onMoveUp={() => onChange({ ...data, certificacoes: up(data.certificacoes, i) })}
@@ -500,6 +612,8 @@ export function Sidebar({ data, onChange }: Props) {
             <Field label="URL" value={cert.url} onChange={v => setCert(i, "url", v)} />
           </ItemCard>
         ))}
+        </SortableContext>
+        </DndContext>
       </Panel>
 
       <div className="h-8" />
@@ -582,6 +696,7 @@ function Panel({ label, open, onToggle, visible, onToggleVisible, onAdd, childre
 }
 
 interface ItemCardProps {
+  id: string;
   title: string;
   onDelete: () => void;
   onMoveUp: () => void;
@@ -591,23 +706,43 @@ interface ItemCardProps {
   children: React.ReactNode;
 }
 
-function ItemCard({ title, onDelete, onMoveUp, onMoveDown, canUp, canDown, children }: ItemCardProps) {
+function ItemCard({ id, title, onDelete, onMoveUp, onMoveDown, canUp, canDown, children }: ItemCardProps) {
   const [expanded, setExpanded] = useState(true);
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+
+  const dragStyle: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 10 : undefined,
+  };
 
   return (
     <motion.div
+      ref={setNodeRef}
+      style={dragStyle}
       layout
       whileHover={{ borderColor: "hsl(var(--brand) / 0.4)" }}
       transition={{ layout: { duration: 0.2 }, borderColor: { duration: 0.15 } }}
       className="rounded-xl border border-border bg-background shadow-sm hover:shadow-md transition-shadow"
     >
-      <button
-        type="button"
-        onClick={() => setExpanded(p => !p)}
-        className="w-full flex items-center gap-2 px-3 py-2.5 cursor-pointer hover:bg-muted/40 transition-colors rounded-t-xl"
-      >
-        <GripVertical size={12} className="text-muted-foreground/40 shrink-0" />
-        <span className="text-[11px] font-semibold flex-1 truncate text-left">{title}</span>
+      <div className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-muted/40 transition-colors rounded-t-xl">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="grid h-6 w-4 place-items-center cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-muted-foreground shrink-0"
+          aria-label="Arrastar para reordenar"
+        >
+          <GripVertical size={12} />
+        </button>
+        <button
+          type="button"
+          onClick={() => setExpanded(p => !p)}
+          className="flex-1 text-left flex items-center gap-2 truncate"
+        >
+          <span className="text-[11px] font-semibold truncate">{title}</span>
+        </button>
         <div className="flex items-center gap-0.5">
           <span
             role="button"
@@ -636,7 +771,7 @@ function ItemCard({ title, onDelete, onMoveUp, onMoveDown, canUp, canDown, child
             <Trash2 size={11} />
           </span>
         </div>
-      </button>
+      </div>
       <AnimatePresence initial={false}>
         {expanded && (
           <motion.div
@@ -699,6 +834,74 @@ function TextareaField({ label, value, onChange, rows = 3 }: TextareaFieldProps)
         rows={rows}
         className="w-full text-xs bg-background border border-input rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring resize-none placeholder:text-muted-foreground/50"
       />
+    </div>
+  );
+}
+
+interface BulletListProps {
+  bullets: string[];
+  onChange: (index: number, value: string) => void;
+  onAdd: () => void;
+  onDelete: (index: number) => void;
+  onMove: (index: number, direction: "up" | "down") => void;
+}
+
+function BulletList({ bullets, onChange, onAdd, onDelete, onMove }: BulletListProps) {
+  return (
+    <div className="space-y-1.5">
+      <AnimatePresence initial={false}>
+        {bullets.map((b, i) => (
+          <motion.div
+            key={i}
+            layout
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.18 }}
+            className="flex items-start gap-1.5 group"
+          >
+            <span className="mt-2 text-muted-foreground/60 text-[12px] leading-none select-none">•</span>
+            <input
+              type="text"
+              value={b}
+              onChange={(e) => onChange(i, e.target.value)}
+              placeholder={`Bullet ${i + 1} — começa com verbo (Liderei, Implementei…)`}
+              className="flex-1 min-w-0 text-xs bg-background border border-input rounded-md px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/40"
+            />
+            <div className="flex items-center gap-0.5 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity">
+              <button
+                type="button"
+                onClick={() => onMove(i, "up")}
+                disabled={i === 0}
+                className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:text-foreground disabled:opacity-25 text-[10px]"
+                aria-label="Subir"
+              >▲</button>
+              <button
+                type="button"
+                onClick={() => onMove(i, "down")}
+                disabled={i === bullets.length - 1}
+                className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:text-foreground disabled:opacity-25 text-[10px]"
+                aria-label="Descer"
+              >▼</button>
+              <button
+                type="button"
+                onClick={() => onDelete(i)}
+                className="grid h-6 w-6 place-items-center rounded text-muted-foreground hover:text-destructive"
+                aria-label="Remover"
+              >
+                <Trash2 size={10} />
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="w-full inline-flex items-center justify-center gap-1 rounded-md border border-dashed border-border py-1.5 text-[10px] font-semibold text-muted-foreground hover:border-brand/40 hover:text-brand transition-colors"
+      >
+        <Plus size={10} /> Adicionar bullet
+      </button>
     </div>
   );
 }

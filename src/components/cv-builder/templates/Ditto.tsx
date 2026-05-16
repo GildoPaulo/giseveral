@@ -1,6 +1,7 @@
 import type { CvData } from "../types";
 import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
 import { TemplateFooter } from "./TemplateFooter";
+import { ExperienceBody } from "./experienceBody";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -77,7 +78,7 @@ export function DittoPreview({ data }: Props) {
                   </span>
                 </div>
                 <div style={{ fontSize: s(10.5), fontWeight: 600, color: P }}>{exp.empresa}{exp.localizacao ? ` · ${exp.localizacao}` : ""}</div>
-                {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.65, marginTop: 3, opacity: 0.7, ...longTextStyle }}>{exp.descricao}</p>}
+                <ExperienceBody exp={exp} fontSize={s(10)} lineHeight={1.65} marginTop={3} opacity={0.7} textStyle={longTextStyle} />
               </div>
             ))}
           </Section>

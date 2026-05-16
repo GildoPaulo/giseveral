@@ -55,7 +55,14 @@ export interface CvExperiencia {
   inicio: string;
   fim: string;
   atual: boolean;
+  /**
+   * Free-text fallback when no `bullets` are set. Kept for backward compat
+   * with existing CVs and for templates that prefer prose. New CVs should
+   * prefer `bullets` for ATS-friendly impact.
+   */
   descricao: string;
+  /** Bullet-point achievements/responsibilities — preferred when non-empty. */
+  bullets?: string[];
   localizacao: string;
 }
 
@@ -167,8 +174,13 @@ export const DEFAULT_CV_DATA: CvData = {
       fim: "Presente",
       atual: true,
       localizacao: "Maputo",
-      descricao:
-        "Responsável pelo desenvolvimento e manutenção de soluções full-stack usando React, Node.js e PostgreSQL. Liderou equipa de 5 pessoas, aumentou a produtividade em 30%, implementou pipeline CI/CD que reduziu o tempo de deploy em 40% e migrou uma aplicação legacy para microserviços em Kubernetes.",
+      descricao: "",
+      bullets: [
+        "Liderei equipa de 5 engenheiros, aumentando a produtividade em 30%.",
+        "Implementei pipeline CI/CD que reduziu o tempo de deploy em 40%.",
+        "Migrei aplicação legacy para microserviços em Kubernetes.",
+        "Desenvolvi soluções full-stack em React, Node.js e PostgreSQL.",
+      ],
     },
     {
       id: "exp2",
@@ -178,8 +190,12 @@ export const DEFAULT_CV_DATA: CvData = {
       fim: "Dez 2021",
       atual: false,
       localizacao: "Maputo",
-      descricao:
-        "Desenvolveu e manteve 3 aplicações web para clientes internacionais. Colaborou com designers UX para melhorar a experiência do utilizador, resultando num aumento de 25% na retenção e maior rapidez na entrega de novas funcionalidades.",
+      descricao: "",
+      bullets: [
+        "Desenvolvi e mantive 3 aplicações web para clientes internacionais.",
+        "Colaborei com designers UX, aumentando a retenção em 25%.",
+        "Entreguei novas funcionalidades em ciclos de 2 semanas.",
+      ],
     },
   ],
   educacao: [

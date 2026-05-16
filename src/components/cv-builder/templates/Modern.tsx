@@ -2,6 +2,7 @@ import type { CvData } from "../types";
 import { SKILL_PCT } from "../types";
 import { a4PageStyle, flexColumnStyle, longTextStyle } from "./templateStyles";
 import { TemplateFooter } from "./TemplateFooter";
+import { ExperienceBody } from "./experienceBody";
 
 // ── Font-size scaling ──────────────────────────────────────────────────────────
 // The TopBar feeds design.fontSize (12–32 px) here. The main Preview function
@@ -139,7 +140,7 @@ export function ModernPreview({ data }: Props) {
                       {exp.inicio} — {exp.atual ? "Presente" : exp.fim}
                     </div>
                   </div>
-                  {exp.descricao && <p style={{ fontSize: s(10), lineHeight: 1.65, marginTop: 4, opacity: 0.7, ...longTextStyle }}>{exp.descricao}</p>}
+                  <ExperienceBody exp={exp} fontSize={s(10)} lineHeight={1.65} marginTop={4} opacity={0.7} textStyle={longTextStyle} />
                 </div>
               ))}
             </div>
